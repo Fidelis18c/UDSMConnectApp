@@ -20,7 +20,7 @@ class AnnouncementsScreen extends ConsumerWidget {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss',
-      barrierColor: Colors.black87,
+      barrierColor: Colors.black.withOpacity(0.5),
       transitionDuration: const Duration(milliseconds: 350),
       pageBuilder: (context, anim1, anim2) {
         return Scaffold(
