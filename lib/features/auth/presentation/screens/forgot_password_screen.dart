@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../navigation/route_names.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/udsm_text_field.dart';
+import '../providers/auth_provider.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({Key? key}) : super(key: key);
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
 
   @override
@@ -20,13 +22,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _onSend() {
-    // Navigate to OTP
-    context.pushNamed(RouteNames.verifyOtp);
+  void _onSend() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email')),
+      );
+      return;
+    }
+
+    final success = await ref.read(authProvider.notifier).requestOtp(email);
+    
+    if (mounted) {
+      if (success) {
+        context.pushNamed(RouteNames.verifyOtp);
+      } else {
+        final error = ref.read(authProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? 'Failed to send OTP')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -70,8 +92,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: 32),
                       UdsmButton(
-                        onPressed: _onSend,
-                        label: 'Send',
+                        onPressed: authState.isLoading ? null : _onSend,
+                        label: authState.isLoading ? 'Sending...' : 'Send',
                       ),
                       const Spacer(),
                       Padding(

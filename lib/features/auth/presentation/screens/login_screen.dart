@@ -1,35 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../navigation/route_names.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/udsm_text_field.dart';
+import '../providers/auth_provider.dart';
 
-
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _regNumberController = TextEditingController();
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _regNumberController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _onLogin() {
-    // Scaffold UI logic simulating network
-    context.goNamed(RouteNames.announcements);
+  void _onLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    await ref.read(authProvider.notifier).login(email, password);
+    
+    if (mounted) {
+      final authState = ref.read(authProvider);
+      if (authState.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authState.error!)),
+        );
+      } else if (authState.isAuthenticated) {
+        context.goNamed(RouteNames.announcements);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -75,9 +98,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             UdsmTextField(
-                              controller: _regNumberController,
-                              hint: 'Registration Number',
-                              prefixIcon: Icons.person_outline,
+                              controller: _emailController,
+                              hint: 'Email Address',
+                              prefixIcon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
                             ),
                             const SizedBox(height: 16),
                             UdsmTextField(
@@ -102,8 +126,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 24),
                             UdsmButton(
-                              onPressed: _onLogin,
-                              label: 'sign in',
+                              onPressed: authState.isLoading ? null : _onLogin,
+                              label: authState.isLoading ? 'Signing in...' : 'sign in',
                             ),
                             const SizedBox(height: 24),
                             Row(

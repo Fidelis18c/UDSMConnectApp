@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../navigation/route_names.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/udsm_text_field.dart';
 import '../../../../core/widgets/udsm_dropdown.dart';
+import '../providers/auth_provider.dart';
 
-
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _regNumberController = TextEditingController();
   final _emailController = TextEditingController();
   final _programmeController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String? _selectedCollege;
+  String? _selectedSex;
   String? _selectedYear;
 
   @override
@@ -33,13 +34,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _onRegister() {
-    // Scaffold UI logic simulating network
-    context.goNamed(RouteNames.preferences);
+  void _onRegister() async {
+    if (_nameController.text.isEmpty ||
+        _regNumberController.text.isEmpty ||
+        _programmeController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _selectedSex == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    final success = await ref.read(authProvider.notifier).register(
+          fullName: _nameController.text.trim(),
+          registrationNumber: _regNumberController.text.trim(),
+          course: _programmeController.text.trim(),
+          sex: _selectedSex!.toUpperCase(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration successful! Please login.')),
+        );
+        context.goNamed(RouteNames.login);
+      } else {
+        final error = ref.read(authProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? 'Registration failed')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registration'),
@@ -97,14 +132,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       Expanded(
                         child: UdsmDropdown<String>(
-                          value: _selectedCollege,
-                          hint: 'College',
+                          value: _selectedSex,
+                          hint: 'Sex',
                           items: const [
-                            DropdownMenuItem(value: 'CoICT', child: Text('CoICT')),
-                            DropdownMenuItem(value: 'CoET', child: Text('CoET')),
-                            DropdownMenuItem(value: 'UDBS', child: Text('UDBS')),
+                            DropdownMenuItem(value: 'Male', child: Text('Male')),
+                            DropdownMenuItem(value: 'Female', child: Text('Female')),
                           ],
-                          onChanged: (val) => setState(() => _selectedCollege = val),
+                          onChanged: (val) => setState(() => _selectedSex = val),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -139,8 +173,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 32),
                   UdsmButton(
-                    onPressed: _onRegister,
-                    label: 'Create an Account',
+                    onPressed: authState.isLoading ? null : _onRegister,
+                    label: authState.isLoading ? 'Creating account...' : 'Create an Account',
                   ),
                 ],
               ),

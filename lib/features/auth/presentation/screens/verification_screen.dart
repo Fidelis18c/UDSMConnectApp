@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../navigation/route_names.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/otp_digit_box.dart';
+import '../providers/auth_provider.dart';
 
-class VerificationScreen extends StatefulWidget {
+class VerificationScreen extends ConsumerStatefulWidget {
   const VerificationScreen({Key? key}) : super(key: key);
 
   @override
-  State<VerificationScreen> createState() => _VerificationScreenState();
+  ConsumerState<VerificationScreen> createState() => _VerificationScreenState();
 }
 
-class _VerificationScreenState extends State<VerificationScreen> {
-  final List<TextEditingController> _controllers = List.generate(4, (index) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
+class _VerificationScreenState extends ConsumerState<VerificationScreen> {
+  final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
   @override
   void dispose() {
@@ -27,7 +29,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   }
 
   void _onOtpChanged(int index, String value) {
-    if (value.isNotEmpty && index < 3) {
+    if (value.isNotEmpty && index < 5) {
       _focusNodes[index + 1].requestFocus();
     } else if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
@@ -35,14 +37,33 @@ class _VerificationScreenState extends State<VerificationScreen> {
     setState(() {}); // Rebuild to update border colors
   }
 
-  void _onVerify() {
-    // For testing purposes, we allow navigation even if OTP isn't fully filled
-    // In production, you'd check: if (otp.length == 4)
-    context.goNamed(RouteNames.newPassword);
+  void _onVerify() async {
+    final otpCode = _controllers.map((c) => c.text).join();
+    if (otpCode.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the full 6-digit code')),
+      );
+      return;
+    }
+
+    final success = await ref.read(authProvider.notifier).verifyOtp(otpCode);
+    
+    if (mounted) {
+      if (success) {
+        context.goNamed(RouteNames.newPassword);
+      } else {
+        final error = ref.read(authProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? 'Invalid code')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -71,7 +92,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Enter the 4-digit code sent to your email',
+                        'Enter the 6-digit code sent to your email',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
@@ -80,7 +101,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       const SizedBox(height: 48),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(4, (index) {
+                        children: List.generate(6, (index) {
                           return OtpDigitBox(
                             controller: _controllers[index],
                             focusNode: _focusNodes[index],
@@ -90,20 +111,28 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
                       const SizedBox(height: 32),
                       UdsmButton(
-                        onPressed: _onVerify,
-                        label: 'Verify',
+                        onPressed: authState.isLoading ? null : _onVerify,
+                        label: authState.isLoading ? 'Verifying...' : 'Verify',
                       ),
                       const Spacer(),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 24),
                         child: Center(
                           child: TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              if (authState.resetEmail != null) {
+                                ref.read(authProvider.notifier).requestOtp(authState.resetEmail!);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('OTP Resent!')),
+                                );
+                              }
+                            },
                             child: Text(
                               'Resend it',
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
                               ),
                             ),
                           ),
