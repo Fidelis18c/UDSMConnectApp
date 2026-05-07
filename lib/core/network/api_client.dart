@@ -11,12 +11,16 @@ class ApiClient {
   }
 
   ApiClient._internal() {
-    // For physical device testing, use your computer's local IP.
-    // User's IP: 10.218.47.26
+    // If you are hotspotting from your phone:
+    // 1. Run 'ipconfig' on your PC.
+    // 2. Look for "IPv4 Address" under your Wireless LAN adapter (usually 192.168.43.x).
+    // 3. Replace the IP below with that address.
     String baseUrl = 'http://localhost:3000/api';
     
     if (!kIsWeb && Platform.isAndroid) {
-      baseUrl = 'http://10.218.47.26:3000/api';
+      // 10.0.2.2 is the special IP for Android Emulators to reach the host PC
+      // For physical devices, use your PC's IP (e.g., 'http://192.168.43.100:3000/api')
+      baseUrl = 'http://192.168.1.109:3000/api'; 
     }
 
     dio = Dio(
