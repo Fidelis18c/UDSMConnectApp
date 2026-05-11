@@ -12,7 +12,6 @@ class RouteNames {
 
   // Profile (Standalone)
   static const String profile = 'profile';
-  static const String editProfile = 'editProfile';
 
   // Main Shell (Home)
   static const String announcements = 'announcements';

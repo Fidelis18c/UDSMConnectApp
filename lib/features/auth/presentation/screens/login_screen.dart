@@ -5,6 +5,7 @@ import '../../../../navigation/route_names.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/udsm_text_field.dart';
 import '../providers/auth_provider.dart';
+import '../../../profile/presentation/providers/user_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -44,6 +45,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           SnackBar(content: Text(authState.error!)),
         );
       } else if (authState.isAuthenticated) {
+        final u = authState.user;
+        if (u != null) {
+          ref.read(userProvider.notifier).syncFromAuth(u);
+        }
         context.goNamed(RouteNames.announcements);
       }
     }

@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: Backend APIs for the UDSM Information Dissemination Platform. Built with Next.js App Router.
 servers:
-  - url: http://localhost:3000/api
+  - url: https://fyp-backend-pi-one.vercel.app/api
     description: Local development server
     
 components:

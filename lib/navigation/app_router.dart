@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'route_names.dart';
 
@@ -14,11 +13,12 @@ import '../features/auth/presentation/screens/new_password_screen.dart';
 import '../features/for_you/presentation/screens/preferences_screen.dart';
 
 import '../features/profile/presentation/screens/profile_screen.dart';
-import '../features/profile/presentation/screens/edit_profile_screen.dart';
+
+import '../features/for_you/presentation/screens/for_you_screen.dart';
 
 import 'main_shell.dart';
-import '../features/announcements/presentation/screens/announcements_screen.dart';
-import '../features/announcements/presentation/screens/post_detail_screen.dart';
+import '../features/announcements/news_feed/news_feed_screen.dart';
+import '../features/announcements/post_detail/post_detail_screen.dart';
 import 'package:udsm_connect/features/compose/presentation/screens/create_story_screen.dart';
 import '../features/compose/presentation/screens/compose_announcement_screen.dart';
 import '../features/feedback/presentation/screens/feedback_screen.dart';
@@ -81,13 +81,6 @@ final appRouter = GoRouter(
       path: '/profile',
       name: RouteNames.profile,
       builder: (context, state) => const ProfileScreen(),
-      routes: [
-        GoRoute(
-          path: 'edit',
-          name: RouteNames.editProfile,
-          builder: (context, state) => const EditProfileScreen(),
-        ),
-      ],
     ),
 
     // --- Main Shell (Bottom Nav) ---
@@ -102,7 +95,7 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/announcements',
               name: RouteNames.announcements,
-              builder: (context, state) => const AnnouncementsScreen(),
+              builder: (context, state) => const NewsFeedScreen(),
               routes: [
                 GoRoute(
                   path: 'create',
@@ -113,8 +106,12 @@ final appRouter = GoRouter(
                   path: ':id',
                   name: RouteNames.postDetail,
                   builder: (context, state) {
-                    final post = state.extra as Post;
-                    return PostDetailScreen(post: post);
+                    final id = state.pathParameters['id']!;
+                    final extra = state.extra;
+                    return PostDetailScreen(
+                      announcementId: id,
+                      prefetchPost: extra is Post ? extra : null,
+                    );
                   },
                 ),
               ],
@@ -139,7 +136,7 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/for-you',
               name: RouteNames.forYou,
-              builder: (context, state) => const AnnouncementsScreen(),
+              builder: (context, state) => const ForYouScreen(),
             ),
           ],
         ),

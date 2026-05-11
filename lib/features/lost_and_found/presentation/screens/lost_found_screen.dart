@@ -11,7 +11,8 @@ class LostFoundScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final allPosts = ref.watch(announcementsProvider);
+    final announcementsAsync = ref.watch(announcementsProvider);
+    final allPosts = announcementsAsync.value ?? [];
     final lostFoundItems = allPosts.where((post) => post.category == 'Lost and Found').toList();
 
     return Scaffold(

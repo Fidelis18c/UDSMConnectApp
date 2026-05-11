@@ -48,9 +48,10 @@ class UserData {
       name: fullName,
       registrationNumber: registrationNumber ?? 'N/A',
       email: email,
-      college: 'Unknown', 
+      college: 'Unknown',
       programme: 'Unknown',
       year: 'Unknown',
+      phone: '',
     );
   }
 }

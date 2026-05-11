@@ -44,7 +44,7 @@ class _CreateLostFoundScreenState extends ConsumerState<CreateLostFoundScreen> {
       category: 'Lost and Found',
     );
 
-    ref.read(announcementsProvider.notifier).addPost(newPost);
+    ref.read(announcementsProvider.notifier).prependLocal(newPost);
     context.pop();
   }
 

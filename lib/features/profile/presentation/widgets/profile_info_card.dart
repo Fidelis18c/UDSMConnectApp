@@ -1,33 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:udsm_connect/core/models/user_model.dart';
+import 'package:udsm_connect/core/theme/app_colors.dart';
 
-class ProfileDetailRow extends StatelessWidget {
-  final String keyLabel;
-  final String valueLabel;
+class ProfilePersonalRow extends StatelessWidget {
+  final String label;
+  final String value;
 
-  const ProfileDetailRow({
-    Key? key,
-    required this.keyLabel,
-    required this.valueLabel,
-  }) : super(key: key);
+  const ProfilePersonalRow({
+    super.key,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            keyLabel,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  letterSpacing: 0.15,
                 ),
           ),
+          const SizedBox(height: 4),
           Text(
-            valueLabel,
+            value.isEmpty ? '—' : value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  height: 1.3,
                 ),
           ),
         ],
@@ -40,30 +45,35 @@ class ProfileInfoCard extends StatelessWidget {
   final UserModel user;
 
   const ProfileInfoCard({
-    Key? key,
+    super.key,
     required this.user,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
+        color: const Color(0xFF252525),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ProfileDetailRow(keyLabel: 'Reg Number', valueLabel: user.registrationNumber),
-          const Divider(height: 16),
-          ProfileDetailRow(keyLabel: 'College', valueLabel: user.college),
-          const Divider(height: 16),
-          ProfileDetailRow(keyLabel: 'Program', valueLabel: user.programme),
-          const Divider(height: 16),
-          ProfileDetailRow(keyLabel: 'Year', valueLabel: user.year),
-          const Divider(height: 16),
-          ProfileDetailRow(keyLabel: 'Email', valueLabel: user.email),
+          ProfilePersonalRow(label: 'Name', value: user.name),
+          const Divider(height: 1, color: AppColors.divider),
+          ProfilePersonalRow(label: 'Id', value: user.registrationNumber),
+          const Divider(height: 1, color: AppColors.divider),
+          ProfilePersonalRow(label: 'Course', value: user.programme),
+          const Divider(height: 1, color: AppColors.divider),
+          ProfilePersonalRow(label: 'College', value: user.college),
+          const Divider(height: 1, color: AppColors.divider),
+          ProfilePersonalRow(label: 'E-mail', value: user.email),
+          const Divider(height: 1, color: AppColors.divider),
+          ProfilePersonalRow(label: 'Phone', value: user.phone),
+          const Divider(height: 1, color: AppColors.divider),
+          ProfilePersonalRow(label: 'Year', value: user.year),
         ],
       ),
     );

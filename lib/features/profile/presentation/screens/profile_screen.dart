@@ -1,56 +1,233 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:udsm_connect/navigation/route_names.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
-import 'package:udsm_connect/features/profile/presentation/widgets/profile_info_card.dart';
-import 'package:udsm_connect/features/profile/presentation/widgets/action_list_card.dart';
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
+import 'package:udsm_connect/features/profile/presentation/widgets/edit_profile_bottom_sheet.dart';
+import 'package:udsm_connect/features/profile/presentation/widgets/profile_info_card.dart';
+import 'package:udsm_connect/navigation/route_names.dart';
 
 class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
-  void _onEditProfile(BuildContext context) {
-    context.pushNamed(RouteNames.editProfile);
+  void _popOrHome(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+    context.goNamed(RouteNames.announcements);
+  }
+
+  void _openEditSheet(BuildContext context, WidgetRef ref) {
+    final user = ref.read(userProvider);
+    showEditProfileBottomSheet(
+      context,
+      user: user,
+      onSave: ({
+        required name,
+        required registrationNumber,
+        required programme,
+        required college,
+        required email,
+        required phone,
+        required year,
+      }) {
+        ref.read(userProvider.notifier).updateProfile(
+              name: name,
+              registrationNumber: registrationNumber,
+              programme: programme,
+              college: college,
+              email: email,
+              phone: phone,
+              year: year,
+            );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
-    final initials = user.name.isNotEmpty 
-        ? user.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').join().toUpperCase()
+    final initials = user.name.isNotEmpty
+        ? user.name
+            .trim()
+            .split(' ')
+            .where((e) => e.isNotEmpty)
+            .map((e) => e[0])
+            .join()
+            .toUpperCase()
         : '?';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
+      backgroundColor: AppColors.background,
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          physics: const BouncingScrollPhysics(),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 24),
-              AvatarInitials(
-                initials: initials,
-                imageUrl: user.profilePic,
-                radius: 40,
+              SizedBox(
+                height: 132,
+                width: double.infinity,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.topLeft,
+                  children: [
+                    const Positioned.fill(
+                      child: ColoredBox(color: AppColors.primary),
+                    ),
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: IconButton(
+                        onPressed: () => _popOrHome(context),
+                        icon: Icon(
+                          PhosphorIconsRegular.caretLeft,
+                          size: 26,
+                          color: AppColors.textPrimary.withValues(alpha: 0.95),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -40,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: DecoratedBox(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x40000000),
+                                blurRadius: 12,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.textPrimary.withValues(alpha: 0.9),
+                                width: 2.5,
+                              ),
+                            ),
+                            child: AvatarInitials(
+                              initials: initials,
+                              imageUrl: user.profilePic,
+                              radius: 44,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 52),
+              Text(
+                user.name.isEmpty ? 'Your profile' : user.name,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      letterSpacing: 0.15,
+                    ),
               ),
               const SizedBox(height: 16),
-              Text(
-                user.name,
-                style: Theme.of(context).textTheme.titleLarge,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.textPrimary,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        onPressed: () => _openEditSheet(context, ref),
+                        child: const Text('Edit Profile'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Material(
+                      color: AppColors.primary,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            behavior: SnackBarBehavior.floating,
+                            content: Text('Messages will be available soon.'),
+                          ),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Icon(
+                            PhosphorIconsFill.chatCircle,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 40),
-              ProfileInfoCard(user: user),
-              const SizedBox(height: 24),
-              ActionListCard(
-                onChangePasswordLabel: () => _onEditProfile(context),
-                onChangeEmailLabel: () => _onEditProfile(context),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 32, 20, 0),
+                child: Text(
+                  'Personal Information',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: ProfileInfoCard(user: user),
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 28, 20, 0),
+                child: Text(
+                  'Posts',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                  ),
+                  child: Text(
+                    'No posts yet.\nAnything you publish can show up here later.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.45,
+                        ),
+                  ),
+                ),
               ),
             ],
           ),

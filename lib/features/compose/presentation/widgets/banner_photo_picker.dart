@@ -1,18 +1,26 @@
-import 'package:flutter/material.dart';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
-import '../../../../core/theme/app_colors.dart';
+
+import 'package:flutter/material.dart';
 
 class BannerPhotoPicker extends StatelessWidget {
   final String? imageUrl;
+  final Uint8List? imageBytes;
+
   final VoidCallback onTap;
   final VoidCallback onClear;
 
   const BannerPhotoPicker({
     Key? key,
     this.imageUrl,
+    this.imageBytes,
     required this.onTap,
     required this.onClear,
   }) : super(key: key);
+
+  bool get _hasPreview =>
+      (imageBytes != null && imageBytes!.isNotEmpty) ||
+      (imageUrl != null && imageUrl!.isNotEmpty);
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +49,14 @@ class BannerPhotoPicker extends StatelessWidget {
                 child: Container(),
               ),
               
-              if (imageUrl != null)
+              if (imageBytes != null && imageBytes!.isNotEmpty)
+                Positioned.fill(
+                  child: Image.memory(
+                    imageBytes!,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else if (imageUrl != null)
                 Positioned.fill(
                   child: Image.network(
                     imageUrl!,
@@ -80,7 +95,7 @@ class BannerPhotoPicker extends StatelessWidget {
                   ),
                 ),
 
-              if (imageUrl != null)
+              if (_hasPreview)
                 Positioned(
                   top: 8,
                   right: 8,

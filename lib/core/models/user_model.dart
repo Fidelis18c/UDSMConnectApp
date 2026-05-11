@@ -6,6 +6,10 @@ class UserModel {
   final String programme;
   final String year;
   final String email;
+
+  /// Editable locally until the backend exposes [`users.phone`] on auth/profile.
+  final String phone;
+
   final String? profilePic;
 
   UserModel({
@@ -16,6 +20,7 @@ class UserModel {
     required this.programme,
     required this.year,
     required this.email,
+    this.phone = '',
     this.profilePic,
   });
 
@@ -27,6 +32,7 @@ class UserModel {
     String? programme,
     String? year,
     String? email,
+    String? phone,
     String? profilePic,
   }) {
     return UserModel(
@@ -37,6 +43,7 @@ class UserModel {
       programme: programme ?? this.programme,
       year: year ?? this.year,
       email: email ?? this.email,
+      phone: phone ?? this.phone,
       profilePic: profilePic ?? this.profilePic,
     );
   }
