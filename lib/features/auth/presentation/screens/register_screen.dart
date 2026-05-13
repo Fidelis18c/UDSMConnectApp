@@ -6,6 +6,9 @@ import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/udsm_text_field.dart';
 import '../../../../core/widgets/udsm_dropdown.dart';
 import '../providers/auth_provider.dart';
+import '../providers/programme_provider.dart';
+import '../../../../core/models/programme.dart';
+import '../widgets/searchable_programme_dropdown.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -18,9 +21,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _regNumberController = TextEditingController();
   final _emailController = TextEditingController();
-  final _programmeController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  Programme? _selectedProgramme;
   String? _selectedSex;
   String? _selectedYear;
 
@@ -29,7 +32,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _nameController.dispose();
     _regNumberController.dispose();
     _emailController.dispose();
-    _programmeController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -37,20 +39,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void _onRegister() async {
     if (_nameController.text.isEmpty ||
         _regNumberController.text.isEmpty ||
-        _programmeController.text.isEmpty ||
+        _selectedProgramme == null ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
-        _selectedSex == null) {
+        _selectedSex == null ||
+        _selectedYear == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
       return;
     }
 
+    final yearOfStudy = int.tryParse(_selectedYear ?? '1') ?? 1;
+
     final success = await ref.read(authProvider.notifier).register(
           fullName: _nameController.text.trim(),
           registrationNumber: _regNumberController.text.trim(),
-          course: _programmeController.text.trim(),
+          programmeId: _selectedProgramme!.id,
+          yearOfStudy: yearOfStudy,
           sex: _selectedSex!.toUpperCase(),
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
@@ -122,10 +128,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     prefixIcon: Icons.badge_outlined,
                   ),
                   const SizedBox(height: 16),
-                  UdsmTextField(
-                    controller: _programmeController,
-                    hint: 'Programme (e.g BSc in CEIT)',
-                    prefixIcon: Icons.book_outlined,
+                  SearchableProgrammeDropdown(
+                    selectedProgramme: _selectedProgramme,
+                    onSelected: (programme) => setState(() => _selectedProgramme = programme),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -151,6 +156,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             DropdownMenuItem(value: '2', child: Text('Year 2')),
                             DropdownMenuItem(value: '3', child: Text('Year 3')),
                             DropdownMenuItem(value: '4', child: Text('Year 4')),
+                            DropdownMenuItem(value: '5', child: Text('Year 5')),
                           ],
                           onChanged: (val) => setState(() => _selectedYear = val),
                         ),

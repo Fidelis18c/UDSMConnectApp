@@ -29,7 +29,8 @@ class AuthRepository {
   Future<RegisterResponse> register({
     required String fullName,
     required String registrationNumber,
-    required String course,
+    required String programmeId,
+    required int yearOfStudy,
     required String sex,
     required String email,
     required String password,
@@ -40,7 +41,8 @@ class AuthRepository {
         data: {
           'fullName': fullName,
           'registrationNumber': registrationNumber,
-          'course': course,
+          'programmeId': programmeId,
+          'yearOfStudy': yearOfStudy,
           'sex': sex,
           'email': email,
           'password': password,
