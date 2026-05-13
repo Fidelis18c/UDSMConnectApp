@@ -6,16 +6,28 @@ import 'package:udsm_connect/core/network/api_client.dart';
 class UserProfile {
   final String id;
   final String fullName;
+  final String email;
+  final String? registrationNumber;
   final String? collegeId;
   final String? programmeId;
+  final String? collegeName;
+  final String? programmeName;
   final int? yearOfStudy;
+  final String? roleName;
+  final int? currentSemester;
 
   const UserProfile({
     required this.id,
     required this.fullName,
+    required this.email,
+    this.registrationNumber,
     this.collegeId,
     this.programmeId,
+    this.collegeName,
+    this.programmeName,
     this.yearOfStudy,
+    this.roleName,
+    this.currentSemester,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -23,9 +35,15 @@ class UserProfile {
     return UserProfile(
       id: json['id'] as String,
       fullName: json['fullName'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      registrationNumber: json['registrationNumber'] as String?,
       collegeId: json['collegeId'] as String?,
       programmeId: json['programmeId'] as String?,
+      collegeName: json['collegeName'] as String?,
+      programmeName: json['programmeName'] as String?,
       yearOfStudy: yearRaw is int ? yearRaw : int.tryParse('$yearRaw'),
+      roleName: json['roleName'] as String?,
+      currentSemester: json['currentSemester'] as int?,
     );
   }
 }

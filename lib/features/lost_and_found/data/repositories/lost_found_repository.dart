@@ -15,7 +15,7 @@ class LostFoundRepository {
   }) async {
     try {
       final response = await _apiClient.dio.get(
-        '/api/lost-found',
+        '/lost-found',
         queryParameters: {
           'page': page,
           'pageSize': pageSize,
@@ -41,6 +41,7 @@ class LostFoundRepository {
     String? location,
     DateTime? dateLostFound,
     bool isAnonymous = false,
+    String? contactInfo,
     List<String>? mediaIds,
   }) async {
     try {
@@ -48,8 +49,9 @@ class LostFoundRepository {
         'type': type,
         'title': title,
         'description': description,
-        'dateLostOrFound': (dateLostFound ?? DateTime.now()).toIso8601String().split('T')[0],
+        'dateLostOrFound': (dateLostFound ?? DateTime.now()).toUtc().toIso8601String(),
         'isAnonymous': isAnonymous,
+        'contactInfo': contactInfo,
         'mediaIds': mediaIds ?? [],
       };
 
@@ -57,7 +59,7 @@ class LostFoundRepository {
       if (location != null) data['locationSeen'] = location;
 
       final response = await _apiClient.dio.post(
-        '/api/lost-found',
+        '/lost-found',
         data: data,
       );
       return LostFoundItem.fromJson(response.data['data']);
@@ -69,7 +71,7 @@ class LostFoundRepository {
   Future<List<LostFoundCategory>> getCategories() async {
     try {
       final response = await _apiClient.dio.get(
-        '/api/categories',
+        '/categories',
         queryParameters: {'module': 'LOST_FOUND'},
       );
       final List<dynamic> data = response.data['data'];

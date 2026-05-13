@@ -10,6 +10,7 @@ class LostFoundItem {
   final DateTime createdAt;
   final Reporter reporter;
   final LostFoundCategory? category;
+  final String? contactInfo;
   final List<LostFoundMedia> media;
 
   LostFoundItem({
@@ -24,29 +25,33 @@ class LostFoundItem {
     required this.createdAt,
     required this.reporter,
     this.category,
+    this.contactInfo,
     this.media = const [],
   });
 
   factory LostFoundItem.fromJson(Map<String, dynamic> json) {
     return LostFoundItem(
-      id: json['id'] ?? '',
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      type: json['type'] ?? 'LOST',
-      status: json['status'] ?? 'OPEN',
-      location: json['locationSeen'] ?? json['location'],
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      description: (json['description'] ?? '').toString(),
+      type: (json['type'] ?? 'LOST').toString(),
+      status: (json['status'] ?? 'OPEN').toString(),
+      location: (json['locationSeen'] ?? json['location'])?.toString(),
       dateLostFound: json['dateLostOrFound'] != null 
-          ? DateTime.parse(json['dateLostOrFound']) 
-          : (json['dateLostFound'] != null ? DateTime.parse(json['dateLostFound']) : null),
+          ? DateTime.parse(json['dateLostOrFound'].toString()) 
+          : (json['dateLostFound'] != null ? DateTime.parse(json['dateLostFound'].toString()) : null),
       isAnonymous: json['isAnonymous'] ?? false,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
-      reporter: json['reporter'] != null 
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'].toString()) : DateTime.now(),
+      reporter: json['reporter'] is Map 
           ? Reporter.fromJson(json['reporter']) 
-          : Reporter(id: json['reporterId'] ?? '', fullName: 'You'),
-      category: json['category'] != null 
+          : Reporter(id: (json['reporterId'] ?? '').toString(), fullName: 'You'),
+      category: json['category'] is Map 
           ? LostFoundCategory.fromJson(json['category']) 
-          : (json['categoryId'] != null ? LostFoundCategory(id: json['categoryId'], name: '') : null),
-      media: (json['media'] as List? ?? []).map((m) => LostFoundMedia.fromJson(m)).toList(),
+          : (json['categoryId'] != null ? LostFoundCategory(id: json['categoryId'].toString(), name: '') : null),
+      contactInfo: json['contactInfo']?.toString(),
+      media: json['media'] is List 
+          ? (json['media'] as List).map((m) => LostFoundMedia.fromJson(m is Map ? Map<String, dynamic>.from(m) : {'id': m.toString(), 'url': ''})).toList()
+          : [],
     );
   }
 }
@@ -59,8 +64,8 @@ class Reporter {
 
   factory Reporter.fromJson(Map<String, dynamic> json) {
     return Reporter(
-      id: json['id'],
-      fullName: json['fullName'],
+      id: (json['id'] ?? '').toString(),
+      fullName: (json['fullName'] ?? 'Unknown').toString(),
     );
   }
 }
@@ -73,8 +78,8 @@ class LostFoundCategory {
 
   factory LostFoundCategory.fromJson(Map<String, dynamic> json) {
     return LostFoundCategory(
-      id: json['id'],
-      name: json['name'],
+      id: (json['id'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
     );
   }
 }
@@ -87,8 +92,8 @@ class LostFoundMedia {
 
   factory LostFoundMedia.fromJson(Map<String, dynamic> json) {
     return LostFoundMedia(
-      id: json['id'],
-      url: json['url'],
+      id: (json['id'] ?? '').toString(),
+      url: (json['url'] ?? '').toString(),
     );
   }
 }

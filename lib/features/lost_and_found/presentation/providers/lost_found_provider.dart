@@ -33,8 +33,11 @@ class LostFoundNotifier extends StateNotifier<AsyncValue<List<LostFoundItem>>> {
         categoryId: categoryId,
         search: search,
       );
+      print('DEBUG: Fetched ${items.length} lost/found items');
       state = AsyncValue.data(items);
     } catch (e, stack) {
+      print('DEBUG: Error fetching lost/found: $e');
+      print(stack);
       state = AsyncValue.error(e, stack);
     }
   }
@@ -47,9 +50,11 @@ class LostFoundNotifier extends StateNotifier<AsyncValue<List<LostFoundItem>>> {
     String? location,
     DateTime? dateLostFound,
     bool isAnonymous = false,
+    String? contactInfo,
     List<String>? mediaIds,
   }) async {
     try {
+      print('DEBUG: Creating LostFound item: $title');
       await _repository.createItem(
         title: title,
         description: description,
@@ -58,11 +63,15 @@ class LostFoundNotifier extends StateNotifier<AsyncValue<List<LostFoundItem>>> {
         location: location,
         dateLostFound: dateLostFound,
         isAnonymous: isAnonymous,
+        contactInfo: contactInfo,
         mediaIds: mediaIds,
       );
+      print('DEBUG: LostFound item created successfully');
       fetchItems();
       return true;
-    } catch (e) {
+    } catch (e, stack) {
+      print('DEBUG: Failed to create LostFound item: $e');
+      print(stack);
       return false;
     }
   }

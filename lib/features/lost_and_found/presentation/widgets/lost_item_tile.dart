@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:udsm_connect/core/models/post.dart';
+import 'package:udsm_connect/features/lost_and_found/data/models/lost_found.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_shapes.dart';
 import '../../../../core/widgets/contact_button.dart';
 
 class LostItemTile extends StatelessWidget {
-  final Post post;
+  final LostFoundItem item;
   final VoidCallback onContact;
 
   const LostItemTile({
     Key? key,
-    required this.post,
+    required this.item,
     required this.onContact,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Extract info from post text (assuming format used in CreateLostFoundScreen)
-    final isLost = post.text.contains('[LOST]');
-    final lines = post.text.split('\n');
-    final itemName = lines.length > 0 ? lines[0].replaceAll('[LOST] ', '').replaceAll('[FOUND] ', '').replaceAll('Item: ', '') : 'Unknown Item';
-    final location = lines.length > 1 ? lines[1].replaceAll('Location: ', '') : 'Unknown Location';
+    final isLost = item.type == 'LOST';
+    final imageUrl = item.media.isNotEmpty ? item.media.first.url : null;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -38,11 +35,11 @@ class LostItemTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.grey[800],
               borderRadius: AppShapes.imageAssetBorderRadius,
-              image: post.imageUrl != null 
-                ? DecorationImage(image: NetworkImage(post.imageUrl!), fit: BoxFit.cover)
+              image: imageUrl != null 
+                ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
                 : null,
             ),
-            child: post.imageUrl == null ? const Icon(Icons.image, color: Colors.white54) : null,
+            child: imageUrl == null ? const Icon(Icons.image, color: Colors.white54) : null,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -54,7 +51,7 @@ class LostItemTile extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        itemName,
+                        item.title,
                         style: Theme.of(context).textTheme.titleLarge,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -74,7 +71,7 @@ class LostItemTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  location,
+                  item.location ?? 'No location provided',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),

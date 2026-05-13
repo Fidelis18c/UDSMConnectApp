@@ -14,7 +14,7 @@ class EventRepository {
   }) async {
     try {
       final response = await _apiClient.dio.get(
-        '/api/events',
+        '/events',
         queryParameters: {
           'page': page,
           'pageSize': pageSize,
@@ -25,7 +25,7 @@ class EventRepository {
       );
 
       final List<dynamic> data = response.data['data'];
-      return data.map((json) => Event.fromJson(json)).toList();
+      return data.map<Event>((json) => Event.fromJson(json)).toList();
     } catch (e) {
       rethrow;
     }
@@ -33,7 +33,7 @@ class EventRepository {
 
   Future<Event> getEventDetails(String id) async {
     try {
-      final response = await _apiClient.dio.get('/api/events/$id');
+      final response = await _apiClient.dio.get('/events/$id');
       return Event.fromJson(response.data['data']);
     } catch (e) {
       rethrow;
@@ -43,7 +43,7 @@ class EventRepository {
   Future<void> rsvpToEvent(String eventId, String status) async {
     try {
       await _apiClient.dio.post(
-        '/api/events/$eventId/rsvp',
+        '/events/$eventId/rsvp',
         data: {'status': status},
       );
     } catch (e) {
@@ -53,9 +53,9 @@ class EventRepository {
 
   Future<List<EventCategory>> getCategories() async {
     try {
-      final response = await _apiClient.dio.get('/api/event-categories');
+      final response = await _apiClient.dio.get('/event-categories');
       final List<dynamic> data = response.data['data'];
-      return data.map((json) => EventCategory.fromJson(json)).toList();
+      return data.map<EventCategory>((json) => EventCategory.fromJson(json)).toList();
     } catch (e) {
       rethrow;
     }
@@ -79,7 +79,7 @@ class EventRepository {
       if (data['academicYearId'] != null) requestData['academicYearId'] = data['academicYearId'];
 
       final response = await _apiClient.dio.post(
-        '/api/events',
+        '/events',
         data: requestData,
       );
       return Event.fromJson(response.data['data']);

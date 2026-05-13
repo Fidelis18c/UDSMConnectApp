@@ -9,8 +9,24 @@ import 'package:udsm_connect/features/profile/presentation/widgets/edit_profile_
 import 'package:udsm_connect/features/profile/presentation/widgets/profile_info_card.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(userProvider);
+      if (user.id != 'guest') {
+        ref.read(userProvider.notifier).fetchProfile(user.id);
+      }
+    });
+  }
 
   void _popOrHome(BuildContext context) {
     if (context.canPop()) {
@@ -20,7 +36,7 @@ class ProfileScreen extends ConsumerWidget {
     context.goNamed(RouteNames.announcements);
   }
 
-  void _openEditSheet(BuildContext context, WidgetRef ref) {
+  void _openEditSheet(BuildContext context) {
     final user = ref.read(userProvider);
     showEditProfileBottomSheet(
       context,
@@ -48,7 +64,7 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
     final initials = user.name.isNotEmpty
         ? user.name
@@ -154,7 +170,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        onPressed: () => _openEditSheet(context, ref),
+                        onPressed: () => _openEditSheet(context),
                         child: const Text('Edit Profile'),
                       ),
                     ),
