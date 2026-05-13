@@ -35,4 +35,39 @@ class PostsRepository {
   Future<void> toggleLike(String postId) async {
     await _api.dio.post<void>('/posts/$postId/reactions');
   }
+
+  Future<String> createPost({
+    required String title,
+    required String content,
+    String? excerpt,
+    required List<Map<String, dynamic>> audiences,
+    String type = 'POST',
+    String status = 'PUBLISHED',
+    String? coverImageId,
+    List<String>? mediaIds,
+  }) async {
+    final body = <String, dynamic>{
+      'title': title,
+      'content': content,
+      'type': type,
+      'status': status,
+      'audiences': audiences,
+    };
+    if (excerpt != null) body['excerpt'] = excerpt;
+    if (coverImageId != null) {
+      body['coverImageId'] = coverImageId;
+      body['mediaIds'] = [coverImageId];
+      body['mediaId'] = coverImageId; // Some backends use singular mediaId
+    } else if (mediaIds != null) {
+      body['mediaIds'] = mediaIds;
+    }
+
+    final response = await _api.dio.post<Map<String, dynamic>>('/posts', data: body);
+    final data = response.data?['data'] as Map<String, dynamic>? ?? {};
+    final id = data['id'] as String?;
+    if (id == null || id.isEmpty) {
+      throw Exception('Failed to create post: No ID returned');
+    }
+    return id;
+  }
 }

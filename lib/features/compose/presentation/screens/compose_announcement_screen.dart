@@ -7,9 +7,12 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:udsm_connect/core/widgets/udsm_button.dart';
 import 'package:udsm_connect/features/announcements/data/announcements_repository.dart';
+import 'package:udsm_connect/features/announcements/data/posts_repository.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/auth/data/users_repository.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
+import 'package:udsm_connect/core/models/programme.dart';
+import 'package:udsm_connect/features/auth/presentation/widgets/searchable_programme_dropdown.dart';
 
 import '../widgets/compose_form_fields.dart';
 import '../widgets/banner_photo_picker.dart';
@@ -27,6 +30,11 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
   Uint8List? _imageBytes;
   String? _imageFilename;
   bool _submitting = false;
+
+  // Targeting state
+  String _targetType = 'ALL';
+  Programme? _selectedProgramme;
+  int? _selectedYear;
 
   static String _dioMessage(DioException e) {
     final dynamic d = e.response?.data;
@@ -94,6 +102,7 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
     setState(() => _submitting = true);
 
     try {
+      final postsRepo = ref.read(postsRepositoryProvider);
       final announcementsRepo = ref.read(announcementsRepositoryProvider);
       final usersRepo = ref.read(usersRepositoryProvider);
 
@@ -113,11 +122,34 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
         );
       }
 
-      final audiences = AnnouncementsRepository.audiencesFor(profile);
+      final List<Map<String, dynamic>> audiences = [];
+      if (_targetType == 'ALL') {
+        audiences.add({'targetType': 'ALL'});
+      } else if (_targetType == 'PROGRAMME') {
+        if (_selectedProgramme != null) {
+          audiences.add({
+            'targetType': 'PROGRAMME',
+            'programmeId': _selectedProgramme!.id,
+          });
+        } else {
+          audiences.add({'targetType': 'ALL'});
+        }
+      } else if (_targetType == 'PROGRAMME_YEAR') {
+        if (_selectedProgramme != null && _selectedYear != null) {
+          audiences.add({
+            'targetType': 'PROGRAMME_YEAR',
+            'programmeId': _selectedProgramme!.id,
+            'yearOfStudy': _selectedYear,
+          });
+        } else {
+          audiences.add({'targetType': 'ALL'});
+        }
+      }
+
       final excerpt =
           bodyText.length > 500 ? bodyText.substring(0, 500) : bodyText;
 
-      await announcementsRepo.createAnnouncement(
+      await postsRepo.createPost(
         title: title,
         content: bodyText,
         excerpt: excerpt,
@@ -178,6 +210,8 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
                         titleController: _titleController,
                         bodyController: _bodyController,
                       ),
+                      const SizedBox(height: 32),
+                      _buildTargetingSection(),
                     ],
                   ),
                 ),
@@ -192,6 +226,68 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTargetingSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Audience Targeting',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          value: _targetType,
+          decoration: InputDecoration(
+            labelText: 'Target Type',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          items: const [
+            DropdownMenuItem(value: 'ALL', child: Text('All Students')),
+            DropdownMenuItem(value: 'PROGRAMME', child: Text('Specific Programme')),
+            DropdownMenuItem(value: 'PROGRAMME_YEAR', child: Text('Programme & Year')),
+          ],
+          onChanged: (val) {
+            if (val != null) setState(() => _targetType = val);
+          },
+        ),
+        if (_targetType != 'ALL') ...[
+          const SizedBox(height: 16),
+          SearchableProgrammeDropdown(
+            selectedProgramme: _selectedProgramme,
+            onSelected: (p) => setState(() => _selectedProgramme = p),
+            hint: 'Select Target Programme',
+          ),
+        ],
+        if (_targetType == 'PROGRAMME_YEAR') ...[
+          const SizedBox(height: 16),
+          DropdownButtonFormField<int>(
+            value: _selectedYear,
+            decoration: InputDecoration(
+              labelText: 'Year of Study',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            items: List.generate(
+              5,
+              (index) => DropdownMenuItem(
+                value: index + 1,
+                child: Text('Year ${index + 1}'),
+              ),
+            ),
+            onChanged: (val) {
+              if (val != null) setState(() => _selectedYear = val);
+            },
+          ),
+        ],
+      ],
     );
   }
 }

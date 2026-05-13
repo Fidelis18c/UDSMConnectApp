@@ -116,7 +116,6 @@ class Post {
 
   factory Post.fromPostsListJson(Map<String, dynamic> json) {
     final author = json['author'] as Map<String, dynamic>?;
-    final mediaMap = json['media'] as Map<String, dynamic>?;
     final published = json['publishedAt'] ?? json['createdAt'];
     final rawTitle = (json['title'] as String?)?.trim() ?? '';
     final rawContent = (json['content'] as String?)?.trim() ?? '';
@@ -132,12 +131,33 @@ class Post {
       body = rawTitle;
     }
 
+    String? imageUrl;
+    
+    final rawMedia = json['media'];
+    if (rawMedia is List && rawMedia.isNotEmpty) {
+      final first = rawMedia.first;
+      if (first is Map<String, dynamic>) {
+        imageUrl = first['url'] as String?;
+      }
+    } else if (rawMedia is Map<String, dynamic>) {
+      imageUrl = rawMedia['url'] as String?;
+    }
+    
+    if (imageUrl == null || imageUrl.isEmpty) {
+      final cover = json['coverImage'] as Map<String, dynamic>?;
+      imageUrl = cover?['url'] as String?;
+    }
+    
+    if (imageUrl == null || imageUrl.isEmpty) {
+      imageUrl = json['coverImageUrl'] as String?;
+    }
+
     return Post(
       id: json['id'] as String,
       title: rawTitle,
       authorName: author?['fullName'] as String? ?? 'Unknown',
       text: body,
-      imageUrl: mediaMap?['url'] as String?,
+      imageUrl: imageUrl,
       timestamp: _parseDate(published),
       likes: (json['likeCount'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
@@ -148,7 +168,6 @@ class Post {
 
   factory Post.fromPostsDetailJson(Map<String, dynamic> json) {
     final author = json['author'] as Map<String, dynamic>?;
-    final mediaMap = json['media'] as Map<String, dynamic>?;
     final published = json['publishedAt'] ?? json['createdAt'];
     final rawTitle = (json['title'] as String?)?.trim() ?? '';
     final rawContent = (json['content'] as String?)?.trim() ?? '';
@@ -157,12 +176,29 @@ class Post {
 
     final body = rawContent.isNotEmpty ? rawContent : rawTitle;
 
+    String? imageUrl;
+    
+    final rawMedia = json['media'];
+    if (rawMedia is List && rawMedia.isNotEmpty) {
+      final first = rawMedia.first;
+      if (first is Map<String, dynamic>) {
+        imageUrl = first['url'] as String?;
+      }
+    } else if (rawMedia is Map<String, dynamic>) {
+      imageUrl = rawMedia['url'] as String?;
+    }
+    
+    if (imageUrl == null || imageUrl.isEmpty) {
+      final cover = json['coverImage'] as Map<String, dynamic>?;
+      imageUrl = cover?['url'] as String?;
+    }
+
     return Post(
       id: json['id'] as String,
       title: rawTitle.isNotEmpty ? rawTitle : (body.length > 80 ? '${body.substring(0, 80)}…' : body),
       authorName: author?['fullName'] as String? ?? 'Unknown',
       text: body,
-      imageUrl: mediaMap?['url'] as String?,
+      imageUrl: imageUrl,
       timestamp: _parseDate(published),
       likes: (json['likeCount'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
