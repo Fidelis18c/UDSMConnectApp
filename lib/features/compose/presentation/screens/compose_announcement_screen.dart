@@ -18,7 +18,16 @@ import '../widgets/compose_form_fields.dart';
 import '../widgets/banner_photo_picker.dart';
 
 class ComposeAnnouncementScreen extends ConsumerStatefulWidget {
-  const ComposeAnnouncementScreen({Key? key}) : super(key: key);
+  final String? title;
+  final String? bodyHint;
+  final String? postType;
+
+  const ComposeAnnouncementScreen({
+    Key? key,
+    this.title,
+    this.bodyHint,
+    this.postType,
+  }) : super(key: key);
 
   @override
   ConsumerState<ComposeAnnouncementScreen> createState() => _ComposeAnnouncementScreenState();
@@ -156,6 +165,7 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
         audiences: audiences,
         status: 'PUBLISHED',
         coverImageId: coverImageId,
+        type: widget.postType ?? 'POST',
       );
 
       await ref.read(announcementsProvider.notifier).refresh();
@@ -180,7 +190,7 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New announcement'),
+        title: Text(widget.title ?? 'New announcement'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: _submitting ? null : () => context.pop(),
@@ -206,9 +216,10 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
                         },
                       ),
                       const SizedBox(height: 24),
-                      ComposeFormFields(
+                       ComposeFormFields(
                         titleController: _titleController,
                         bodyController: _bodyController,
+                        bodyHint: widget.bodyHint,
                       ),
                       const SizedBox(height: 32),
                       _buildTargetingSection(),

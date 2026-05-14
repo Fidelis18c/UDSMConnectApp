@@ -130,7 +130,8 @@ class NewsFeedScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              data: (posts) {
+              data: (allPosts) {
+                final posts = allPosts.where((p) => p.category != 'NOTICE' && p.category != 'ALERT').toList();
                 if (posts.isEmpty) {
                   return const SliverFillRemaining(
                     child: EmptyStateWidget(

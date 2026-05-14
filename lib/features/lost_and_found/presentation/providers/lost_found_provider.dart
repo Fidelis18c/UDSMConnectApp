@@ -10,15 +10,28 @@ final lostFoundCategoriesProvider = FutureProvider<List<LostFoundCategory>>((ref
   return ref.watch(lostFoundRepositoryProvider).getCategories();
 });
 
+class SelectedLostFoundCategoryNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? val) => state = val;
+}
+
+final selectedLostFoundCategoryIdProvider = NotifierProvider<SelectedLostFoundCategoryNotifier, String?>(() {
+  return SelectedLostFoundCategoryNotifier();
+});
+
 final lostFoundItemsProvider = StateNotifierProvider<LostFoundNotifier, AsyncValue<List<LostFoundItem>>>((ref) {
-  return LostFoundNotifier(ref.watch(lostFoundRepositoryProvider));
+  final repo = ref.watch(lostFoundRepositoryProvider);
+  final categoryId = ref.watch(selectedLostFoundCategoryIdProvider);
+  return LostFoundNotifier(repo, categoryId);
 });
 
 class LostFoundNotifier extends StateNotifier<AsyncValue<List<LostFoundItem>>> {
   final LostFoundRepository _repository;
+  final String? _categoryId;
   
-  LostFoundNotifier(this._repository) : super(const AsyncValue.loading()) {
-    fetchItems();
+  LostFoundNotifier(this._repository, this._categoryId) : super(const AsyncValue.loading()) {
+    fetchItems(categoryId: _categoryId);
   }
 
   Future<void> fetchItems({

@@ -100,7 +100,14 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'create',
                   name: RouteNames.composeAnnouncement,
-                  builder: (context, state) => const ComposeAnnouncementScreen(),
+                  builder: (context, state) {
+                    final extra = state.extra as Map<String, dynamic>?;
+                    return ComposeAnnouncementScreen(
+                      title: extra?['title'] as String?,
+                      bodyHint: extra?['bodyHint'] as String?,
+                      postType: extra?['postType'] as String?,
+                    );
+                  },
                 ),
                 GoRoute(
                   path: ':id',

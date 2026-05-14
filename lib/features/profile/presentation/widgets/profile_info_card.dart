@@ -65,7 +65,7 @@ class ProfileInfoCard extends StatelessWidget {
           const Divider(height: 1, color: AppColors.divider),
           ProfilePersonalRow(label: 'Id', value: user.registrationNumber),
           const Divider(height: 1, color: AppColors.divider),
-          ProfilePersonalRow(label: 'Course', value: user.programme),
+          ProfilePersonalRow(label: 'Programme', value: user.programme),
           const Divider(height: 1, color: AppColors.divider),
           ProfilePersonalRow(label: 'College', value: user.college),
           const Divider(height: 1, color: AppColors.divider),

@@ -81,7 +81,7 @@ class _EditProfileBottomSheetBody extends StatefulWidget {
 class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody> {
   late TextEditingController _name;
   late TextEditingController _id;
-  late TextEditingController _course;
+  late TextEditingController _programme;
   late TextEditingController _college;
   late TextEditingController _email;
   late TextEditingController _phone;
@@ -93,7 +93,7 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
     final u = widget.user;
     _name = TextEditingController(text: u.name);
     _id = TextEditingController(text: u.registrationNumber);
-    _course = TextEditingController(text: u.programme);
+    _programme = TextEditingController(text: u.programme);
     _college = TextEditingController(text: u.college);
     _email = TextEditingController(text: u.email);
     _phone = TextEditingController(text: u.phone);
@@ -104,7 +104,7 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
   void dispose() {
     _name.dispose();
     _id.dispose();
-    _course.dispose();
+    _programme.dispose();
     _college.dispose();
     _email.dispose();
     _phone.dispose();
@@ -116,7 +116,7 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
     widget.onSave(
       name: _name.text.trim(),
       registrationNumber: _id.text.trim(),
-      programme: _course.text.trim(),
+      programme: _programme.text.trim(),
       college: _college.text.trim(),
       email: _email.text.trim(),
       phone: _phone.text.trim(),
@@ -168,9 +168,9 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
               ),
               const SizedBox(height: 12),
               UdsmTextField(
-                controller: _course,
-                hint: 'Course / programme',
-                labelText: 'Course',
+                controller: _programme,
+                hint: 'Programme',
+                labelText: 'Programme',
                 prefixIcon: Icons.school_outlined,
               ),
               const SizedBox(height: 12),

@@ -5,11 +5,13 @@ import '../../../../core/widgets/udsm_text_area.dart';
 class ComposeFormFields extends StatelessWidget {
   final TextEditingController titleController;
   final TextEditingController bodyController;
+  final String? bodyHint;
 
   const ComposeFormFields({
     Key? key,
     required this.titleController,
     required this.bodyController,
+    this.bodyHint,
   }) : super(key: key);
 
   @override
@@ -24,7 +26,7 @@ class ComposeFormFields extends StatelessWidget {
         const SizedBox(height: 16),
         UdsmTextArea(
           controller: bodyController,
-          hint: 'Write your announcement here...',
+          hint: bodyHint ?? 'Write your announcement here...',
           maxLines: 8,
         ),
       ],

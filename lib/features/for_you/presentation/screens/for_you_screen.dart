@@ -1,48 +1,96 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
+import 'package:udsm_connect/core/widgets/empty_state_widget.dart';
+import 'package:udsm_connect/core/widgets/news_post_card.dart';
+import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
+import 'package:udsm_connect/navigation/route_names.dart';
 
-/// Placeholder for personalised / class-scoped content (no duplicate of the main news feed).
-class ForYouScreen extends StatelessWidget {
+/// Personalised / class-scoped content (filtered from the main feed).
+class ForYouScreen extends ConsumerWidget {
   const ForYouScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncPosts = ref.watch(announcementsProvider);
+
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('For you'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              PhosphorIcon(
-                PhosphorIconsDuotone.sparkle,
-                size: 72,
-                duotoneSecondaryColor: AppColors.primary.withValues(alpha: 0.45),
-                color: AppColors.primary,
+      floatingActionButton: FloatingActionButton(
+        elevation: 2,
+        onPressed: () => context.pushNamed(
+          RouteNames.composeAnnouncement,
+          extra: {
+            'title': 'Class Announcement',
+            'bodyHint': 'Write your class announcement here...',
+            'postType': 'NOTICE',
+          },
+        ),
+        child: const PhosphorIcon(PhosphorIconsBold.plus, size: 26),
+      ),
+      body: RefreshIndicator.adaptive(
+        color: AppColors.primary,
+        onRefresh: () => ref.read(announcementsProvider.notifier).refresh(),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            asyncPosts.when(
+              loading: () => const SliverFillRemaining(
+                child: Center(
+                  child: SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator.adaptive(strokeWidth: 2.5),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Personalised updates',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+              error: (err, _) => SliverFillRemaining(
+                child: Center(child: Text('Error: $err')),
+              ),
+              data: (allPosts) {
+                final posts = allPosts
+                    .where((p) => p.category == 'NOTICE')
+                    .toList();
+
+                if (posts.isEmpty) {
+                  return const SliverFillRemaining(
+                    child: EmptyStateWidget(
+                      icon: PhosphorIconsRegular.sparkle,
+                      message: 'No class announcements yet.',
                     ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Soon you will see class‑focused announcements here, separate from the campus-wide feed.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.45,
+                  );
+                }
+
+                return SliverPadding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 96),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      childCount: posts.length,
+                      (context, index) {
+                        final post = posts[index];
+                        return NewsPostCard(
+                          post: post,
+                          onOpen: () => context.pushNamed(
+                            RouteNames.postDetail,
+                            pathParameters: {'id': post.id},
+                            extra: post,
+                          ),
+                          onLike: () => ref
+                              .read(announcementsProvider.notifier)
+                              .toggleLike(post.id),
+                        );
+                      },
                     ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

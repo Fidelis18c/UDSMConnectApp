@@ -8,16 +8,27 @@ final eventCategoriesProvider = FutureProvider<List<EventCategory>>((ref) async 
   return ref.watch(eventRepositoryProvider).getCategories();
 });
 
+class SelectedEventCategoryNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? val) => state = val;
+}
+
+final selectedEventCategoryIdProvider = NotifierProvider<SelectedEventCategoryNotifier, String?>(() {
+  return SelectedEventCategoryNotifier();
+});
+
 class EventsNotifier extends AsyncNotifier<List<Event>> {
   @override
   Future<List<Event>> build() async {
-    return _fetch();
+    final categoryId = ref.watch(selectedEventCategoryIdProvider);
+    return _fetch(categoryId: categoryId);
   }
 
-  Future<List<Event>> _fetch() async {
+  Future<List<Event>> _fetch({String? categoryId}) async {
     try {
       final repo = ref.read(eventRepositoryProvider);
-      return await repo.getEvents();
+      return await repo.getEvents(categoryId: categoryId);
     } catch (e, stack) {
       print('DEBUG: Error fetching events: $e');
       print(stack);
@@ -26,8 +37,9 @@ class EventsNotifier extends AsyncNotifier<List<Event>> {
   }
 
   Future<void> refresh() async {
+    final categoryId = ref.read(selectedEventCategoryIdProvider);
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetch());
+    state = await AsyncValue.guard(() => _fetch(categoryId: categoryId));
   }
 
   Future<bool> createEvent(Map<String, dynamic> data) async {
