@@ -8,6 +8,8 @@ import 'package:udsm_connect/core/widgets/empty_state_widget.dart';
 import 'package:udsm_connect/core/widgets/news_post_card.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
+import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
+import 'package:udsm_connect/core/theme/theme_provider.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
 
 class NewsFeedScreen extends ConsumerWidget {
@@ -16,6 +18,8 @@ class NewsFeedScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPosts = ref.watch(announcementsProvider);
+    final authUser = ref.watch(authProvider).user;
+    final isStudent = authUser?.isStudent ?? false;
     final user = ref.watch(userProvider);
     final initials = user.name.isNotEmpty
         ? user.name.trim().split(' ').where((e) => e.isNotEmpty).map((e) => e[0]).join().toUpperCase()
@@ -23,7 +27,7 @@ class NewsFeedScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isStudent ? null : FloatingActionButton(
         elevation: 2,
         onPressed: () => context.pushNamed(RouteNames.composeAnnouncement),
         child: const PhosphorIcon(PhosphorIconsBold.plus, size: 26),
@@ -71,14 +75,44 @@ class NewsFeedScreen extends ConsumerWidget {
                     ),
                     SizedBox(
                       width: 48,
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {},
-                        icon: PhosphorIcon(
-                          PhosphorIconsRegular.gearSix,
-                          size: 26,
-                          color: AppColors.textSecondary,
-                        ),
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+                          return PopupMenuButton<String>(
+                            icon: PhosphorIcon(
+                              PhosphorIconsRegular.gearSix,
+                              size: 26,
+                              color: Theme.of(context).iconTheme.color,
+                            ),
+                            color: Theme.of(context).colorScheme.surface,
+                            onSelected: (value) async {
+                              if (value == 'theme') {
+                                ref.read(themeProvider.notifier).toggleTheme();
+                              } else if (value == 'logout') {
+                                await ref.read(authProvider.notifier).logout();
+                                if (context.mounted) {
+                                  context.goNamed(RouteNames.login);
+                                }
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'logout',
+                                child: Row(
+                                  children: [
+                                    PhosphorIcon(
+                                      PhosphorIconsRegular.signOut,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text('Logout', style: TextStyle(color: Colors.white)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ],

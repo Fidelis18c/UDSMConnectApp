@@ -49,7 +49,7 @@ class LostFoundRepository {
         'type': type,
         'title': title,
         'description': description,
-        'dateLostOrFound': (dateLostFound ?? DateTime.now()).toUtc().toIso8601String(),
+        'dateLostOrFound': (dateLostFound ?? DateTime.now()).toUtc().toIso8601String().split('T')[0],
         'isAnonymous': isAnonymous,
         'contactInfo': contactInfo,
         'mediaIds': mediaIds ?? [],
@@ -57,6 +57,9 @@ class LostFoundRepository {
 
       if (categoryId != null) data['categoryId'] = categoryId;
       if (location != null) data['locationSeen'] = location;
+      if (mediaIds != null && mediaIds.isNotEmpty) {
+        data['coverImageId'] = mediaIds.first;
+      }
 
       final response = await _apiClient.dio.post(
         '/lost-found',

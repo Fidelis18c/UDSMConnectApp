@@ -5,7 +5,7 @@ class AvatarInitials extends StatelessWidget {
   final String initials;
   final String? imageUrl;
   final double radius;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final bool showCameraIcon;
 
   const AvatarInitials({
@@ -13,25 +13,29 @@ class AvatarInitials extends StatelessWidget {
     required this.initials,
     this.imageUrl,
     this.radius = 24.0,
-    this.backgroundColor = AppColors.surface,
+    this.backgroundColor,
     this.showCameraIcon = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = backgroundColor ?? AppColors.primary;
+    final textColor = Colors.white;
+    final hasImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
+
     return Stack(
       alignment: Alignment.center,
       children: [
         CircleAvatar(
           radius: radius,
-          backgroundColor: backgroundColor,
-          backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
-          child: imageUrl == null
+          backgroundColor: bgColor,
+          backgroundImage: hasImage ? NetworkImage(imageUrl!) : null,
+          child: !hasImage
               ? Text(
                   initials.toUpperCase(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        color: textColor,
                         fontSize: radius * 0.8,
                       ),
                 )

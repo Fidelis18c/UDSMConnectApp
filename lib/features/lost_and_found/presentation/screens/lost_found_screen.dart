@@ -5,6 +5,7 @@ import 'package:udsm_connect/navigation/route_names.dart';
 import 'package:udsm_connect/features/lost_and_found/presentation/providers/lost_found_provider.dart';
 import 'package:udsm_connect/core/widgets/empty_state_widget.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
+import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import '../widgets/lost_item_tile.dart';
 
 class LostFoundScreen extends ConsumerWidget {
@@ -13,6 +14,8 @@ class LostFoundScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lostFoundAsync = ref.watch(lostFoundItemsProvider);
+    final user = ref.watch(authProvider).user;
+    final isStudent = user?.isStudent ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -60,7 +63,7 @@ class LostFoundScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isStudent ? null : FloatingActionButton(
         onPressed: () => context.pushNamed(RouteNames.createLostFound),
         child: const Icon(Icons.add),
       ),

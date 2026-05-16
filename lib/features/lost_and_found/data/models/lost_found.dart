@@ -30,6 +30,24 @@ class LostFoundItem {
   });
 
   factory LostFoundItem.fromJson(Map<String, dynamic> json) {
+    List<LostFoundMedia> parsedMedia = [];
+    if (json['media'] is List) {
+      parsedMedia.addAll((json['media'] as List).map((m) => LostFoundMedia.fromJson(
+          m is Map ? Map<String, dynamic>.from(m) : {'id': m.toString(), 'url': ''})));
+    }
+    // Also check for various image fields for better compatibility
+    if (json['coverImage'] is Map && parsedMedia.isEmpty) {
+      parsedMedia.add(LostFoundMedia.fromJson(Map<String, dynamic>.from(json['coverImage'])));
+    } else if (json['image'] is Map && parsedMedia.isEmpty) {
+      parsedMedia.add(LostFoundMedia.fromJson(Map<String, dynamic>.from(json['image'])));
+    } else if (json['imageUrl'] != null && parsedMedia.isEmpty) {
+      parsedMedia.add(LostFoundMedia(id: 'cover', url: json['imageUrl'].toString()));
+    } else if (json['image'] != null && json['image'] is String && parsedMedia.isEmpty) {
+      parsedMedia.add(LostFoundMedia(id: 'cover', url: json['image'].toString()));
+    } else if (json['coverImageUrl'] != null && parsedMedia.isEmpty) {
+      parsedMedia.add(LostFoundMedia(id: 'cover', url: json['coverImageUrl'].toString()));
+    }
+
     return LostFoundItem(
       id: (json['id'] ?? '').toString(),
       title: (json['title'] ?? '').toString(),
@@ -49,9 +67,7 @@ class LostFoundItem {
           ? LostFoundCategory.fromJson(json['category']) 
           : (json['categoryId'] != null ? LostFoundCategory(id: json['categoryId'].toString(), name: '') : null),
       contactInfo: json['contactInfo']?.toString(),
-      media: json['media'] is List 
-          ? (json['media'] as List).map((m) => LostFoundMedia.fromJson(m is Map ? Map<String, dynamic>.from(m) : {'id': m.toString(), 'url': ''})).toList()
-          : [],
+      media: parsedMedia,
     );
   }
 }

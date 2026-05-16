@@ -23,6 +23,7 @@ class UserData {
   final String? registrationNumber;
   final String email;
   final String roleId;
+  final String? roleName;
 
   UserData({
     required this.id,
@@ -30,15 +31,31 @@ class UserData {
     this.registrationNumber,
     required this.email,
     required this.roleId,
+    this.roleName,
   });
 
+  bool get isStudent {
+    if (roleName != null) {
+      return roleName!.toLowerCase() == 'student';
+    }
+    // Fallback if roleName is not provided directly, 
+    // you might need to adjust this if you know the exact student roleId
+    return false;
+  }
+
   factory UserData.fromJson(Map<String, dynamic> json) {
+    String? rName = json['roleName'];
+    if (rName == null && json['role'] != null && json['role'] is Map) {
+      rName = json['role']['name'];
+    }
+
     return UserData(
       id: json['id'],
       fullName: json['fullName'],
       registrationNumber: json['registrationNumber'], // This can be null
       email: json['email'],
       roleId: json['roleId'],
+      roleName: rName,
     );
   }
 

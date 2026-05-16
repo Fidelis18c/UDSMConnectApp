@@ -6,6 +6,7 @@ import 'package:udsm_connect/features/events/presentation/providers/events_provi
 import 'package:udsm_connect/core/widgets/empty_state_widget.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/models/event.dart';
+import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import '../widgets/event_card.dart';
 
 class EventsScreen extends ConsumerWidget {
@@ -14,6 +15,8 @@ class EventsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final events = ref.watch(eventsProvider);
+    final user = ref.watch(authProvider).user;
+    final isStudent = user?.isStudent ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -50,7 +53,7 @@ class EventsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isStudent ? null : FloatingActionButton(
         onPressed: () => context.pushNamed(RouteNames.createEvent),
         child: const Icon(Icons.add),
       ),
