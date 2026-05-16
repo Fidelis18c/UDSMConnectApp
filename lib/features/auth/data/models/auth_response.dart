@@ -44,17 +44,29 @@ class UserData {
   }
 
   factory UserData.fromJson(Map<String, dynamic> json) {
-    String? rName = json['roleName'];
-    if (rName == null && json['role'] != null && json['role'] is Map) {
-      rName = json['role']['name'];
+    // Login API returns roles: [{ id, name }] — extract first role
+    final roles = json['roles'] as List<dynamic>?;
+    final firstRole = (roles != null && roles.isNotEmpty)
+        ? roles.first as Map<String, dynamic>
+        : null;
+
+    final roleId = firstRole?['id'] as String?
+        ?? json['roleId'] as String?
+        ?? '';
+
+    // Resolve roleName from roles array, direct field, or nested role object
+    String? rName = firstRole?['name'] as String?
+        ?? json['roleName'] as String?;
+    if (rName == null && json['role'] is Map) {
+      rName = json['role']['name'] as String?;
     }
 
     return UserData(
-      id: json['id'],
-      fullName: json['fullName'],
-      registrationNumber: json['registrationNumber'], // This can be null
-      email: json['email'],
-      roleId: json['roleId'],
+      id: json['id'] as String? ?? '',
+      fullName: json['fullName'] as String? ?? '',
+      registrationNumber: json['registrationNumber'] as String?,
+      email: json['email'] as String? ?? '',
+      roleId: roleId,
       roleName: rName,
     );
   }
