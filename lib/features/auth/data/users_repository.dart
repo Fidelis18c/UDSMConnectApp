@@ -32,6 +32,8 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     final yearRaw = json['yearOfStudy'];
+    final college = json['college'] as Map<String, dynamic>?;
+    final programme = json['programme'] as Map<String, dynamic>?;
     return UserProfile(
       id: json['id'] as String,
       fullName: json['fullName'] as String? ?? '',
@@ -39,8 +41,8 @@ class UserProfile {
       registrationNumber: json['registrationNumber'] as String?,
       collegeId: json['collegeId'] as String?,
       programmeId: json['programmeId'] as String?,
-      collegeName: json['collegeName'] as String?,
-      programmeName: json['programmeName'] as String?,
+      collegeName: college?['name'] as String?,
+      programmeName: programme?['name'] as String?,
       yearOfStudy: yearRaw is int ? yearRaw : int.tryParse('$yearRaw'),
       roleName: json['roleName'] as String?,
       currentSemester: json['currentSemester'] as int?,
