@@ -9,6 +9,7 @@ import '../../../../core/widgets/avatar_initials.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../providers/events_provider.dart';
 import '../widgets/attendees_bottom_sheet.dart';
+import '../widgets/calendar_dialog.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
   final Event event;
@@ -79,7 +80,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           .read(rsvpStateProvider.notifier)
           .setAttending(widget.event.id, attending: true);
       setState(() => _goingCount++);
-      _showSnack('You\'re attending! 🎉');
+      // Show the Add to Google Calendar prompt
+      if (mounted) {
+        await CalendarDialog.show(context, widget.event);
+      }
     } catch (e) {
       _showSnack('Failed to register. Please try again.', isError: true);
     } finally {
