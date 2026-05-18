@@ -10,6 +10,7 @@ class Event {
   final String status;
   final String? imageUrl;
   final String organizer;
+  final String? categoryName;
 
   Event({
     required this.id,
@@ -23,6 +24,7 @@ class Event {
     required this.status,
     this.imageUrl,
     required this.organizer,
+    this.categoryName,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class Event {
       status: (json['status'] ?? 'PUBLISHED').toString(),
       imageUrl: json['coverImage'] is Map ? json['coverImage']['url']?.toString() : null,
       organizer: json['organizer'] is Map ? (json['organizer']['fullName'] ?? 'Unknown').toString() : 'Unknown',
+      categoryName: json['category'] is Map ? (json['category']['name'] ?? '').toString() : null,
     );
   }
 }

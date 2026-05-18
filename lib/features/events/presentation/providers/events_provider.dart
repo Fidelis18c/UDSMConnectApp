@@ -18,6 +18,9 @@ final selectedEventCategoryIdProvider = NotifierProvider<SelectedEventCategoryNo
   return SelectedEventCategoryNotifier();
 });
 
+// Search query for client-side filtering
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
 class EventsNotifier extends AsyncNotifier<List<Event>> {
   @override
   Future<List<Event>> build() async {
@@ -61,3 +64,38 @@ class EventsNotifier extends AsyncNotifier<List<Event>> {
 final eventsProvider = AsyncNotifierProvider<EventsNotifier, List<Event>>(() {
   return EventsNotifier();
 });
+
+// Upcoming events filtered by search query (client-side)
+final filteredUpcomingEventsProvider = Provider<AsyncValue<List<Event>>>((ref) {
+  final eventsAsync = ref.watch(eventsProvider);
+  final query = ref.watch(searchQueryProvider).toLowerCase().trim();
+  final now = DateTime.now();
+
+  return eventsAsync.whenData((events) {
+    final upcoming = events.where((e) => e.endDateTime.isAfter(now)).toList();
+    if (query.isEmpty) return upcoming;
+    return upcoming
+        .where((e) =>
+            e.title.toLowerCase().contains(query) ||
+            e.location.toLowerCase().contains(query))
+        .toList();
+  });
+});
+
+// Past events: events where endDateTime is before now
+final pastEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final categoryId = ref.watch(selectedEventCategoryIdProvider);
+  try {
+    final repo = ref.read(eventRepositoryProvider);
+    final all = await repo.getEvents(
+      upcoming: false,
+      categoryId: categoryId,
+      pageSize: 20,
+    );
+    final now = DateTime.now();
+    return all.where((e) => e.endDateTime.isBefore(now)).toList();
+  } catch (e) {
+    return [];
+  }
+});
+
