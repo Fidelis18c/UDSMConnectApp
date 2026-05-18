@@ -19,7 +19,14 @@ final selectedEventCategoryIdProvider = NotifierProvider<SelectedEventCategoryNo
 });
 
 // Search query for client-side filtering
-final searchQueryProvider = StateProvider<String>((ref) => '');
+class SearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+  void set(String val) => state = val;
+}
+
+final searchQueryProvider =
+    NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
 
 class EventsNotifier extends AsyncNotifier<List<Event>> {
   @override

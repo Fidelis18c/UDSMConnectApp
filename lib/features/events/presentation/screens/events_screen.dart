@@ -29,7 +29,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
   }
 
   Future<void> _onRefresh() async {
-    ref.read(searchQueryProvider.notifier).state = '';
+    ref.read(searchQueryProvider.notifier).set('');
     _searchController.clear();
     await ref.read(eventsProvider.notifier).refresh();
     ref.invalidate(pastEventsProvider);
@@ -118,7 +118,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         fontSize: 14,
                       ),
                       onChanged: (val) {
-                        ref.read(searchQueryProvider.notifier).state = val;
+                        ref.read(searchQueryProvider.notifier).set(val);
                       },
                       decoration: InputDecoration(
                         hintText: 'Search events',
@@ -145,7 +145,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                               ),
                               onPressed: () {
                                 _searchController.clear();
-                                ref.read(searchQueryProvider.notifier).state = '';
+                                ref.read(searchQueryProvider.notifier).set('');
                               },
                             );
                           },
