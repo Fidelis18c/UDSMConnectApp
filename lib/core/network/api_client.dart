@@ -1,15 +1,15 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 
 class ApiClient {
-  /// Local backend for debug/web testing.
-  /// Change this to your machine's LAN IP (e.g. http://192.168.x.x:3000/api)
-  /// when testing on a physical Android/iOS device.
-  /// Point local debug tests directly to the live server
-  static const String _localUrl = 'https://www.udsminfo.com/api';
-  static const String _productionUrl = 'https://www.udsminfo.com/api';
-
-  static String get _baseUrl => kDebugMode ? _localUrl : _productionUrl;
+  /// Base URL is injected at build/run time via --dart-define=API_BASE_URL=...
+  /// Default is always production so testers are never affected.
+  ///
+  /// For local development run with:
+  ///   flutter run --dart-define=API_BASE_URL=http://localhost:3000/api
+  static const String _baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://www.udsminfo.com/api',
+  );
 
   static final ApiClient _instance = ApiClient._internal();
   late final Dio dio;
