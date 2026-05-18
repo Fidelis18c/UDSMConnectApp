@@ -228,28 +228,28 @@ class _CategoryCardSkeletonState extends State<CategoryCardSkeleton>
         )!;
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.circular(14),
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(30),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: shimmerColor,
-                  borderRadius: BorderRadius.circular(10),
+                  shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: shimmerColor,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
+              const SizedBox(width: 8),
+              Container(
+                width: 60,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: shimmerColor,
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
             ],

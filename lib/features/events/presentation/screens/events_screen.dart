@@ -213,19 +213,17 @@ class _CategoriesSection extends ConsumerWidget {
     final categoriesAsync = ref.watch(eventCategoriesProvider);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
       child: categoriesAsync.when(
-        loading: () => GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 3.0,
+        loading: () => SizedBox(
+          height: 48,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: 4,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, __) => const CategoryCardSkeleton(),
           ),
-          itemCount: 4,
-          itemBuilder: (_, __) => const CategoryCardSkeleton(),
         ),
         error: (_, __) => const SizedBox.shrink(),
         data: (categories) {
@@ -235,32 +233,30 @@ class _CategoriesSection extends ConsumerWidget {
           final allCategory = EventCategory(id: '', name: 'All');
           final displayList = [allCategory, ...categories];
 
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 3.0,
-            ),
-            itemCount: displayList.length,
-            itemBuilder: (_, index) {
-              final cat = displayList[index];
-              final isSelected = cat.id.isEmpty
-                  ? selectedId == null
-                  : selectedId == cat.id;
+          return SizedBox(
+            height: 48,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: displayList.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (_, index) {
+                final cat = displayList[index];
+                final isSelected = cat.id.isEmpty
+                    ? selectedId == null
+                    : selectedId == cat.id;
 
-              return EventCategoryGridCard(
-                category: cat,
-                isSelected: isSelected,
-                onTap: () {
-                  ref.read(selectedEventCategoryIdProvider.notifier).set(
-                        cat.id.isEmpty ? null : cat.id,
-                      );
-                },
-              );
-            },
+                return EventCategoryGridCard(
+                  category: cat,
+                  isSelected: isSelected,
+                  onTap: () {
+                    ref.read(selectedEventCategoryIdProvider.notifier).set(
+                          cat.id.isEmpty ? null : cat.id,
+                        );
+                  },
+                );
+              },
+            ),
           );
         },
       ),

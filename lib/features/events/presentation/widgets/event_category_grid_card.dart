@@ -24,8 +24,8 @@ class EventCategoryGridCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary.withOpacity(0.15)
-              : const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(14),
+              : const Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: isSelected
                 ? AppColors.primary
@@ -34,38 +34,35 @@ class EventCategoryGridCard extends StatelessWidget {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Icon container
               Container(
-                width: 46,
-                height: 46,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: _categoryColor(category.name).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(10),
+                  shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Icon(
                     _categoryIcon(category.name),
                     color: _categoryColor(category.name),
-                    size: 22,
+                    size: 16,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               // Category name
-              Expanded(
-                child: Text(
-                  category.name,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? Colors.white : const Color(0xFFCCCCCC),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              Text(
+                category.name,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? Colors.white : const Color(0xFFCCCCCC),
                 ),
               ),
             ],
