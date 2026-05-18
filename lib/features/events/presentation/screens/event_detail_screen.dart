@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:udsm_connect/core/models/event.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/avatar_initials.dart';
@@ -15,6 +16,25 @@ class EventDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Status Logic
+    final now = DateTime.now();
+    Color statusColor;
+    String statusText;
+
+    if (event.status == 'CANCELLED') {
+      statusColor = Colors.redAccent;
+      statusText = 'Cancelled';
+    } else if (now.isBefore(event.startDateTime)) {
+      statusColor = Colors.blueAccent;
+      statusText = 'Upcoming';
+    } else if (now.isAfter(event.startDateTime) && now.isBefore(event.endDateTime)) {
+      statusColor = Colors.green;
+      statusText = 'Ongoing';
+    } else {
+      statusColor = Colors.grey;
+      statusText = 'Past';
+    }
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -42,56 +62,124 @@ class EventDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    event.title,
-                    style: Theme.of(context).textTheme.displayLarge,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          event.title,
+                          style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: statusColor.withOpacity(0.5)),
+                        ),
+                        child: Text(
+                          statusText.toUpperCase(),
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.calendar_today, color: AppColors.primary),
+                      const Icon(Icons.calendar_today, color: AppColors.primary, size: 24),
                       const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _formatDate(event.date),
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            '09:00 AM - 04:00 PM', // Mock time
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-                          ),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _formatDate(event.startDateTime),
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            Text(
+                              '${_formatTime(event.startDateTime)} - ${_formatTime(event.endDateTime)}',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, color: AppColors.primary),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            event.location,
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                  GestureDetector(
+                    onTap: () async {
+                      if (event.locationUrl != null && await canLaunchUrl(Uri.parse(event.locationUrl!))) {
+                        await launchUrl(Uri.parse(event.locationUrl!));
+                      }
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.location_on, color: event.locationUrl != null ? AppColors.primary : AppColors.textSecondary, size: 24),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                event.location,
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              if (event.locationUrl != null)
+                                Text(
+                                  'Tap to view on Map',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.primary),
+                                ),
+                            ],
                           ),
-                          Text(
-                            'UDSM Campus',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
+                  if (event.maxAttendees != null) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.people_outline, color: AppColors.primary, size: 24),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Capacity',
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                '${event.maxAttendees} attendees maximum',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   const Divider(color: AppColors.divider),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const AvatarInitials(initials: 'CO', radius: 24),
+                      AvatarInitials(initials: event.organizer.isNotEmpty ? event.organizer[0].toUpperCase() : 'U', radius: 24),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -99,11 +187,11 @@ class EventDetailScreen extends StatelessWidget {
                           children: [
                             Text(
                               'Event Organizer',
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
                             ),
                             Text(
-                              'Authorized Official',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                              event.organizer,
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ],
                         ),
@@ -142,6 +230,15 @@ class EventDetailScreen extends StatelessWidget {
   }
 
   String _formatDate(DateTime dt) {
-    return '${dt.day}/${dt.month}/${dt.year}';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final month = months[dt.month - 1];
+    return '${dt.day} $month ${dt.year}';
+  }
+
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final amPm = dt.hour >= 12 ? 'PM' : 'AM';
+    final minute = dt.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $amPm';
   }
 }

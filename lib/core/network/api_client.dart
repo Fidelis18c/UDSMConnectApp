@@ -1,7 +1,14 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiClient {
-  static const String _baseUrl = 'https://fyp-backend-pi-one.vercel.app/api';
+  /// Local backend for debug/web testing.
+  /// Change this to your machine's LAN IP (e.g. http://192.168.x.x:3000/api)
+  /// when testing on a physical Android/iOS device.
+  static const String _localUrl = 'http://localhost:3000/api';
+  static const String _productionUrl = 'https://fyp-backend-pi-one.vercel.app/api';
+
+  static String get _baseUrl => kDebugMode ? _localUrl : _productionUrl;
 
   static final ApiClient _instance = ApiClient._internal();
   late final Dio dio;

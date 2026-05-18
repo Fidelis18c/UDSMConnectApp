@@ -53,10 +53,7 @@ class EventRepository {
 
   Future<List<EventCategory>> getCategories() async {
     try {
-      final response = await _apiClient.dio.get(
-        '/categories',
-        queryParameters: {'module': 'EVENT'},
-      );
+      final response = await _apiClient.dio.get('/event-categories');
       final List<dynamic> data = response.data['data'];
       return data.map<EventCategory>((json) => EventCategory.fromJson(json)).toList();
     } catch (e) {
