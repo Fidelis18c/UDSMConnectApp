@@ -5,8 +5,9 @@ class ApiClient {
   /// Local backend for debug/web testing.
   /// Change this to your machine's LAN IP (e.g. http://192.168.x.x:3000/api)
   /// when testing on a physical Android/iOS device.
-  static const String _localUrl = 'http://localhost:3000/api';
-  static const String _productionUrl = 'https://fyp-backend-pi-one.vercel.app/api';
+  /// Point local debug tests directly to the live server
+  static const String _localUrl = 'https://www.udsminfo.com/api';
+  static const String _productionUrl = 'https://www.udsminfo.com/api';
 
   static String get _baseUrl => kDebugMode ? _localUrl : _productionUrl;
 
