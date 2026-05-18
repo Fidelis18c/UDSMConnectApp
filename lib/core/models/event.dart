@@ -10,7 +10,9 @@ class Event {
   final String status;
   final String? imageUrl;
   final String organizer;
+  final String? organizerId;
   final String? categoryName;
+  final int goingCount;
 
   Event({
     required this.id,
@@ -24,7 +26,9 @@ class Event {
     required this.status,
     this.imageUrl,
     required this.organizer,
+    this.organizerId,
     this.categoryName,
+    this.goingCount = 0,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -44,7 +48,9 @@ class Event {
       status: (json['status'] ?? 'PUBLISHED').toString(),
       imageUrl: json['coverImage'] is Map ? json['coverImage']['url']?.toString() : null,
       organizer: json['organizer'] is Map ? (json['organizer']['fullName'] ?? 'Unknown').toString() : 'Unknown',
+      organizerId: json['organizer'] is Map ? json['organizer']['id']?.toString() : null,
       categoryName: json['category'] is Map ? (json['category']['name'] ?? '').toString() : null,
+      goingCount: (json['goingCount'] as num?)?.toInt() ?? 0,
     );
   }
 }

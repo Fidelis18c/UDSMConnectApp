@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/event.dart';
+import '../../../../core/models/attendee.dart';
 import '../../data/repositories/event_repository.dart';
 
 final eventRepositoryProvider = Provider((ref) => EventRepository());
@@ -105,4 +106,30 @@ final pastEventsProvider = FutureProvider<List<Event>>((ref) async {
     return [];
   }
 });
+// ─────────────────────────────────────────────────────────────────────────────
+// RSVP State — tracks which events this session the user is attending
+// Key: eventId, Value: true = GOING, false = not attending
+// ─────────────────────────────────────────────────────────────────────────────
 
+class RsvpStateNotifier extends Notifier<Map<String, bool>> {
+  @override
+  Map<String, bool> build() => {};
+
+  bool isAttending(String eventId) => state[eventId] ?? false;
+
+  void setAttending(String eventId, {required bool attending}) {
+    state = {...state, eventId: attending};
+  }
+}
+
+final rsvpStateProvider =
+    NotifierProvider<RsvpStateNotifier, Map<String, bool>>(RsvpStateNotifier.new);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Attendees — fetched on demand by organizer
+// ─────────────────────────────────────────────────────────────────────────────
+
+final attendeesProvider =
+    FutureProvider.family<List<Attendee>, String>((ref, eventId) async {
+  return ref.read(eventRepositoryProvider).getAttendees(eventId);
+});

@@ -1,6 +1,6 @@
-import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/models/event.dart';
+import '../../../../core/models/attendee.dart';
 
 class EventRepository {
   final ApiClient _apiClient = ApiClient();
@@ -23,7 +23,6 @@ class EventRepository {
           if (upcoming != null) 'upcoming': upcoming,
         },
       );
-
       final List<dynamic> data = response.data['data'];
       return data.map<Event>((json) => Event.fromJson(json)).toList();
     } catch (e) {
@@ -40,12 +39,33 @@ class EventRepository {
     }
   }
 
-  Future<void> rsvpToEvent(String eventId, String status) async {
+  /// RSVP as GOING (upserted on backend — safe to call multiple times)
+  Future<void> rsvpEvent(String eventId) async {
     try {
       await _apiClient.dio.post(
         '/events/$eventId/rsvp',
-        data: {'status': status},
+        data: {'status': 'GOING'},
       );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Remove the current user's RSVP from this event
+  Future<void> cancelRsvp(String eventId) async {
+    try {
+      await _apiClient.dio.delete('/events/$eventId/rsvp');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Fetch attendee list — backend enforces event.update permission
+  Future<List<Attendee>> getAttendees(String eventId) async {
+    try {
+      final response = await _apiClient.dio.get('/events/$eventId/attendees');
+      final List<dynamic> data = response.data['data'];
+      return data.map<Attendee>((json) => Attendee.fromJson(json)).toList();
     } catch (e) {
       rethrow;
     }
@@ -70,7 +90,6 @@ class EventRepository {
         'startDateTime': data['startDateTime'],
         'endDateTime': data['endDateTime'],
       };
-
       if (data['status'] != null) requestData['status'] = data['status'];
       if (data['coverImageId'] != null) requestData['coverImageId'] = data['coverImageId'];
       if (data['location'] != null) requestData['location'] = data['location'];
@@ -78,13 +97,15 @@ class EventRepository {
       if (data['maxAttendees'] != null) requestData['maxAttendees'] = data['maxAttendees'];
       if (data['academicYearId'] != null) requestData['academicYearId'] = data['academicYearId'];
 
-      final response = await _apiClient.dio.post(
-        '/events',
-        data: requestData,
-      );
+      final response = await _apiClient.dio.post('/events', data: requestData);
       return Event.fromJson(response.data['data']);
     } catch (e) {
       rethrow;
     }
+  }
+
+  // Legacy — kept for backward compat
+  Future<void> rsvpToEvent(String eventId, String status) async {
+    await _apiClient.dio.post('/events/$eventId/rsvp', data: {'status': status});
   }
 }
