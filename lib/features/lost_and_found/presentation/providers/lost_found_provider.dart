@@ -96,6 +96,26 @@ class LostFoundNotifier extends AsyncNotifier<List<LostFoundItem>> {
       return false;
     }
   }
+
+  Future<bool> updateItem(String id, Map<String, dynamic> updates) async {
+    try {
+      await ref.read(lostFoundRepositoryProvider).updateItem(id, updates);
+      await refresh();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteItem(String id) async {
+    try {
+      await ref.read(lostFoundRepositoryProvider).deleteItem(id);
+      await refresh();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }
 
 final lostFoundItemsProvider =

@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/lost_found.dart';
 import '../../data/repositories/lost_found_repository.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../providers/lost_found_provider.dart';
 
 class LostFoundDetailScreen extends ConsumerStatefulWidget {
@@ -39,8 +40,11 @@ class _LostFoundDetailScreenState
   }
 
   bool get _isLost => widget.item.type == 'LOST';
+  bool get _isResolved => widget.item.status == 'RESOLVED';
+
   Color get _typeColor =>
-      _isLost ? AppColors.primary : const Color(0xFF2E7D32);
+      _isResolved ? const Color(0xFF666666) : (_isLost ? AppColors.primary : const Color(0xFF2E7D32));
+  String get _typeText => _isResolved ? 'RESOLVED' : (_isLost ? 'LOST' : 'FOUND');
 
   String _formatDate(DateTime? dt) {
     if (dt == null) return '—';
@@ -51,6 +55,9 @@ class _LostFoundDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authProvider).user;
+    final isOwner = user != null && widget.item.reporter?.id == user.id;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
@@ -122,6 +129,98 @@ class _LostFoundDetailScreenState
                           ),
                         ),
                       ),
+
+                      // Owner Options
+                      if (isOwner)
+                        Positioned(
+                          top: MediaQuery.of(context).padding.top + 8,
+                          right: 12,
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              popupMenuTheme: const PopupMenuThemeData(
+                                color: Color(0xFF1E1E1E),
+                                textStyle: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            child: PopupMenuButton<String>(
+                              icon: Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withAlpha(153),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.more_vert,
+                                    color: Colors.white, size: 20),
+                              ),
+                              onSelected: (value) async {
+                                if (value == 'resolve') {
+                                  final success = await ref
+                                      .read(lostFoundItemsProvider.notifier)
+                                      .updateItem(widget.item.id, {'status': 'RESOLVED'});
+                                  if (success && mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Item marked as resolved')),
+                                    );
+                                    Navigator.pop(context);
+                                  }
+                                } else if (value == 'delete') {
+                                  final conf = await showDialog<bool>(
+                                    context: context,
+                                    builder: (c) => AlertDialog(
+                                      backgroundColor: const Color(0xFF1E1E1E),
+                                      title: const Text('Delete Report?', style: TextStyle(color: Colors.white)),
+                                      content: const Text('This action cannot be undone.', style: TextStyle(color: Colors.white70)),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(c, false),
+                                          child: const Text('CANCEL', style: TextStyle(color: AppColors.textHint)),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(c, true),
+                                          child: const Text('DELETE', style: TextStyle(color: Colors.red)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (conf == true && mounted) {
+                                    final success = await ref
+                                        .read(lostFoundItemsProvider.notifier)
+                                        .deleteItem(widget.item.id);
+                                    if (success && mounted) {
+                                      Navigator.pop(context);
+                                    }
+                                  }
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                if (!_isResolved)
+                                  const PopupMenuItem(
+                                    value: 'resolve',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                                        SizedBox(width: 12),
+                                        Text('Mark as Resolved'),
+                                      ],
+                                    ),
+                                  ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                      SizedBox(width: 12),
+                                      Text('Delete Report', style: TextStyle(color: Colors.red)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
                       // Image counter
                       if (images.length > 1)
                         Positioned(
@@ -187,7 +286,7 @@ class _LostFoundDetailScreenState
                                   border: Border.all(color: _typeColor),
                                 ),
                                 child: Text(
-                                  _isLost ? 'LOST' : 'FOUND',
+                                  _typeText,
                                   style: GoogleFonts.inter(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,

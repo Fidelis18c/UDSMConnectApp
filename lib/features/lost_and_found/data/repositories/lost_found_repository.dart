@@ -58,6 +58,15 @@ class LostFoundRepository {
     return LostFoundItem.fromJson(response.data['data']);
   }
 
+  Future<LostFoundItem> updateItem(String id, Map<String, dynamic> data) async {
+    final response = await _apiClient.dio.put('/lost-found/$id', data: data);
+    return LostFoundItem.fromJson(response.data['data']);
+  }
+
+  Future<void> deleteItem(String id) async {
+    await _apiClient.dio.delete('/lost-found/$id');
+  }
+
   Future<List<LostFoundCategory>> getCategories() async {
     final response = await _apiClient.dio.get(
       '/categories',

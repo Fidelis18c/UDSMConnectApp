@@ -32,8 +32,7 @@ class _CreateLostFoundScreenState
 
   late String _selectedType;
   String? _selectedCategoryId;
-  Uint8List? _imageBytes;
-  String? _imageFilename;
+  List<XFile> _selectedImages = [];
   bool _submitting = false;
   bool _isAnonymous = false;
 
@@ -54,13 +53,17 @@ class _CreateLostFoundScreenState
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final image =
-        await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
-    if (image != null) {
-      final bytes = await image.readAsBytes();
+    final images = await picker.pickMultiImage(imageQuality: 70);
+    if (images.isNotEmpty) {
+      if (_selectedImages.length + images.length > 5) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You can only select up to 5 images')),
+        );
+        return;
+      }
       setState(() {
-        _imageBytes = bytes;
-        _imageFilename = image.name;
+        _selectedImages.addAll(images);
       });
     }
   }
@@ -79,12 +82,16 @@ class _CreateLostFoundScreenState
       final announcementsRepo = ref.read(announcementsRepositoryProvider);
 
       List<String>? mediaIds;
-      if (_imageBytes != null) {
-        final mediaId = await announcementsRepo.uploadMediaBytes(
-          _imageBytes!,
-          filename: _imageFilename ?? 'item.jpg',
-        );
-        mediaIds = [mediaId];
+      if (_selectedImages.isNotEmpty) {
+        mediaIds = [];
+        for (final file in _selectedImages) {
+          final bytes = await file.readAsBytes();
+          final mediaId = await announcementsRepo.uploadMediaBytes(
+            bytes,
+            filename: file.name,
+          );
+          mediaIds.add(mediaId);
+        }
       }
 
       final success = await ref
@@ -157,75 +164,135 @@ class _CreateLostFoundScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── Image Picker ─────────────────────────────────────────
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF161616),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.primary.withAlpha(50),
-                      width: 1,
+              if (_selectedImages.isEmpty)
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF161616),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.primary.withAlpha(50),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withAlpha(20),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.add_photo_alternate_outlined,
+                              color: AppColors.primary, size: 28),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Add Photos (Max 5)',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Helps identify the item quicker',
+                          style: GoogleFonts.inter(
+                            color: AppColors.textHint,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: _imageBytes != null
-                      ? Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.memory(_imageBytes!, fit: BoxFit.cover),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: GestureDetector(
-                                onTap: () => setState(() => _imageBytes = null),
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.black54,
-                                    shape: BoxShape.circle,
+                )
+              else
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height: 120,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _selectedImages.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index == _selectedImages.length) {
+                            if (_selectedImages.length >= 5) return const SizedBox();
+                            return GestureDetector(
+                              onTap: _pickImage,
+                              child: Container(
+                                width: 100,
+                                margin: const EdgeInsets.only(left: 12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF161616),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppColors.primary.withAlpha(50),
                                   ),
-                                  child: const Icon(Icons.close,
-                                      color: Colors.white, size: 20),
+                                ),
+                                child: const Center(
+                                  child: Icon(Icons.add,
+                                      color: AppColors.primary, size: 32),
                                 ),
                               ),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withAlpha(20),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.add_a_photo_outlined,
-                                  color: AppColors.primary, size: 28),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Add Photo',
-                              style: GoogleFonts.inter(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Helps identify the item quicker',
-                              style: GoogleFonts.inter(
-                                color: AppColors.textHint,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
+                            );
+                          }
+                          return FutureBuilder<Uint8List>(
+                            future: _selectedImages[index].readAsBytes(),
+                            builder: (context, snapshot) {
+                              return Container(
+                                width: 120,
+                                margin: EdgeInsets.only(left: index == 0 ? 0 : 12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1A1A1A),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    if (snapshot.hasData)
+                                      Image.memory(snapshot.data!,
+                                          fit: BoxFit.cover)
+                                    else
+                                      const Center(
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      ),
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedImages.removeAt(index);
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.black54,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(Icons.close,
+                                              color: Colors.white, size: 16),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ),
               const SizedBox(height: 32),
 
               // ── Form Fields ──────────────────────────────────────────

@@ -13,10 +13,14 @@ class LostFoundCard extends StatelessWidget {
   const LostFoundCard({super.key, required this.item, required this.onTap});
 
   bool get _isLost => item.type == 'LOST';
+  bool get _isResolved => item.status == 'RESOLVED';
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor = _isLost ? _lostColor : _foundColor;
+    final badgeColor = _isResolved
+        ? const Color(0xFF666666)
+        : (_isLost ? _lostColor : _foundColor);
+    final badgeText = _isResolved ? 'RESOLVED' : (_isLost ? 'LOST' : 'FOUND');
     final imageUrl = item.displayImageUrl;
 
     return GestureDetector(
@@ -51,7 +55,7 @@ class LostFoundCard extends StatelessWidget {
                         )
                       : _placeholder(),
 
-                  // LOST / FOUND badge
+                  // LOST / FOUND / RESOLVED badge
                   Positioned(
                     top: 10,
                     right: 10,
@@ -63,7 +67,7 @@ class LostFoundCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        _isLost ? 'LOST' : 'FOUND',
+                        badgeText,
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -73,6 +77,11 @@ class LostFoundCard extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  if (_isResolved)
+                    Container(
+                      color: Colors.black.withAlpha(120),
+                    ),
                 ],
               ),
             ),
