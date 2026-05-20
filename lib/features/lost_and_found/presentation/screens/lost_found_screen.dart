@@ -28,14 +28,13 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isStudent = ref.watch(authProvider).user?.isStudent ?? false;
     final itemsAsync = ref.watch(filteredLostFoundProvider);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Colors.black,
-        floatingActionButton: isStudent ? null : const _ExpandableFab(),
+        floatingActionButton: const _ExpandableFab(),
         body: RefreshIndicator(
           onRefresh: () => ref.read(lostFoundItemsProvider.notifier).refresh(),
           color: AppColors.primary,
