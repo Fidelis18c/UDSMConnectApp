@@ -27,6 +27,7 @@ import '../features/events/presentation/screens/event_detail_screen.dart';
 import '../features/compose/presentation/screens/create_event_screen.dart';
 
 import '../features/lost_and_found/presentation/screens/lost_found_screen.dart';
+import '../features/lost_and_found/presentation/screens/lost_found_detail_screen.dart';
 import '../features/compose/presentation/screens/create_lost_found_screen.dart';
 
 final appRouter = GoRouter(
@@ -183,9 +184,22 @@ final appRouter = GoRouter(
               builder: (context, state) => const LostFoundScreen(),
               routes: [
                 GoRoute(
+                  path: ':id',
+                  name: RouteNames.lostFoundDetail,
+                  builder: (context, state) {
+                    final item = state.extra as LostFoundItem;
+                    return LostFoundDetailScreen(item: item);
+                  },
+                ),
+                GoRoute(
                   path: 'create',
                   name: RouteNames.createLostFound,
-                  builder: (context, state) => const CreateLostFoundScreen(),
+                  builder: (context, state) {
+                    final extra = state.extra as Map<String, dynamic>?;
+                    return CreateLostFoundScreen(
+                      initialType: extra?['type'] as String? ?? 'LOST',
+                    );
+                  },
                 ),
               ],
             ),

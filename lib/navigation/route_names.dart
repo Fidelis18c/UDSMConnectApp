@@ -26,6 +26,7 @@ class RouteNames {
   static const String createEvent = 'createEvent';
   
   static const String lostFound = 'lostFound';
+  static const String lostFoundDetail = 'lostFoundDetail';
   static const String createLostFound = 'createLostFound';
   static const String createStory = 'createStory';
 }

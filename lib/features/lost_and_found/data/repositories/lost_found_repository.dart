@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/lost_found.dart';
 
@@ -11,26 +10,24 @@ class LostFoundRepository {
     String? type,
     String? categoryId,
     String? status,
-    String? search,
   }) async {
-    try {
-      final response = await _apiClient.dio.get(
-        '/lost-found',
-        queryParameters: {
-          'page': page,
-          'pageSize': pageSize,
-          if (type != null) 'type': type,
-          if (categoryId != null) 'categoryId': categoryId,
-          if (status != null) 'status': status,
-          if (search != null) 'search': search,
-        },
-      );
+    final response = await _apiClient.dio.get(
+      '/lost-found',
+      queryParameters: {
+        'page': page,
+        'pageSize': pageSize,
+        if (type != null) 'type': type,
+        if (categoryId != null) 'categoryId': categoryId,
+        if (status != null) 'status': status,
+      },
+    );
+    final List<dynamic> data = response.data['data'];
+    return data.map((json) => LostFoundItem.fromJson(json)).toList();
+  }
 
-      final List<dynamic> data = response.data['data'];
-      return data.map((json) => LostFoundItem.fromJson(json)).toList();
-    } catch (e) {
-      rethrow;
-    }
+  Future<LostFoundItem> getItemDetail(String id) async {
+    final response = await _apiClient.dio.get('/lost-found/$id');
+    return LostFoundItem.fromJson(response.data['data']);
   }
 
   Future<LostFoundItem> createItem({
@@ -44,43 +41,29 @@ class LostFoundRepository {
     String? contactInfo,
     List<String>? mediaIds,
   }) async {
-    try {
-      final Map<String, dynamic> data = {
-        'type': type,
-        'title': title,
-        'description': description,
-        'dateLostOrFound': (dateLostFound ?? DateTime.now()).toUtc().toIso8601String().split('T')[0],
-        'isAnonymous': isAnonymous,
-        'contactInfo': contactInfo,
-        'mediaIds': mediaIds ?? [],
-      };
+    final Map<String, dynamic> data = {
+      'type': type,
+      'title': title,
+      'description': description,
+      'dateLostOrFound':
+          (dateLostFound ?? DateTime.now()).toUtc().toIso8601String().split('T')[0],
+      'isAnonymous': isAnonymous,
+      if (contactInfo != null && contactInfo.isNotEmpty) 'contactInfo': contactInfo,
+      if (categoryId != null) 'categoryId': categoryId,
+      if (location != null && location.isNotEmpty) 'locationSeen': location,
+      'mediaIds': mediaIds ?? [],
+    };
 
-      if (categoryId != null) data['categoryId'] = categoryId;
-      if (location != null) data['locationSeen'] = location;
-      if (mediaIds != null && mediaIds.isNotEmpty) {
-        data['coverImageId'] = mediaIds.first;
-      }
-
-      final response = await _apiClient.dio.post(
-        '/lost-found',
-        data: data,
-      );
-      return LostFoundItem.fromJson(response.data['data']);
-    } catch (e) {
-      rethrow;
-    }
+    final response = await _apiClient.dio.post('/lost-found', data: data);
+    return LostFoundItem.fromJson(response.data['data']);
   }
 
   Future<List<LostFoundCategory>> getCategories() async {
-    try {
-      final response = await _apiClient.dio.get(
-        '/categories',
-        queryParameters: {'module': 'LOST_FOUND'},
-      );
-      final List<dynamic> data = response.data['data'];
-      return data.map((json) => LostFoundCategory.fromJson(json)).toList();
-    } catch (e) {
-      rethrow;
-    }
+    final response = await _apiClient.dio.get(
+      '/categories',
+      queryParameters: {'module': 'LOST_FOUND'},
+    );
+    final List<dynamic> data = response.data['data'];
+    return data.map((json) => LostFoundCategory.fromJson(json)).toList();
   }
 }

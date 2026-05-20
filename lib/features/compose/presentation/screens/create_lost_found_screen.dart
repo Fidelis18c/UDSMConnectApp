@@ -1,35 +1,46 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:udsm_connect/core/widgets/udsm_button.dart';
 import 'package:udsm_connect/core/widgets/udsm_text_field.dart';
 import 'package:udsm_connect/core/widgets/udsm_text_area.dart';
 import 'package:udsm_connect/core/widgets/udsm_dropdown.dart';
+import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/features/announcements/data/announcements_repository.dart';
-import 'package:udsm_connect/features/lost_and_found/data/models/lost_found.dart';
-import 'package:udsm_connect/features/lost_and_found/presentation/providers/lost_found_provider.dart';
-import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
+import '../../lost_and_found/presentation/providers/lost_found_provider.dart';
 
 class CreateLostFoundScreen extends ConsumerStatefulWidget {
-  const CreateLostFoundScreen({Key? key}) : super(key: key);
+  final String initialType;
+  const CreateLostFoundScreen({super.key, this.initialType = 'LOST'});
 
   @override
-  ConsumerState<CreateLostFoundScreen> createState() => _CreateLostFoundScreenState();
+  ConsumerState<CreateLostFoundScreen> createState() =>
+      _CreateLostFoundScreenState();
 }
 
-class _CreateLostFoundScreenState extends ConsumerState<CreateLostFoundScreen> {
+class _CreateLostFoundScreenState
+    extends ConsumerState<CreateLostFoundScreen> {
   final _itemController = TextEditingController();
   final _locationController = TextEditingController();
   final _descController = TextEditingController();
   final _contactController = TextEditingController();
 
-  String? _selectedType = 'LOST';
+  late String _selectedType;
   String? _selectedCategoryId;
   Uint8List? _imageBytes;
   String? _imageFilename;
   bool _submitting = false;
+  bool _isAnonymous = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedType = widget.initialType;
+  }
 
   @override
   void dispose() {
@@ -42,7 +53,8 @@ class _CreateLostFoundScreenState extends ConsumerState<CreateLostFoundScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final image =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (image != null) {
       final bytes = await image.readAsBytes();
       setState(() {
@@ -64,7 +76,6 @@ class _CreateLostFoundScreenState extends ConsumerState<CreateLostFoundScreen> {
 
     try {
       final announcementsRepo = ref.read(announcementsRepositoryProvider);
-      final lostFoundNotifier = ref.read(lostFoundItemsProvider.notifier);
 
       List<String>? mediaIds;
       if (_imageBytes != null) {
@@ -75,26 +86,39 @@ class _CreateLostFoundScreenState extends ConsumerState<CreateLostFoundScreen> {
         mediaIds = [mediaId];
       }
 
-      final success = await lostFoundNotifier.createItem(
-        title: _itemController.text.trim(),
-        description: _descController.text.trim(),
-        type: _selectedType!,
-        categoryId: _selectedCategoryId,
-        location: _locationController.text.trim(),
-        contactInfo: _contactController.text.trim(),
-        mediaIds: mediaIds,
-      );
+      final success = await ref
+          .read(lostFoundItemsProvider.notifier)
+          .createItem(
+            title: _itemController.text.trim(),
+            description: _descController.text.trim(),
+            type: _selectedType,
+            categoryId: _selectedCategoryId,
+            location: _locationController.text.trim(),
+            contactInfo: _contactController.text.trim(),
+            isAnonymous: _isAnonymous,
+            mediaIds: mediaIds,
+            dateLostFound: DateTime.now(), // default to today
+          );
 
+      if (!mounted) return;
       if (success) {
-        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Report submitted successfully!'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
         context.pop();
       } else {
-        throw Exception('Failed to create item');
+        throw Exception('Server error: Failed to create report');
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -105,113 +129,261 @@ class _CreateLostFoundScreenState extends ConsumerState<CreateLostFoundScreen> {
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(lostFoundCategoriesProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Report Item'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            _selectedType == 'LOST' ? 'Report Lost Item' : 'Report Found Item',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          centerTitle: true,
         ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      UdsmDropdown<String>(
-                        value: _selectedType,
-                        hint: 'Report Type',
-                        items: const [
-                          DropdownMenuItem(value: 'LOST', child: Text('I lost something')),
-                          DropdownMenuItem(value: 'FOUND', child: Text('I found something')),
-                        ],
-                        onChanged: (val) => setState(() => _selectedType = val),
-                      ),
-                      const SizedBox(height: 16),
-                      categoriesAsync.when(
-                        data: (categories) => UdsmDropdown<String>(
-                          value: _selectedCategoryId,
-                          hint: 'Category',
-                          items: categories
-                              .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
-                              .toList(),
-                          onChanged: (val) => setState(() => _selectedCategoryId = val),
+              // ── Image Picker ─────────────────────────────────────────
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF161616),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primary.withAlpha(50),
+                      width: 1,
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _imageBytes != null
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.memory(_imageBytes!, fit: BoxFit.cover),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: () => setState(() => _imageBytes = null),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.close,
+                                      color: Colors.white, size: 20),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withAlpha(20),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.add_a_photo_outlined,
+                                  color: AppColors.primary, size: 28),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Add Photo',
+                              style: GoogleFonts.inter(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Helps identify the item quicker',
+                              style: GoogleFonts.inter(
+                                color: AppColors.textHint,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (e, s) => const Text('Error loading categories'),
-                      ),
-                      const SizedBox(height: 16),
-                      UdsmTextField(
-                        controller: _itemController,
-                        hint: 'Item Name',
-                        prefixIcon: Icons.badge_outlined,
-                      ),
-                      const SizedBox(height: 16),
-                      UdsmTextField(
-                        controller: _locationController,
-                        hint: 'Location (e.g. Near Library)',
-                        prefixIcon: Icons.location_on,
-                      ),
-                      const SizedBox(height: 16),
-                      UdsmTextField(
-                        controller: _contactController,
-                        hint: 'Contact Phone/Email',
-                        prefixIcon: Icons.contact_phone_outlined,
-                      ),
-                      const SizedBox(height: 16),
-                      UdsmTextArea(
-                        controller: _descController,
-                        hint: 'Detailed Description...',
-                        maxLines: 4,
-                      ),
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: _pickImage,
-                        child: Container(
-                          height: 150,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // ── Type Toggle ──────────────────────────────────────────
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF161616),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedType = 'LOST'),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
+                            color: _selectedType == 'LOST'
+                                ? AppColors.primary
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                              style: BorderStyle.solid,
+                          ),
+                          child: Center(
+                            child: Text(
+                              'I Lost Something',
+                              style: GoogleFonts.inter(
+                                color: _selectedType == 'LOST'
+                                    ? Colors.white
+                                    : AppColors.textHint,
+                                fontWeight: _selectedType == 'LOST'
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
-                          child: _imageBytes != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.memory(_imageBytes!, fit: BoxFit.cover),
-                                )
-                              : const Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.add_a_photo_outlined, size: 32, color: Colors.white70),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        '+ Add Image (Optional)',
-                                        style: TextStyle(color: Colors.white70),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedType = 'FOUND'),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _selectedType == 'FOUND'
+                                ? const Color(0xFF2E7D32)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'I Found Something',
+                              style: GoogleFonts.inter(
+                                color: _selectedType == 'FOUND'
+                                    ? Colors.white
+                                    : AppColors.textHint,
+                                fontWeight: _selectedType == 'FOUND'
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
+
+              // ── Form Fields ──────────────────────────────────────────
+              UdsmTextField(
+                controller: _itemController,
+                hint: 'Item Name',
+                prefixIcon: Icons.edit_outlined,
+              ),
+              const SizedBox(height: 16),
+
+              categoriesAsync.when(
+                data: (categories) => UdsmDropdown<String>(
+                  value: _selectedCategoryId,
+                  hint: 'Select Category (Optional)',
+                  items: categories
+                      .map((c) =>
+                          DropdownMenuItem(value: c.id, child: Text(c.name)))
+                      .toList(),
+                  onChanged: (val) => setState(() => _selectedCategoryId = val),
+                ),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, s) => Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text('Failed to load categories',
+                      style: TextStyle(color: Colors.red)),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              UdsmTextField(
+                controller: _locationController,
+                hint: 'Location (e.g. CIVE Block B)',
+                prefixIcon: Icons.location_on_outlined,
+              ),
+              const SizedBox(height: 16),
+
+              UdsmTextField(
+                controller: _contactController,
+                hint: 'Contact (Phone / Email)',
+                prefixIcon: Icons.contact_phone_outlined,
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 16),
+
+              UdsmTextArea(
+                controller: _descController,
+                hint: 'Additional details (color, brand, distinguishing marks)...',
+                maxLines: 4,
+              ),
+              const SizedBox(height: 24),
+
+              // ── Anonymous Checkbox ───────────────────────────────────
+              Row(
+                children: [
+                  SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Checkbox(
+                      value: _isAnonymous,
+                      onChanged: (v) => setState(() => _isAnonymous = v!),
+                      activeColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.textHint),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Post Anonymously',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+
+              // ── Submit Button ────────────────────────────────────────
               UdsmButton(
                 onPressed: _submitting ? null : _onSubmit,
-                label: _submitting ? 'Submitting...' : 'Submit Report',
+                label: _submitting ? 'Submitting...' : 'Post Report',
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),

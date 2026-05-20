@@ -1,14 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
-import 'package:state_notifier/state_notifier.dart';
 import '../../data/models/lost_found.dart';
 import '../../data/repositories/lost_found_repository.dart';
 
+// ── Repository ────────────────────────────────────────────────────────────────
+
 final lostFoundRepositoryProvider = Provider((ref) => LostFoundRepository());
+
+// ── Categories ────────────────────────────────────────────────────────────────
 
 final lostFoundCategoriesProvider = FutureProvider<List<LostFoundCategory>>((ref) async {
   return ref.watch(lostFoundRepositoryProvider).getCategories();
 });
+
+// ── Category filter ──────────────────────────────────────────────────────────
 
 class SelectedLostFoundCategoryNotifier extends Notifier<String?> {
   @override
@@ -16,43 +20,51 @@ class SelectedLostFoundCategoryNotifier extends Notifier<String?> {
   void set(String? val) => state = val;
 }
 
-final selectedLostFoundCategoryIdProvider = NotifierProvider<SelectedLostFoundCategoryNotifier, String?>(() {
-  return SelectedLostFoundCategoryNotifier();
-});
+final selectedLostFoundCategoryIdProvider =
+    NotifierProvider<SelectedLostFoundCategoryNotifier, String?>(
+        SelectedLostFoundCategoryNotifier.new);
 
-final lostFoundItemsProvider = StateNotifierProvider<LostFoundNotifier, AsyncValue<List<LostFoundItem>>>((ref) {
-  final repo = ref.watch(lostFoundRepositoryProvider);
-  final categoryId = ref.watch(selectedLostFoundCategoryIdProvider);
-  return LostFoundNotifier(repo, categoryId);
-});
+// ── Type filter: null = All, "LOST", "FOUND" ─────────────────────────────────
 
-class LostFoundNotifier extends StateNotifier<AsyncValue<List<LostFoundItem>>> {
-  final LostFoundRepository _repository;
-  final String? _categoryId;
-  
-  LostFoundNotifier(this._repository, this._categoryId) : super(const AsyncValue.loading()) {
-    fetchItems(categoryId: _categoryId);
+class TypeFilterNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? val) => state = val;
+}
+
+final typeFilterProvider =
+    NotifierProvider<TypeFilterNotifier, String?>(TypeFilterNotifier.new);
+
+// ── Search query ──────────────────────────────────────────────────────────────
+
+class LFSearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+  void set(String val) => state = val;
+}
+
+final lfSearchQueryProvider =
+    NotifierProvider<LFSearchQueryNotifier, String>(LFSearchQueryNotifier.new);
+
+// ── Main feed notifier (Riverpod 3.x AsyncNotifier) ──────────────────────────
+
+class LostFoundNotifier extends AsyncNotifier<List<LostFoundItem>> {
+  @override
+  Future<List<LostFoundItem>> build() async {
+    final categoryId = ref.watch(selectedLostFoundCategoryIdProvider);
+    return _fetch(categoryId: categoryId);
   }
 
-  Future<void> fetchItems({
-    String? type,
-    String? categoryId,
-    String? search,
-  }) async {
+  Future<List<LostFoundItem>> _fetch({String? categoryId}) async {
+    return ref.read(lostFoundRepositoryProvider).getItems(
+          categoryId: categoryId,
+        );
+  }
+
+  Future<void> refresh() async {
+    final categoryId = ref.read(selectedLostFoundCategoryIdProvider);
     state = const AsyncValue.loading();
-    try {
-      final items = await _repository.getItems(
-        type: type,
-        categoryId: categoryId,
-        search: search,
-      );
-      print('DEBUG: Fetched ${items.length} lost/found items');
-      state = AsyncValue.data(items);
-    } catch (e, stack) {
-      print('DEBUG: Error fetching lost/found: $e');
-      print(stack);
-      state = AsyncValue.error(e, stack);
-    }
+    state = await AsyncValue.guard(() => _fetch(categoryId: categoryId));
   }
 
   Future<bool> createItem({
@@ -67,25 +79,48 @@ class LostFoundNotifier extends StateNotifier<AsyncValue<List<LostFoundItem>>> {
     List<String>? mediaIds,
   }) async {
     try {
-      print('DEBUG: Creating LostFound item: $title');
-      await _repository.createItem(
-        title: title,
-        description: description,
-        type: type,
-        categoryId: categoryId,
-        location: location,
-        dateLostFound: dateLostFound,
-        isAnonymous: isAnonymous,
-        contactInfo: contactInfo,
-        mediaIds: mediaIds,
-      );
-      print('DEBUG: LostFound item created successfully');
-      fetchItems();
+      await ref.read(lostFoundRepositoryProvider).createItem(
+            title: title,
+            description: description,
+            type: type,
+            categoryId: categoryId,
+            location: location,
+            dateLostFound: dateLostFound,
+            isAnonymous: isAnonymous,
+            contactInfo: contactInfo,
+            mediaIds: mediaIds,
+          );
+      refresh();
       return true;
-    } catch (e, stack) {
-      print('DEBUG: Failed to create LostFound item: $e');
-      print(stack);
+    } catch (_) {
       return false;
     }
   }
 }
+
+final lostFoundItemsProvider =
+    AsyncNotifierProvider<LostFoundNotifier, List<LostFoundItem>>(
+        LostFoundNotifier.new);
+
+// ── Filtered list (client-side: search + type) ────────────────────────────────
+
+final filteredLostFoundProvider = Provider<AsyncValue<List<LostFoundItem>>>((ref) {
+  final all = ref.watch(lostFoundItemsProvider);
+  final query = ref.watch(lfSearchQueryProvider).toLowerCase().trim();
+  final type = ref.watch(typeFilterProvider);
+
+  return all.whenData((items) {
+    var result = items;
+    if (type != null) {
+      result = result.where((i) => i.type == type).toList();
+    }
+    if (query.isNotEmpty) {
+      result = result
+          .where((i) =>
+              i.title.toLowerCase().contains(query) ||
+              (i.location?.toLowerCase().contains(query) ?? false))
+          .toList();
+    }
+    return result;
+  });
+});
