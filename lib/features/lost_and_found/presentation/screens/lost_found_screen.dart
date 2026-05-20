@@ -307,7 +307,7 @@ class _ExpandableFabState extends State<_ExpandableFab>
     _toggle();
     context.pushNamed(
       RouteNames.createLostFound,
-      extra: {'type': type},
+      extra: <String, dynamic>{'type': type},
     );
   }
 

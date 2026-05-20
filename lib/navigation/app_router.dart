@@ -186,14 +186,6 @@ final appRouter = GoRouter(
               builder: (context, state) => const LostFoundScreen(),
               routes: [
                 GoRoute(
-                  path: ':id',
-                  name: RouteNames.lostFoundDetail,
-                  builder: (context, state) {
-                    final item = state.extra as LostFoundItem;
-                    return LostFoundDetailScreen(item: item);
-                  },
-                ),
-                GoRoute(
                   path: 'create',
                   name: RouteNames.createLostFound,
                   builder: (context, state) {
@@ -201,6 +193,14 @@ final appRouter = GoRouter(
                     return CreateLostFoundScreen(
                       initialType: extra?['type'] as String? ?? 'LOST',
                     );
+                  },
+                ),
+                GoRoute(
+                  path: ':id',
+                  name: RouteNames.lostFoundDetail,
+                  builder: (context, state) {
+                    final item = state.extra as LostFoundItem;
+                    return LostFoundDetailScreen(item: item);
                   },
                 ),
               ],
