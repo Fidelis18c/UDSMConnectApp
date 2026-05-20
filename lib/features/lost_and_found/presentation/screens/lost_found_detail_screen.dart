@@ -157,7 +157,7 @@ class _LostFoundDetailScreenState
                                 if (value == 'resolve') {
                                   final success = await ref
                                       .read(lostFoundItemsProvider.notifier)
-                                      .updateItem(widget.item.id, {'status': 'RESOLVED'});
+                                      .resolveItem(widget.item.id);
                                   if (success && mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('Item marked as resolved')),

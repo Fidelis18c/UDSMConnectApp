@@ -107,6 +107,16 @@ class LostFoundNotifier extends AsyncNotifier<List<LostFoundItem>> {
     }
   }
 
+  Future<bool> resolveItem(String id) async {
+    try {
+      await ref.read(lostFoundRepositoryProvider).resolveItem(id);
+      await refresh();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> deleteItem(String id) async {
     try {
       await ref.read(lostFoundRepositoryProvider).deleteItem(id);

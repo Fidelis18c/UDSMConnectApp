@@ -63,6 +63,10 @@ class LostFoundRepository {
     return LostFoundItem.fromJson(response.data['data']);
   }
 
+  Future<void> resolveItem(String id) async {
+    await _apiClient.dio.post('/lost-found/$id/resolve');
+  }
+
   Future<void> deleteItem(String id) async {
     await _apiClient.dio.delete('/lost-found/$id');
   }
