@@ -26,6 +26,8 @@ import '../features/events/presentation/screens/events_screen.dart';
 import '../features/events/presentation/screens/event_detail_screen.dart';
 import '../features/compose/presentation/screens/create_event_screen.dart';
 
+import '../features/lost_and_found/data/models/lost_found.dart';
+
 import '../features/lost_and_found/presentation/screens/lost_found_screen.dart';
 import '../features/lost_and_found/presentation/screens/lost_found_detail_screen.dart';
 import '../features/compose/presentation/screens/create_lost_found_screen.dart';

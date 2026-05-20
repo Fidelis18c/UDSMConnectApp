@@ -11,7 +11,8 @@ import 'package:udsm_connect/core/widgets/udsm_text_area.dart';
 import 'package:udsm_connect/core/widgets/udsm_dropdown.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/features/announcements/data/announcements_repository.dart';
-import '../../lost_and_found/presentation/providers/lost_found_provider.dart';
+import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
+import 'package:udsm_connect/features/lost_and_found/presentation/providers/lost_found_provider.dart';
 
 class CreateLostFoundScreen extends ConsumerStatefulWidget {
   final String initialType;
