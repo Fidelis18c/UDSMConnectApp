@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,10 +20,11 @@ class LostFoundDetailScreen extends ConsumerStatefulWidget {
       _LostFoundDetailScreenState();
 }
 
-class _LostFoundDetailScreenState
-    extends ConsumerState<LostFoundDetailScreen> {
+class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
+  final PageController _pageController = PageController();
+  int _currentImageIndex = 0;
+  Timer? _carouselTimer;
   late Future<LostFoundItem> _detailFuture;
-  int _currentPage = 0;
 
   @override
   void initState() {
@@ -30,6 +32,32 @@ class _LostFoundDetailScreenState
     _detailFuture = ref
         .read(lostFoundRepositoryProvider)
         .getItemDetail(widget.item.id);
+    _startCarouselTimer();
+  }
+
+  void _startCarouselTimer() {
+    _carouselTimer = Timer.periodic(const Duration(milliseconds: 3500), (timer) {
+      final images = widget.item.media;
+      if (images.isEmpty || images.length <= 1) return;
+      if (_pageController.hasClients) {
+        int nextIndex = _currentImageIndex + 1;
+        if (nextIndex >= images.length) {
+          nextIndex = 0;
+        }
+        _pageController.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.fastOutSlowIn,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _carouselTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _launch(String url) async {
@@ -43,7 +71,7 @@ class _LostFoundDetailScreenState
   bool get _isResolved => widget.item.status == 'RESOLVED';
 
   Color get _typeColor =>
-      _isResolved ? const Color(0xFF666666) : (_isLost ? AppColors.primary : const Color(0xFF2E7D32));
+      _isResolved ? const Color(0xFFD32F2F) : (_isLost ? AppColors.primary : const Color(0xFF2E7D32));
   String get _typeText => _isResolved ? 'RESOLVED' : (_isLost ? 'LOST' : 'FOUND');
 
   String _formatDate(DateTime? dt) {
@@ -94,9 +122,10 @@ class _LostFoundDetailScreenState
                                 ),
                               )
                             : PageView.builder(
+                                controller: _pageController,
                                 itemCount: images.length,
                                 onPageChanged: (i) =>
-                                    setState(() => _currentPage = i),
+                                    setState(() => _currentImageIndex = i),
                                 itemBuilder: (_, i) => Image.network(
                                   images[i].url,
                                   fit: BoxFit.cover,
@@ -236,7 +265,7 @@ class _LostFoundDetailScreenState
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                '${_currentPage + 1}/${images.length}',
+                                '${_currentImageIndex + 1}/${images.length}',
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
                                   color: Colors.white,

@@ -18,7 +18,7 @@ class LostFoundCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badgeColor = _isResolved
-        ? const Color(0xFF666666)
+        ? const Color(0xFFD32F2F)
         : (_isLost ? _lostColor : _foundColor);
     final badgeText = _isResolved ? 'RESOLVED' : (_isLost ? 'LOST' : 'FOUND');
     final imageUrl = item.displayImageUrl;
