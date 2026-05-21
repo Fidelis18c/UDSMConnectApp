@@ -10,6 +10,8 @@ import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
 import 'package:udsm_connect/features/announcements/data/posts_repository.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
+import 'package:udsm_connect/features/comments/presentation/widgets/comment_section.dart';
+import 'package:udsm_connect/features/comments/presentation/providers/comments_provider.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   /// Server id from the URL (`/announcements/:id`).
@@ -286,50 +288,114 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Text(
-                          formatDetailFooterTime(display.timestamp),
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                color: AppColors.textHint,
-                              ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          formatDetailFooterDate(display.timestamp),
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                color: AppColors.textHint,
-                              ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    const Divider(height: 1, color: AppColors.divider),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: FilledButton.tonalIcon(
-                            onPressed: () =>
-                                ref.read(announcementsProvider.notifier).toggleLike(display.id),
-                            icon: PhosphorIcon(
-                              display.isLiked ? PhosphorIconsFill.thumbsUp : PhosphorIconsRegular.thumbsUp,
-                              fill: display.isLiked ? 1.0 : 0,
-                              size: 20,
-                              color: display.isLiked ? AppColors.primary : AppColors.textSecondary,
+                    // Twitter-like metadata line
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        '${formatDetailFooterTime(display.timestamp)} · ${formatDetailFooterDate(display.timestamp)}',
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: AppColors.textHint,
+                              fontSize: 14,
                             ),
-                            label: Text(
-                              display.likes > 0 ? '${display.likes} likes' : 'Like',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1, color: AppColors.divider),
+                    
+                    // Twitter-like Stats line
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Row(
+                        children: [
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final params = CommentsParams(
+                               targetId: display.id, 
+                               targetType: 'ANNOUNCEMENT',
+                              );
+                              final asyncComments = ref.watch(commentsQueryProvider(params));
+                              int commentsCount = 0;
+                              if (asyncComments.hasValue && asyncComments.value != null) {
+                                commentsCount = asyncComments.value!.fold(
+                                    0, (sum, c) => sum + 1 + c.replyCount);
+                              }
+                              return Row(
+                                children: [
+                                  Text(
+                                    '$commentsCount',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Comments',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: AppColors.textHint,
+                                        ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 16),
+                          Row(
+                            children: [
+                              Text(
+                                '${display.likes}',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Likes',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.textHint,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1, color: AppColors.divider),
+                    
+                    // X-style Action Bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          IconButton(
+                            onPressed: () {}, // Handled by comment section below functionally
+                            icon: const PhosphorIcon(PhosphorIconsRegular.chatCircle, size: 22, color: AppColors.textHint),
+                          ),
+                          IconButton(
+                            onPressed: () => ref
+                                .read(announcementsProvider.notifier)
+                                .toggleLike(display.id),
+                            icon: PhosphorIcon(
+                              display.isLiked ? PhosphorIconsFill.heart : PhosphorIconsRegular.heart,
+                              size: 22,
+                              color: display.isLiked ? Colors.pink : AppColors.textHint,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        IconButton.filledTonal(
-                          onPressed: () => _share(display),
-                          icon: const PhosphorIcon(PhosphorIconsRegular.shareFat, size: 22),
-                        ),
-                      ],
+                          IconButton(
+                            onPressed: () => _share(display),
+                            icon: const PhosphorIcon(PhosphorIconsRegular.shareNetwork, size: 22, color: AppColors.textHint),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1, color: AppColors.divider),
+                    
+                    const SizedBox(height: 24),
+                    CommentSection(
+                      targetId: display.id,
+                      targetType: 'ANNOUNCEMENT',
                     ),
                   ],
                 ),

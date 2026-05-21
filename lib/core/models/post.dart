@@ -9,6 +9,7 @@ class Post {
   final String? imageUrl;
   final DateTime timestamp;
   final int likes;
+  final int commentCount;
   final bool isLiked;
   final String category;
 
@@ -24,6 +25,7 @@ class Post {
     this.imageUrl,
     required this.timestamp,
     this.likes = 0,
+    this.commentCount = 0,
     this.isLiked = false,
     this.category = 'All updates',
     this.isPinned = false,
@@ -67,6 +69,7 @@ class Post {
       imageUrl: cover?['url'] as String?,
       timestamp: _parseDate(published),
       likes: (json['likeCount'] as num?)?.toInt() ?? 0,
+      commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       category: categoryMap?['name'] as String? ?? 'Updates',
       isPinned: json['isPinned'] as bool? ?? false,
@@ -108,6 +111,7 @@ class Post {
       imageUrl: imageUrl,
       timestamp: _parseDate(published),
       likes: (json['likeCount'] as num?)?.toInt() ?? 0,
+      commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       category: categoryMap?['name'] as String? ?? 'Updates',
       isPinned: json['isPinned'] as bool? ?? false,
@@ -160,6 +164,7 @@ class Post {
       imageUrl: imageUrl,
       timestamp: _parseDate(published),
       likes: (json['likeCount'] as num?)?.toInt() ?? 0,
+      commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       category: categoryTag,
       isPinned: json['isPinned'] as bool? ?? false,
@@ -201,6 +206,7 @@ class Post {
       imageUrl: imageUrl,
       timestamp: _parseDate(published),
       likes: (json['likeCount'] as num?)?.toInt() ?? 0,
+      commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       category: categoryTag,
       isPinned: json['isPinned'] as bool? ?? false,
@@ -216,6 +222,7 @@ class Post {
     String? imageUrl,
     DateTime? timestamp,
     int? likes,
+    int? commentCount,
     bool? isLiked,
     String? category,
     bool? isPinned,
@@ -229,6 +236,7 @@ class Post {
       imageUrl: imageUrl ?? this.imageUrl,
       timestamp: timestamp ?? this.timestamp,
       likes: likes ?? this.likes,
+      commentCount: commentCount ?? this.commentCount,
       isLiked: isLiked ?? this.isLiked,
       category: category ?? this.category,
       isPinned: isPinned ?? this.isPinned,

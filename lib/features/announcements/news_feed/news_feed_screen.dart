@@ -183,7 +183,13 @@ class NewsFeedScreen extends ConsumerWidget {
                         final post = posts[index];
                         return NewsPostCard(
                           post: post,
+                          replyCount: post.commentCount,
                           onOpen: () => context.pushNamed(
+                            RouteNames.postDetail,
+                            pathParameters: {'id': post.id},
+                            extra: post,
+                          ),
+                          onReplyTap: () => context.pushNamed(
                             RouteNames.postDetail,
                             pathParameters: {'id': post.id},
                             extra: post,

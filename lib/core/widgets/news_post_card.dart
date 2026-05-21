@@ -126,18 +126,6 @@ class NewsPostCard extends StatelessWidget {
                               ),
                             ],
                           ),
-                          Text(
-                            post.subtitleHandle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: AppColors.textHint,
-                                  height: 1.05,
-                                ),
-                          ),
                         ],
                       ),
                     ),
@@ -247,13 +235,16 @@ class NewsPostCard extends StatelessWidget {
                       onTap: onReplyTap ?? () {},
                     ),
                     const Spacer(),
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => _share(context),
-                      icon: PhosphorIcon(
-                        PhosphorIconsRegular.shareFat,
-                        size: 22,
-                        color: AppColors.textSecondary,
+                    GestureDetector(
+                      onTap: () => _share(context),
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: PhosphorIcon(
+                          PhosphorIconsRegular.shareFat,
+                          size: 22,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -284,9 +275,9 @@ class _IconCountTap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
+      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(
