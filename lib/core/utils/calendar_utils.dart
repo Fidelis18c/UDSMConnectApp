@@ -37,11 +37,9 @@ class CalendarUtils {
   static Future<bool> addToGoogleCalendar(Event event) async {
     final uri = buildGoogleCalendarUri(event);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        return true;
-      }
-      return false;
+      // launchUrl returns true if successfully launched. 
+      // Bypassing canLaunchUrl avoids requiring <queries> in AndroidManifest.xml
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (_) {
       return false;
     }
