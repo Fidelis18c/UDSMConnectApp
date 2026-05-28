@@ -20,6 +20,7 @@ import 'main_shell.dart';
 import '../features/announcements/news_feed/news_feed_screen.dart';
 import '../features/announcements/post_detail/post_detail_screen.dart';
 import 'package:udsm_connect/features/compose/presentation/screens/create_story_screen.dart';
+import 'package:udsm_connect/features/stories/presentation/screens/story_viewer_screen.dart';
 import '../features/compose/presentation/screens/compose_announcement_screen.dart';
 import '../features/feedback/presentation/screens/feedback_screen.dart';
 import '../features/events/presentation/screens/events_screen.dart';
@@ -78,6 +79,14 @@ final appRouter = GoRouter(
       path: '/create-story',
       name: RouteNames.createStory,
       builder: (context, state) => const CreateStoryScreen(),
+    ),
+    GoRoute(
+      path: '/story-viewer',
+      name: RouteNames.storyViewer,
+      builder: (context, state) {
+        final args = state.extra as StoryViewerArgs;
+        return StoryViewerScreen(args: args);
+      },
     ),
     // --- Standalone Flows ---
     GoRoute(

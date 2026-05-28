@@ -8,6 +8,7 @@ import 'package:udsm_connect/core/widgets/news_post_card.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
+import 'package:udsm_connect/features/stories/presentation/widgets/stories_tray.dart';
 
 /// Personalised / class-scoped content (filtered from the main feed).
 class ForYouScreen extends ConsumerWidget {
@@ -42,6 +43,12 @@ class ForYouScreen extends ConsumerWidget {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
+            const SliverToBoxAdapter(
+              child: StoriesTray(),
+            ),
+            const SliverToBoxAdapter(
+              child: Divider(height: 1, thickness: 1),
+            ),
             asyncPosts.when(
               loading: () => const SliverFillRemaining(
                 child: Center(

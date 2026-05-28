@@ -35,7 +35,34 @@ class MediaRepository {
       });
 
       final response = await _apiClient.dio.post(
-        '/api/media/upload',
+        '/media/upload',
+        data: formData,
+      );
+
+      return Media.fromJson(response.data['data']);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Media> uploadBytes(List<int> bytes, String fileName, {String mimeType = 'image'}) async {
+    try {
+      String ext = fileName.split('.').last.toLowerCase();
+      if (ext == 'jpg') ext = 'jpeg';
+      if (!['jpeg', 'png', 'webp', 'gif'].contains(ext) && mimeType == 'image') {
+        ext = 'jpeg'; // Default to jpeg if unknown or missing from picker
+      }
+      
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(
+          bytes,
+          filename: fileName.contains('.') ? fileName : '$fileName.jpg',
+          contentType: MediaType(mimeType, ext),
+        ),
+      });
+
+      final response = await _apiClient.dio.post(
+        '/media/upload',
         data: formData,
       );
 

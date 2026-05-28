@@ -1,6 +1,11 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart';
+import 'package:udsm_connect/features/compose/data/repositories/media_repository.dart';
+import 'package:udsm_connect/features/stories/data/repositories/story_repository.dart';
 import 'package:udsm_connect/core/models/story.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/stories_provider.dart';
 import 'package:udsm_connect/core/widgets/udsm_button.dart';
@@ -10,43 +15,87 @@ import '../widgets/banner_photo_picker.dart';
 class CreateStoryScreen extends ConsumerStatefulWidget {
   const CreateStoryScreen({Key? key}) : super(key: key);
 
-  @override
   ConsumerState<CreateStoryScreen> createState() => _CreateStoryScreenState();
 }
 
 class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
-  final _collegeController = TextEditingController();
-  String? _selectedImageUrl;
+  final _captionController = TextEditingController();
+  XFile? _selectedFile;
+  Uint8List? _selectedBytes;
+  bool _isUploading = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
-    _collegeController.dispose();
+    _captionController.dispose();
     super.dispose();
   }
 
-  void _onPublish() {
-    if (_collegeController.text.trim().isEmpty || _selectedImageUrl == null) {
+  Future<void> _onPublish() async {
+    if (_selectedFile == null || _selectedBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a college and attach a poster')),
+        const SnackBar(content: Text('Please attach an image')),
       );
       return;
     }
 
-    final newStory = Story(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      collegeName: _collegeController.text.trim(),
-      imageUrl: _selectedImageUrl!,
-    );
+    setState(() {
+      _isUploading = true;
+    });
 
-    ref.read(storiesProvider.notifier).addStory(newStory);
-    context.pop();
+    try {
+      // 1. Upload media
+      final mediaRepo = MediaRepository();
+      final media = await mediaRepo.uploadBytes(_selectedBytes!, _selectedFile!.name);
+
+      // 2. Create story
+      final storyRepo = StoryRepository();
+      await storyRepo.createStory(
+        media.id,
+        caption: _captionController.text.trim(),
+      );
+
+      // 3. Refresh Provider and close
+      ref.read(storiesProvider.notifier).refresh();
+      if (mounted) {
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Story published successfully!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        String errMsg = e.toString();
+        if (e is DioException && e.response != null) {
+          final data = e.response?.data;
+          if (data is Map && data.containsKey('message')) {
+            errMsg = data['message'];
+          } else {
+            errMsg = data.toString();
+          }
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $errMsg')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    }
   }
 
-  void _pickBanner() {
-    // Simulated Image Picker Logic
-    setState(() {
-      _selectedImageUrl = 'https://www.udsm.ac.tz/upload/20230608_085023_UDSM_ALUMNI_CONVOCATION.jpg';
-    });
+  Future<void> _pickBanner() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      setState(() {
+        _selectedFile = image;
+        _selectedBytes = bytes;
+      });
+    }
   }
 
   @override
@@ -70,15 +119,18 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
                   child: Column(
                     children: [
                       BannerPhotoPicker(
-                        imageUrl: _selectedImageUrl,
+                        imageBytes: _selectedBytes,
                         onTap: _pickBanner,
-                        onClear: () => setState(() => _selectedImageUrl = null),
+                        onClear: () => setState(() {
+                          _selectedFile = null;
+                          _selectedBytes = null;
+                        }),
                       ),
                       const SizedBox(height: 32),
                       UdsmTextField(
-                        controller: _collegeController,
-                        hint: 'College Name (e.g., CoICT, UDBS)',
-                        prefixIcon: Icons.account_balance_outlined,
+                        controller: _captionController,
+                        hint: 'Caption (Optional)',
+                        prefixIcon: Icons.description_outlined,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -94,8 +146,8 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
               ),
               const SizedBox(height: 24),
               UdsmButton(
-                onPressed: _onPublish,
-                label: 'Publish Story',
+                onPressed: _isUploading ? null : _onPublish,
+                label: _isUploading ? 'Publishing...' : 'Publish Story',
               ),
             ],
           ),

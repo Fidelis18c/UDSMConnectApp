@@ -22,43 +22,65 @@ class UserData {
   final String fullName;
   final String? registrationNumber;
   final String email;
-  final String roleId;
-  final String? roleName;
+
+  /// All role names assigned to this user (e.g. ["Student", "Admin", "Daruso leader"])
+  final List<String> roleNames;
 
   UserData({
     required this.id,
     required this.fullName,
     this.registrationNumber,
     required this.email,
-    required this.roleId,
-    this.roleName,
+    required this.roleNames,
   });
 
+  // ---------- Convenience role getters ----------
+
+  /// The set of privileged roles that can perform admin-like actions
+  static const _privilegedRoles = {
+    'admin',
+    'daruso leader',
+    'staff',
+    'super admin',
+    'class representative',
+  };
+
+  /// True only if the user has NO privileged roles (i.e., a plain student)
   bool get isStudent {
-    if (roleName != null) {
-      return roleName!.toLowerCase() == 'student';
-    }
-    // Fallback if roleName is not provided directly, 
-    // you might need to adjust this if you know the exact student roleId
-    return false;
+    final lower = roleNames.map((r) => r.toLowerCase()).toSet();
+    return lower.intersection(_privilegedRoles).isEmpty;
   }
 
+  bool get isAdmin =>
+      roleNames.any((r) => r.toLowerCase() == 'admin' || r.toLowerCase() == 'super admin');
+
+  bool get isDarusoLeader =>
+      roleNames.any((r) => r.toLowerCase() == 'daruso leader');
+
+  bool get isStaff =>
+      roleNames.any((r) => r.toLowerCase() == 'staff');
+
+  bool get isClassRepresentative =>
+      roleNames.any((r) => r.toLowerCase() == 'class representative');
+
+  bool get hasPrivilegedRole => !isStudent;
+
+  // -----------------------------------------------
+
   factory UserData.fromJson(Map<String, dynamic> json) {
-    // Login API returns roles: [{ id, name }] — extract first role
     final roles = json['roles'] as List<dynamic>?;
-    final firstRole = (roles != null && roles.isNotEmpty)
-        ? roles.first as Map<String, dynamic>
-        : null;
 
-    final roleId = firstRole?['id'] as String?
-        ?? json['roleId'] as String?
-        ?? '';
-
-    // Resolve roleName from roles array, direct field, or nested role object
-    String? rName = firstRole?['name'] as String?
-        ?? json['roleName'] as String?;
-    if (rName == null && json['role'] is Map) {
-      rName = json['role']['name'] as String?;
+    List<String> names = [];
+    if (roles != null && roles.isNotEmpty) {
+      names = roles
+          .map((r) => (r as Map<String, dynamic>)['name'] as String? ?? '')
+          .where((n) => n.isNotEmpty)
+          .toList();
+    } else {
+      // Single-role fallback (legacy)
+      final singleName = json['roleName'] as String?
+          ?? (json['role'] is Map ? json['role']['name'] as String? : null);
+      if (singleName != null && singleName.isNotEmpty) names = [singleName];
     }
 
     return UserData(
@@ -66,8 +88,7 @@ class UserData {
       fullName: json['fullName'] as String? ?? '',
       registrationNumber: json['registrationNumber'] as String?,
       email: json['email'] as String? ?? '',
-      roleId: roleId,
-      roleName: rName,
+      roleNames: names,
     );
   }
 
