@@ -52,10 +52,15 @@ final groupedStoriesProvider = Provider<List<StoryGroup>>((ref) {
   return asyncStories.whenData((stories) {
     if (stories.isEmpty) return <StoryGroup>[];
 
+    // Only include stories that have a college — stories from users with no
+    // college assigned are an edge case and should not appear in the tray
+    // (they would otherwise group by author ID and show the person's name).
+    final collegeStories = stories.where((s) => s.college != null).toList();
+    if (collegeStories.isEmpty) return <StoryGroup>[];
+
     final Map<String, List<Story>> map = {};
-    for (final s in stories) {
-      final key = s.college?.id ?? s.author.id;
-      map.putIfAbsent(key, () => []).add(s);
+    for (final s in collegeStories) {
+      map.putIfAbsent(s.college!.id, () => []).add(s);
     }
 
     final List<StoryGroup> groups = map.entries.map((e) {
@@ -63,13 +68,20 @@ final groupedStoriesProvider = Provider<List<StoryGroup>>((ref) {
       e.value.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
       final first = e.value.first;
-      final label = first.college?.shortName ?? first.author.fullName;
+      // Label is always the college short name
+      final label = first.college!.shortName;
       final bool allViewed = e.value.every((st) => st.hasViewed);
+
+      // Use the most recent story that has a media URL for the bubble thumbnail
+      final String? groupImageUrl = e.value
+          .lastWhere((s) => s.media?.url != null, orElse: () => first)
+          .media
+          ?.url;
 
       return StoryGroup(
         groupId: e.key,
         label: label,
-        imageUrl: first.media?.url,
+        imageUrl: groupImageUrl,
         allViewed: allViewed,
         stories: e.value,
       );

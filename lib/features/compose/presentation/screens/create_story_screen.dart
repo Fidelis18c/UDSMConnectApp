@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:udsm_connect/features/compose/data/repositories/media_repository.dart';
 import 'package:udsm_connect/features/stories/data/repositories/story_repository.dart';
-import 'package:udsm_connect/core/models/story.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/stories_provider.dart';
 import 'package:udsm_connect/core/widgets/udsm_button.dart';
 import 'package:udsm_connect/core/widgets/udsm_text_field.dart';
@@ -134,7 +133,7 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'This story will be visible to all students in the top bar.',
+                        'This story will appear under your college\'s bubble\nin the stories tray.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.white38,
                             ),
