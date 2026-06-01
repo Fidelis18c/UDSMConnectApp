@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:udsm_connect/core/firebase/firebase_bootstrap.dart';
+import 'package:udsm_connect/features/notifications/presentation/providers/notifications_provider.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/auth_response.dart';
 
@@ -57,6 +59,9 @@ class AuthNotifier extends Notifier<AuthState> {
         user: response.user,
         isAuthenticated: true,
       );
+      ref.invalidate(notificationsProvider);
+      ref.invalidate(unreadCountProvider);
+      await registerFcmTokenIfPossible();
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -136,6 +141,8 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> logout() async {
     await _repository.logout();
+    ref.invalidate(notificationsProvider);
+    ref.invalidate(unreadCountProvider);
     state = AuthState();
   }
 }

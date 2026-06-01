@@ -30,4 +30,5 @@ class RouteNames {
   static const String createLostFound = 'createLostFound';
   static const String createStory = 'createStory';
   static const String storyViewer = 'storyViewer';
+  static const String notifications = 'notifications';
 }

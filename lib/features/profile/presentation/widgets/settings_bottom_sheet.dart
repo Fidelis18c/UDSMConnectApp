@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:udsm_connect/core/theme/theme_provider.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
+import 'package:udsm_connect/features/notifications/data/notification_repository.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
 
 void showSettingsBottomSheet(BuildContext context) {
@@ -18,11 +19,58 @@ void showSettingsBottomSheet(BuildContext context) {
   );
 }
 
-class SettingsBottomSheet extends ConsumerWidget {
-  const SettingsBottomSheet({Key? key}) : super(key: key);
+class SettingsBottomSheet extends ConsumerStatefulWidget {
+  const SettingsBottomSheet({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsBottomSheet> createState() => _SettingsBottomSheetState();
+}
+
+class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet> {
+  bool? _postsNotifications;
+  bool _loadingPrefs = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    try {
+      final enabled = await NotificationRepository().getPostsPreference();
+      if (mounted) {
+        setState(() {
+          _postsNotifications = enabled;
+          _loadingPrefs = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _postsNotifications = true;
+          _loadingPrefs = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _setPostsNotifications(bool value) async {
+    setState(() => _postsNotifications = value);
+    try {
+      await NotificationRepository().setPostsPreference(value);
+    } catch (_) {
+      if (mounted) {
+        setState(() => _postsNotifications = !value);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not update notification preference')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     final isDarkMode = themeMode == ThemeMode.dark;
 
@@ -51,6 +99,14 @@ class SettingsBottomSheet extends ConsumerWidget {
             },
             activeColor: Theme.of(context).primaryColor,
           ),
+          SwitchListTile(
+            title: const Text('New post notifications'),
+            subtitle: const Text('Push alerts when posts are published for you'),
+            secondary: const PhosphorIcon(PhosphorIconsRegular.bell),
+            value: _postsNotifications ?? true,
+            onChanged: _loadingPrefs ? null : _setPostsNotifications,
+            activeColor: Theme.of(context).primaryColor,
+          ),
           const Divider(),
           ListTile(
             title: const Text(
@@ -62,11 +118,8 @@ class SettingsBottomSheet extends ConsumerWidget {
               color: Colors.red,
             ),
             onTap: () async {
-              // Close the bottom sheet
               Navigator.of(context).pop();
-              // Perform logout
               await ref.read(authProvider.notifier).logout();
-              // Navigate to Login screen
               if (context.mounted) {
                 context.goNamed(RouteNames.login);
               }

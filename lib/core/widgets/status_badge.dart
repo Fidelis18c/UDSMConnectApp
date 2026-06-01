@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_shapes.dart';
 
-enum FeedbackStatus { pending, reviewed, submitted }
+enum FeedbackStatus { pending, reviewed, resolved, submitted }
 
 class StatusBadge extends StatelessWidget {
   final FeedbackStatus status;
@@ -11,17 +11,27 @@ class StatusBadge extends StatelessWidget {
 
   String _getLabel() {
     switch (status) {
-      case FeedbackStatus.pending: return 'Pending';
-      case FeedbackStatus.reviewed: return 'Reviewed';
-      case FeedbackStatus.submitted: return 'Submitted';
+      case FeedbackStatus.pending:
+        return 'Pending';
+      case FeedbackStatus.reviewed:
+        return 'Reviewed';
+      case FeedbackStatus.resolved:
+        return 'Resolved';
+      case FeedbackStatus.submitted:
+        return 'Submitted';
     }
   }
 
   Color _getColor() {
     switch (status) {
-      case FeedbackStatus.pending: return AppColors.statusPending;
-      case FeedbackStatus.reviewed: return AppColors.statusReviewed;
-      case FeedbackStatus.submitted: return AppColors.statusSubmitted;
+      case FeedbackStatus.pending:
+        return AppColors.statusPending;
+      case FeedbackStatus.reviewed:
+        return AppColors.statusSubmitted;
+      case FeedbackStatus.resolved:
+        return AppColors.statusReviewed;
+      case FeedbackStatus.submitted:
+        return AppColors.statusSubmitted;
     }
   }
 

@@ -1,133 +1,319 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
+import 'package:udsm_connect/core/theme/app_shapes.dart';
 import 'package:udsm_connect/core/widgets/status_badge.dart';
 import 'package:udsm_connect/core/widgets/empty_state_widget.dart';
+import 'package:udsm_connect/features/feedback/data/repositories/feedback_repository.dart';
 import 'package:udsm_connect/features/feedback/presentation/providers/feedback_provider.dart';
-import 'package:udsm_connect/core/models/feedback_model.dart';
 import '../widgets/feedback_form.dart';
 
-class FeedbackScreen extends ConsumerWidget {
-  const FeedbackScreen({Key? key}) : super(key: key);
+class FeedbackScreen extends ConsumerStatefulWidget {
+  const FeedbackScreen({super.key});
+
+  @override
+  ConsumerState<FeedbackScreen> createState() => _FeedbackScreenState();
+}
+
+class _FeedbackScreenState extends ConsumerState<FeedbackScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSubmit(
+      String subject, String categoryId, String description) async {
+    setState(() => _submitting = true);
+    try {
+      await ref.read(feedbackProvider.notifier).submit(
+            subject: subject,
+            description: description,
+            categoryId: categoryId,
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Feedback submitted!')),
+      );
+      _tabController.animateTo(1);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to submit feedback. Try again.')),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Feedback'),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.primary,
+          indicatorWeight: 2.5,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          labelStyle: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
+          tabs: const [
+            Tab(
+              icon: PhosphorIcon(PhosphorIconsRegular.chatsTeardrop, size: 18),
+              text: 'Send Feedback',
+            ),
+            Tab(
+              icon: PhosphorIcon(PhosphorIconsRegular.clockCounterClockwise,
+                  size: 18),
+              text: 'My History',
+            ),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _SendTab(submitting: _submitting, onSubmit: _handleSubmit),
+          _HistoryTab(),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Send Feedback tab ────────────────────────────────────────────────────────
+
+class _SendTab extends ConsumerWidget {
+  final bool submitting;
+  final Future<void> Function(String subject, String categoryId,
+      String description) onSubmit;
+
+  const _SendTab({required this.submitting, required this.onSubmit});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoriesAsync = ref.watch(feedbackCategoriesProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'We value your voice',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Directly reach out to DARUSO or the university administration to report issues or suggest improvements.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+          const SizedBox(height: 24),
+          categoriesAsync.when(
+            loading: () => FeedbackForm(
+              categories: const [],
+              categoriesLoading: true,
+              submitting: submitting,
+              onSubmit: onSubmit,
+            ),
+            error: (_, __) => FeedbackForm(
+              categories: const [],
+              categoriesLoading: false,
+              submitting: submitting,
+              onSubmit: onSubmit,
+            ),
+            data: (categories) => FeedbackForm(
+              categories: categories,
+              categoriesLoading: false,
+              submitting: submitting,
+              onSubmit: onSubmit,
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+// ── My History tab ───────────────────────────────────────────────────────────
+
+class _HistoryTab extends ConsumerWidget {
+  const _HistoryTab();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final feedbackHistory = ref.watch(feedbackProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Feedback'),
+    return RefreshIndicator.adaptive(
+      onRefresh: () => ref.read(feedbackProvider.notifier).refresh(),
+      child: feedbackHistory.when(
+        loading: () => const Center(
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator.adaptive(strokeWidth: 2.5),
+          ),
+        ),
+        error: (err, _) => Center(child: Text('Error: $err')),
+        data: (items) {
+          if (items.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 80),
+                EmptyStateWidget(
+                  icon: Icons.chat_outlined,
+                  message: 'No feedback history yet',
+                ),
+              ],
+            );
+          }
+
+          return ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => Divider(
+              height: 1,
+              color: AppColors.divider,
+              indent: 72,
+            ),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return _FeedbackHistoryTile(item: item);
+            },
+          );
+        },
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
+    );
+  }
+}
+
+class _FeedbackHistoryTile extends StatelessWidget {
+  final FeedbackItem item;
+
+  const _FeedbackHistoryTile({required this.item});
+
+  IconData _statusIcon(String status) {
+    switch (status.toUpperCase()) {
+      case 'REVIEWED':
+        return Icons.mark_email_read_rounded;
+      case 'RESOLVED':
+        return Icons.check_circle_rounded;
+      case 'PENDING':
+      default:
+        return Icons.hourglass_top_rounded;
+    }
+  }
+
+  Color _statusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'REVIEWED':
+        return AppColors.statusSubmitted;
+      case 'RESOLVED':
+        return AppColors.statusReviewed;
+      case 'PENDING':
+      default:
+        return AppColors.statusPending;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = _statusColor(item.status);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            leading: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                borderRadius: AppShapes.cardBorderRadius,
+              ),
+              child: Icon(_statusIcon(item.status), color: iconColor, size: 22),
+            ),
+            title: Text(
+              item.subject,
+              style: Theme.of(context).textTheme.titleMedium,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              '${item.category?.name ?? 'Uncategorized'} • ${_formatTimestamp(item.createdAt)}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+            ),
+            trailing: StatusBadge(status: _mapStatus(item.status)),
+          ),
+          if (item.adminNote != null && item.adminNote!.isNotEmpty)
+            Padding(
+              padding:
+                  const EdgeInsets.only(left: 64, right: 16, bottom: 8),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'We value your voice',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  const Icon(
+                    Icons.admin_panel_settings,
+                    size: 12,
+                    color: AppColors.textSecondary,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Directly reach out to DARUSO or the university administration to report issues or suggest improvements.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      item.adminNote!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                  FeedbackForm(
-                    onSubmit: (title, category, message) {
-                      final newFeedback = FeedbackModel(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        title: title,
-                        category: category,
-                        description: message,
-                        timestamp: DateTime.now(),
-                      );
-                      ref.read(feedbackProvider.notifier).addFeedback(newFeedback);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Feedback Submitted!')),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Your Feedback History',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 16),
                 ],
               ),
             ),
-          ),
-          feedbackHistory.isEmpty
-              ? const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40.0),
-                    child: EmptyStateWidget(
-                      icon: Icons.chat_outlined,
-                      message: 'No feedback history yet',
-                    ),
-                  ),
-                )
-              : SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final item = feedbackHistory[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    item.title,
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                StatusBadge(
-                                  status: _mapStatus(item.status),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${item.category} • ${_formatTimestamp(item.timestamp)}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    childCount: feedbackHistory.length,
-                  ),
-                ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 24.0)),
         ],
       ),
     );
   }
-
-  // Local helper for status mapping (ensures type safety between feature and core)
-  // In a real app we'd define this once in core/models
 }
 
-// Global helpers outside for simplicity within this file
-dynamic _mapStatus(dynamic s) => s; // Simplified mapping layer
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+FeedbackStatus _mapStatus(String status) {
+  switch (status.toUpperCase()) {
+    case 'REVIEWED':
+      return FeedbackStatus.reviewed;
+    case 'RESOLVED':
+      return FeedbackStatus.resolved;
+    case 'PENDING':
+    default:
+      return FeedbackStatus.pending;
+  }
+}
 
 String _formatTimestamp(DateTime dt) {
   final diff = DateTime.now().difference(dt);
@@ -135,4 +321,3 @@ String _formatTimestamp(DateTime dt) {
   if (diff.inHours < 24) return '${diff.inHours}h ago';
   return '${dt.day}/${dt.month}/${dt.year}';
 }
-

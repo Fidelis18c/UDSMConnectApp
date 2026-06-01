@@ -1,88 +1,145 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_shapes.dart';
 import '../../../../core/widgets/udsm_text_field.dart';
 import '../../../../core/widgets/udsm_text_area.dart';
 import '../../../../core/widgets/udsm_dropdown.dart';
 import '../../../../core/widgets/udsm_button.dart';
+import '../../data/repositories/feedback_repository.dart';
 
 class FeedbackForm extends StatefulWidget {
-  final Function(String title, String category, String message) onSubmit;
+  final List<FeedbackCategory> categories;
+  final bool categoriesLoading;
+  final bool submitting;
+  final Future<void> Function(String subject, String categoryId, String description) onSubmit;
 
-  const FeedbackForm({Key? key, required this.onSubmit}) : super(key: key);
+  const FeedbackForm({
+    super.key,
+    required this.categories,
+    required this.categoriesLoading,
+    required this.submitting,
+    required this.onSubmit,
+  });
 
   @override
   State<FeedbackForm> createState() => _FeedbackFormState();
 }
 
 class _FeedbackFormState extends State<FeedbackForm> {
-  final _titleController = TextEditingController();
+  final _subjectController = TextEditingController();
   final _messageController = TextEditingController();
-  String? _selectedCategory;
+  String? _selectedCategoryId;
+  int _messageLength = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _messageController.addListener(() {
+      setState(() => _messageLength = _messageController.text.length);
+    });
+  }
 
   @override
   void dispose() {
-    _titleController.dispose();
+    _subjectController.dispose();
     _messageController.dispose();
     super.dispose();
   }
 
-  void _handleSubmit() {
-    if (_titleController.text.trim().isEmpty || 
-        _selectedCategory == null || 
-        _messageController.text.trim().isEmpty) {
+  Future<void> _handleSubmit() async {
+    final subject = _subjectController.text.trim();
+    final message = _messageController.text.trim();
+    if (subject.length < 3 ||
+        _selectedCategoryId == null ||
+        message.isEmpty ||
+        widget.submitting) {
       return;
     }
 
-    widget.onSubmit(
-      _titleController.text.trim(),
-      _selectedCategory!,
-      _messageController.text.trim(),
-    );
+    await widget.onSubmit(subject, _selectedCategoryId!, message);
 
-    // Clear form
-    _titleController.clear();
+    if (!mounted) return;
+    _subjectController.clear();
     _messageController.clear();
-    setState(() => _selectedCategory = null);
+    setState(() => _selectedCategoryId = null);
   }
 
   @override
   Widget build(BuildContext context) {
+    final categoryItems = widget.categories
+        .map(
+          (c) => DropdownMenuItem<String>(
+            value: c.id,
+            child: Text(c.name),
+          ),
+        )
+        .toList();
+
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: AppShapes.cardBorderRadius,
+        border: Border(
+          left: BorderSide(color: AppColors.primary, width: 3),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          UdsmDropdown<String>(
-            value: _selectedCategory,
-            hint: 'Category',
-            items: const [
-              DropdownMenuItem(value: 'Complaints', child: Text('Complaints')),
-              DropdownMenuItem(value: 'Suggestion', child: Text('Suggestion')),
-              DropdownMenuItem(value: 'Appreciation', child: Text('Appreciation')),
-              DropdownMenuItem(value: 'Other', child: Text('Other')),
-            ],
-            onChanged: (val) => setState(() => _selectedCategory = val),
-          ),
-          const SizedBox(height: 16),
-          UdsmTextField(
-            controller: _titleController,
-            hint: 'Subject',
-          ),
-          const SizedBox(height: 16),
-          UdsmTextArea(
-            controller: _messageController,
-            hint: 'Describe your feedback or issue...',
-            maxLines: 5,
-          ),
-          const SizedBox(height: 24),
-          UdsmButton(
-            onPressed: _handleSubmit,
-            label: 'Submit Feedback',
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (widget.categoriesLoading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+                  ),
+                ),
+              )
+            else
+              UdsmDropdown<String>(
+                value: _selectedCategoryId,
+                hint: 'Category',
+                items: categoryItems,
+                onChanged: widget.submitting
+                    ? (_) {}
+                    : (val) => setState(() => _selectedCategoryId = val),
+              ),
+            const SizedBox(height: 16),
+            UdsmTextField(
+              controller: _subjectController,
+              hint: 'Subject',
+            ),
+            const SizedBox(height: 16),
+            UdsmTextArea(
+              controller: _messageController,
+              hint: 'Describe your feedback or issue...',
+              maxLines: 5,
+            ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '$_messageLength characters',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textHint,
+                    ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            UdsmButton(
+              onPressed: widget.submitting || widget.categoriesLoading
+                  ? null
+                  : _handleSubmit,
+              label: 'Send Feedback',
+              isLoading: widget.submitting,
+              prefixIcon: Icons.send_rounded,
+            ),
+          ],
+        ),
       ),
     );
   }

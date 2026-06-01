@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "939981785979",
+    "project_id": "udsm-connect",
+    "storage_bucket": "udsm-connect.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:939981785979:android:1b5c3f1f1d0a27ab270bde",
+        "android_client_info": {
+          "package_name": "tz.ac.udsm.udsm_connect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjUiYv2_Z6J6yHYs-N9V0FB8qDirMI420"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

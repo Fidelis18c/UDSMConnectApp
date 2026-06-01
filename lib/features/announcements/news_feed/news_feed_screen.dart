@@ -10,6 +10,7 @@ import 'package:udsm_connect/features/announcements/presentation/providers/annou
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import 'package:udsm_connect/core/theme/theme_provider.dart';
+import 'package:udsm_connect/features/notifications/presentation/providers/notifications_provider.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
 
 class NewsFeedScreen extends ConsumerWidget {
@@ -74,45 +75,90 @@ class NewsFeedScreen extends ConsumerWidget {
                       ),
                     ),
                     SizedBox(
-                      width: 48,
-                      child: Consumer(
-                        builder: (context, ref, child) {
-                          final isDark = ref.watch(themeProvider) == ThemeMode.dark;
-                          return PopupMenuButton<String>(
-                            icon: PhosphorIcon(
-                              PhosphorIconsRegular.gearSix,
-                              size: 26,
-                              color: Theme.of(context).iconTheme.color,
-                            ),
-                            color: Theme.of(context).colorScheme.surface,
-                            onSelected: (value) async {
-                              if (value == 'theme') {
-                                ref.read(themeProvider.notifier).toggleTheme();
-                              } else if (value == 'logout') {
-                                await ref.read(authProvider.notifier).logout();
-                                if (context.mounted) {
-                                  context.goNamed(RouteNames.login);
-                                }
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 'logout',
-                                child: Row(
-                                  children: [
-                                    PhosphorIcon(
-                                      PhosphorIconsRegular.signOut,
-                                      color: Colors.white,
-                                      size: 20,
+                      width: 96,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final unreadAsync = ref.watch(unreadCountProvider);
+                              final unread = unreadAsync.value ?? 0;
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  IconButton(
+                                    icon: PhosphorIcon(
+                                      PhosphorIconsRegular.bell,
+                                      size: 24,
+                                      color: Theme.of(context).iconTheme.color,
                                     ),
-                                    SizedBox(width: 12),
-                                    Text('Logout', style: TextStyle(color: Colors.white)),
-                                  ],
+                                    onPressed: () => context.pushNamed(RouteNames.notifications),
+                                  ),
+                                  if (unread > 0)
+                                    Positioned(
+                                      right: 6,
+                                      top: 6,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                        child: Text(
+                                          unread > 9 ? '9+' : '$unread',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                          Consumer(
+                            builder: (context, ref, child) {
+                              return PopupMenuButton<String>(
+                                icon: PhosphorIcon(
+                                  PhosphorIconsRegular.gearSix,
+                                  size: 24,
+                                  color: Theme.of(context).iconTheme.color,
                                 ),
-                              ),
-                            ],
-                          );
-                        },
+                                color: Theme.of(context).colorScheme.surface,
+                                onSelected: (value) async {
+                                  if (value == 'theme') {
+                                    ref.read(themeProvider.notifier).toggleTheme();
+                                  } else if (value == 'logout') {
+                                    await ref.read(authProvider.notifier).logout();
+                                    if (context.mounted) {
+                                      context.goNamed(RouteNames.login);
+                                    }
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'logout',
+                                    child: Row(
+                                      children: [
+                                        PhosphorIcon(
+                                          PhosphorIconsRegular.signOut,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                        SizedBox(width: 12),
+                                        Text('Logout', style: TextStyle(color: Colors.white)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ],

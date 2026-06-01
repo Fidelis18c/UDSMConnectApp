@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'route_names.dart';
 
@@ -32,8 +33,14 @@ import '../features/lost_and_found/data/models/lost_found.dart';
 import '../features/lost_and_found/presentation/screens/lost_found_screen.dart';
 import '../features/lost_and_found/presentation/screens/lost_found_detail_screen.dart';
 import '../features/compose/presentation/screens/create_lost_found_screen.dart';
+import '../features/notifications/presentation/screens/notifications_screen.dart';
+
+/// Root navigator — post detail and other full-screen routes use this so they
+/// can be opened from outside the bottom-nav shell (e.g. notifications).
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouter = GoRouter(
+  navigatorKey: rootNavigatorKey,
   initialLocation: '/',
   routes: [
     // --- Splash & Auth ---
@@ -94,6 +101,11 @@ final appRouter = GoRouter(
       name: RouteNames.profile,
       builder: (context, state) => const ProfileScreen(),
     ),
+    GoRoute(
+      path: '/notifications',
+      name: RouteNames.notifications,
+      builder: (context, state) => const NotificationsScreen(),
+    ),
 
     // --- Main Shell (Bottom Nav) ---
     StatefulShellRoute.indexedStack(
@@ -124,6 +136,7 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: ':id',
                   name: RouteNames.postDetail,
+                  parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
                     final extra = state.extra;
@@ -176,6 +189,7 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: ':id',
                   name: RouteNames.eventDetail,
+                  parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) {
                     final event = state.extra as Event;
                     return EventDetailScreen(event: event);

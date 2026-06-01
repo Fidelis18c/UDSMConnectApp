@@ -1,17 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:udsm_connect/core/models/feedback_model.dart';
+import '../../data/repositories/feedback_repository.dart';
 
-class FeedbackNotifier extends Notifier<List<FeedbackModel>> {
+class FeedbackNotifier extends AsyncNotifier<List<FeedbackItem>> {
+  FeedbackRepository get _repo => ref.read(feedbackRepositoryProvider);
+
   @override
-  List<FeedbackModel> build() {
-    return [];
+  Future<List<FeedbackItem>> build() {
+    return _repo.getFeedbackHistory();
   }
 
-  void addFeedback(FeedbackModel feedback) {
-    state = [feedback, ...state];
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(_repo.getFeedbackHistory);
+  }
+
+  Future<void> submit({
+    required String subject,
+    required String description,
+    required String categoryId,
+  }) async {
+    await _repo.submitFeedback(
+      subject: subject,
+      description: description,
+      categoryId: categoryId,
+    );
+    await refresh();
   }
 }
 
-final feedbackProvider = NotifierProvider<FeedbackNotifier, List<FeedbackModel>>(() {
-  return FeedbackNotifier();
-});
+final feedbackProvider =
+    AsyncNotifierProvider<FeedbackNotifier, List<FeedbackItem>>(FeedbackNotifier.new);
