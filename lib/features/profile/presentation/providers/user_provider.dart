@@ -59,6 +59,10 @@ class UserNotifier extends Notifier<UserModel> {
       phone: phone,
     );
   }
+
+  void updateProfilePic(String url) {
+    state = state.copyWith(profilePic: url);
+  }
 }
 
 final userProvider = NotifierProvider<UserNotifier, UserModel>(() {

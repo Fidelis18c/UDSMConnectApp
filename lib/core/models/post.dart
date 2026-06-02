@@ -3,8 +3,13 @@ class Post {
   final String title;
 
   final String id;
+  final String authorId;
   final String authorName;
   final String? authorProfilePic;
+
+  /// Raw role name from the API author object (e.g. "Class representative", "Daruso leader").
+  final String? authorRole;
+
   final String text;
   final String? imageUrl;
   final DateTime timestamp;
@@ -19,8 +24,10 @@ class Post {
   Post({
     this.title = '',
     required this.id,
+    this.authorId = '',
     required this.authorName,
     this.authorProfilePic,
+    this.authorRole,
     required this.text,
     this.imageUrl,
     required this.timestamp,
@@ -30,6 +37,27 @@ class Post {
     this.category = 'All updates',
     this.isPinned = false,
   });
+
+  /// Picks the most prominent non-student role from the author's roles array.
+  static String? _extractAuthorRole(Map<String, dynamic>? author) {
+    if (author == null) return null;
+    final roles = author['roles'] as List<dynamic>?;
+    if (roles != null) {
+      for (final r in roles) {
+        if (r is Map<String, dynamic>) {
+          final name = (r['name'] as String?)?.trim() ?? '';
+          if (name.isNotEmpty && name.toLowerCase() != 'student') return name;
+        }
+      }
+    }
+    // Single-role fallback
+    final single = author['roleName'] as String?
+        ?? (author['role'] is Map
+            ? (author['role'] as Map<String, dynamic>)['name'] as String?
+            : author['role'] as String?);
+    if (single != null && single.toLowerCase() != 'student') return single;
+    return null;
+  }
 
   String get subtitleHandle {
     final c = category.trim();
@@ -63,8 +91,10 @@ class Post {
 
     return Post(
       id: json['id'] as String,
+      authorId: author?['id'] as String? ?? '',
       title: title,
       authorName: author?['fullName'] as String? ?? 'Unknown',
+      authorRole: _extractAuthorRole(author),
       text: body,
       imageUrl: cover?['url'] as String?,
       timestamp: _parseDate(published),
@@ -105,8 +135,10 @@ class Post {
 
     return Post(
       id: json['id'] as String,
+      authorId: author?['id'] as String? ?? '',
       title: title,
       authorName: author?['fullName'] as String? ?? 'Unknown',
+      authorRole: _extractAuthorRole(author),
       text: body,
       imageUrl: imageUrl,
       timestamp: _parseDate(published),
@@ -158,8 +190,10 @@ class Post {
 
     return Post(
       id: json['id'] as String,
+      authorId: author?['id'] as String? ?? '',
       title: rawTitle,
       authorName: author?['fullName'] as String? ?? 'Unknown',
+      authorRole: _extractAuthorRole(author),
       text: body,
       imageUrl: imageUrl,
       timestamp: _parseDate(published),
@@ -200,8 +234,10 @@ class Post {
 
     return Post(
       id: json['id'] as String,
+      authorId: author?['id'] as String? ?? '',
       title: rawTitle.isNotEmpty ? rawTitle : (body.length > 80 ? '${body.substring(0, 80)}…' : body),
       authorName: author?['fullName'] as String? ?? 'Unknown',
+      authorRole: _extractAuthorRole(author),
       text: body,
       imageUrl: imageUrl,
       timestamp: _parseDate(published),
@@ -216,8 +252,10 @@ class Post {
   Post copyWith({
     String? title,
     String? id,
+    String? authorId,
     String? authorName,
     String? authorProfilePic,
+    String? authorRole,
     String? text,
     String? imageUrl,
     DateTime? timestamp,
@@ -230,8 +268,10 @@ class Post {
     return Post(
       title: title ?? this.title,
       id: id ?? this.id,
+      authorId: authorId ?? this.authorId,
       authorName: authorName ?? this.authorName,
       authorProfilePic: authorProfilePic ?? this.authorProfilePic,
+      authorRole: authorRole ?? this.authorRole,
       text: text ?? this.text,
       imageUrl: imageUrl ?? this.imageUrl,
       timestamp: timestamp ?? this.timestamp,

@@ -142,22 +142,10 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                   Expanded(
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            onPressed: () => context.pop(),
-                            visualDensity: VisualDensity.compact,
-                            icon: const PhosphorIcon(PhosphorIconsRegular.arrowLeft, size: 24),
-                          ),
-                          AvatarInitials(
-                            initials: display.authorName.isNotEmpty
-                                ? display.authorName.substring(0, 1).toUpperCase()
-                                : '?',
-                            imageUrl: display.authorProfilePic,
-                            radius: 18,
-                          ),
-                        ],
+                      child: IconButton(
+                        onPressed: () => context.pop(),
+                        visualDensity: VisualDensity.compact,
+                        icon: const PhosphorIcon(PhosphorIconsRegular.arrowLeft, size: 24),
                       ),
                     ),
                   ),
@@ -188,214 +176,225 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                padding: const EdgeInsets.only(top: 4, bottom: 28),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AvatarInitials(
-                          initials: display.authorName.isNotEmpty
-                              ? display.authorName.substring(0, 1).toUpperCase()
-                              : '?',
-                          imageUrl: display.authorProfilePic,
-                          radius: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      display.authorName,
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.w600,
+                              AvatarInitials(
+                                initials: display.authorName.isNotEmpty
+                                    ? display.authorName.substring(0, 1).toUpperCase()
+                                    : '?',
+                                imageUrl: display.authorProfilePic,
+                                radius: 16,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            display.authorName,
+                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ),
+                                        Text(
+                                          formatShortRelative(display.timestamp),
+                                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                                color: AppColors.textSecondary,
+                                              ),
+                                        ),
+                                        IconButton(
+                                          visualDensity: VisualDensity.compact,
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                          icon: PhosphorIcon(
+                                            PhosphorIconsRegular.dotsThreeVertical,
+                                            size: 20,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                          onPressed: () {},
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      display.subtitleHandle,
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: AppColors.textHint,
                                           ),
                                     ),
-                                  ),
-                                  Text(
-                                    formatShortRelative(display.timestamp),
-                                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                          color: AppColors.textSecondary,
-                                        ),
-                                  ),
-                                  IconButton(
-                                    visualDensity: VisualDensity.compact,
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                    icon: PhosphorIcon(
-                                      PhosphorIconsRegular.dotsThreeVertical,
-                                      size: 20,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                    onPressed: () {},
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                display.subtitleHandle,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppColors.textHint,
-                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    if (display.title.trim().isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        display.title,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              height: 1.2,
-                              letterSpacing: -0.4,
+                          if (display.title.trim().isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              display.title,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.2,
+                                    letterSpacing: -0.4,
+                                  ),
                             ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    Text(
-                      display.text,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: AppColors.textSecondary,
-                            height: 1.55,
+                          ],
+                          const SizedBox(height: 12),
+                          Text(
+                            display.text,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  height: 1.55,
+                                ),
                           ),
+                        ],
+                      ),
                     ),
                     if (display.imageUrl != null) ...[
                       const SizedBox(height: 16),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: AspectRatio(
-                          aspectRatio: 16 / 10,
-                          child: Image.network(
-                            display.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              color: const Color(0xFF252525),
-                              alignment: Alignment.center,
-                              child: PhosphorIcon(
-                                PhosphorIconsRegular.imageBroken,
-                                size: 56,
-                                color: AppColors.textHint,
-                              ),
+                      AspectRatio(
+                        aspectRatio: 1.1,
+                        child: Image.network(
+                          display.imageUrl!,
+                          width: double.infinity,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: const Color(0xFF252525),
+                            alignment: Alignment.center,
+                            child: PhosphorIcon(
+                              PhosphorIconsRegular.imageBroken,
+                              size: 56,
+                              color: AppColors.textHint,
                             ),
                           ),
                         ),
                       ),
                     ],
-                    // Twitter-like metadata line
                     Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        '${formatDetailFooterTime(display.timestamp)} · ${formatDetailFooterDate(display.timestamp)}',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: AppColors.textHint,
-                              fontSize: 14,
-                            ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(height: 1, color: AppColors.divider),
-                    
-                    // Twitter-like Stats line
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Row(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Consumer(
-                            builder: (context, ref, child) {
-                              final params = CommentsParams(
-                               targetId: display.id, 
-                               targetType: 'ANNOUNCEMENT',
-                              );
-                              final asyncComments = ref.watch(commentsQueryProvider(params));
-                              int commentsCount = 0;
-                              if (asyncComments.hasValue && asyncComments.value != null) {
-                                commentsCount = asyncComments.value!.fold(
-                                    0, (sum, c) => sum + 1 + c.replyCount);
-                              }
-                              return Row(
-                                children: [
-                                  Text(
-                                    '$commentsCount',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
+                          // Twitter-like metadata line
+                          Padding(
+                            padding: const EdgeInsets.only(top: 24),
+                            child: Text(
+                              '${formatDetailFooterTime(display.timestamp)} · ${formatDetailFooterDate(display.timestamp)}',
+                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    color: AppColors.textHint,
+                                    fontSize: 14,
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Comments',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: AppColors.textHint,
-                                        ),
-                                  ),
-                                ],
-                              );
-                            },
+                            ),
                           ),
-                          const SizedBox(width: 16),
-                          Row(
-                            children: [
-                              Text(
-                                '${display.likes}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
+                          const SizedBox(height: 16),
+                          const Divider(height: 1, color: AppColors.divider),
+                          // Twitter-like Stats line
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Row(
+                              children: [
+                                Consumer(
+                                  builder: (context, ref, child) {
+                                    final params = CommentsParams(
+                                      targetId: display.id,
+                                      targetType: 'ANNOUNCEMENT',
+                                    );
+                                    final asyncComments = ref.watch(commentsQueryProvider(params));
+                                    int commentsCount = 0;
+                                    if (asyncComments.hasValue && asyncComments.value != null) {
+                                      commentsCount = asyncComments.value!.fold(
+                                          0, (sum, c) => sum + 1 + c.replyCount);
+                                    }
+                                    return Row(
+                                      children: [
+                                        Text(
+                                          '$commentsCount',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Comments',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: AppColors.textHint,
+                                              ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                                const SizedBox(width: 16),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '${display.likes}',
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
                                     ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Likes',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: AppColors.textHint,
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Likes',
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: AppColors.textHint,
+                                          ),
                                     ),
-                              ),
-                            ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 1, color: AppColors.divider),
+                          // X-style Action Bar
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: const PhosphorIcon(PhosphorIconsRegular.chatCircle, size: 22, color: AppColors.textHint),
+                                ),
+                                IconButton(
+                                  onPressed: () => ref
+                                      .read(announcementsProvider.notifier)
+                                      .toggleLike(display.id),
+                                  icon: PhosphorIcon(
+                                    display.isLiked ? PhosphorIconsFill.heart : PhosphorIconsRegular.heart,
+                                    size: 22,
+                                    color: display.isLiked ? Colors.pink : AppColors.textHint,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => _share(display),
+                                  icon: const PhosphorIcon(PhosphorIconsRegular.shareNetwork, size: 22, color: AppColors.textHint),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 1, color: AppColors.divider),
+                          const SizedBox(height: 24),
+                          CommentSection(
+                            targetId: display.id,
+                            targetType: 'ANNOUNCEMENT',
                           ),
                         ],
                       ),
-                    ),
-                    const Divider(height: 1, color: AppColors.divider),
-                    
-                    // X-style Action Bar
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          IconButton(
-                            onPressed: () {}, // Handled by comment section below functionally
-                            icon: const PhosphorIcon(PhosphorIconsRegular.chatCircle, size: 22, color: AppColors.textHint),
-                          ),
-                          IconButton(
-                            onPressed: () => ref
-                                .read(announcementsProvider.notifier)
-                                .toggleLike(display.id),
-                            icon: PhosphorIcon(
-                              display.isLiked ? PhosphorIconsFill.heart : PhosphorIconsRegular.heart,
-                              size: 22,
-                              color: display.isLiked ? Colors.pink : AppColors.textHint,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => _share(display),
-                            icon: const PhosphorIcon(PhosphorIconsRegular.shareNetwork, size: 22, color: AppColors.textHint),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1, color: AppColors.divider),
-                    
-                    const SizedBox(height: 24),
-                    CommentSection(
-                      targetId: display.id,
-                      targetType: 'ANNOUNCEMENT',
                     ),
                   ],
                 ),

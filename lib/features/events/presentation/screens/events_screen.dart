@@ -9,7 +9,6 @@ import 'package:udsm_connect/core/models/event.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import '../widgets/upcoming_event_card.dart';
 import '../widgets/past_event_card.dart';
-import '../widgets/event_category_grid_card.dart';
 import '../widgets/event_skeleton.dart';
 
 class EventsScreen extends ConsumerStatefulWidget {
@@ -50,7 +49,15 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
     final isStudent = user?.isStudent ?? false;
     final selectedCategoryId = ref.watch(selectedEventCategoryIdProvider);
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          if (context.canPop()) context.pop();
+          else context.goNamed(RouteNames.announcements);
+        }
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -77,11 +84,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                     child: Row(
                       children: [
                         IconButton(
-                          onPressed: () => context.pop(),
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                          ),
+                          onPressed: () {
+                            if (context.canPop()) context.pop();
+                            else context.goNamed(RouteNames.announcements);
+                          },
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
                         ),
                         Expanded(
                           child: Center(
@@ -195,6 +202,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }
@@ -216,7 +224,7 @@ class _CategoriesSection extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
       child: categoriesAsync.when(
         loading: () => SizedBox(
-          height: 48,
+          height: 36,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -234,7 +242,7 @@ class _CategoriesSection extends ConsumerWidget {
           final displayList = [allCategory, ...categories];
 
           return SizedBox(
-            height: 48,
+            height: 36,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -246,14 +254,33 @@ class _CategoriesSection extends ConsumerWidget {
                     ? selectedId == null
                     : selectedId == cat.id;
 
-                return EventCategoryGridCard(
-                  category: cat,
-                  isSelected: isSelected,
-                  onTap: () {
-                    ref.read(selectedEventCategoryIdProvider.notifier).set(
-                          cat.id.isEmpty ? null : cat.id,
-                        );
-                  },
+                return GestureDetector(
+                  onTap: () => ref
+                      .read(selectedEventCategoryIdProvider.notifier)
+                      .set(cat.id.isEmpty ? null : cat.id),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF1565C0)
+                          : const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      cat.name,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFF888888),
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
@@ -387,35 +414,16 @@ class _UpcomingEventsGrid extends ConsumerWidget {
       data: (events) {
         if (events.isEmpty) {
           return SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.event_busy_outlined,
-                      color: Color(0xFF444444),
-                      size: 64,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No upcoming events',
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF666666),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Check back later or explore\na different category.',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF444444),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+              child: Center(
+                child: Text(
+                  'No upcoming events',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF666666),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

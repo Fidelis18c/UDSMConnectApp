@@ -47,7 +47,10 @@ class NewsPostCard extends StatelessWidget {
         ? const Color(0xFF141414)
         : Theme.of(context).colorScheme.surface;
 
-    return Padding(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Material(
         color: surface,
@@ -61,163 +64,166 @@ class NewsPostCard extends StatelessWidget {
           onTap: onOpen,
           borderRadius: BorderRadius.circular(16),
           splashColor: AppColors.primary.withValues(alpha: 0.08),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AvatarInitials(
-                      initials: post.authorName.isNotEmpty
-                          ? post.authorName.substring(0, 1).toUpperCase()
-                          : '?',
-                      imageUrl: post.authorProfilePic,
-                      radius: 22,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        AvatarInitials(
+                          initials: post.authorName.isNotEmpty
+                              ? post.authorName.substring(0, 1).toUpperCase()
+                              : '?',
+                          imageUrl: post.authorProfilePic,
+                          radius: 16,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  post.authorName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: -0.2,
-                                        height: 1.15,
-                                      ),
-                                ),
-                              ),
-                              Text(
-                                formatShortRelative(post.timestamp),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium
-                                    ?.copyWith(
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            post.authorName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                  letterSpacing: -0.2,
+                                                  height: 1.15,
+                                                ),
+                                          ),
+                                        ),
+                                        if (post.authorRole != null) ...[
+                                          const SizedBox(width: 6),
+                                          _RoleChip(role: post.authorRole!),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    formatShortRelative(post.timestamp),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                  ),
+                                  IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
+                                    icon: PhosphorIcon(
+                                      PhosphorIconsRegular.dotsThreeVertical,
+                                      size: 20,
                                       color: AppColors.textSecondary,
                                     ),
-                              ),
-                              IconButton(
-                                visualDensity: VisualDensity.compact,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(
-                                  minWidth: 32,
-                                  minHeight: 32,
-                                ),
-                                icon: PhosphorIcon(
-                                  PhosphorIconsRegular.dotsThreeVertical,
-                                  size: 20,
-                                  color: AppColors.textSecondary,
-                                ),
-                                onPressed:
-                                    onMenuTap ?? () {},
+                                    onPressed: onMenuTap ?? () {},
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                    if (post.isPinned) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Pinned',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.link,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                    ],
+                    if (post.title.trim().isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        post.title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              height: 1.25,
+                            ),
+                      ),
+                    ],
+                    if (post.text.trim().isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _ExpandableText(text: post.text),
+                    ],
                   ],
                 ),
-                if (post.isPinned) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Pinned',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.link,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ),
-                ],
-                if (post.title.trim().isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    post.title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
-                        ),
-                  ),
-                ],
-                if (post.text.trim().isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    post.text,
-                    maxLines: 5,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                          fontWeight: FontWeight.w500,
-                          height: 1.45,
-                        ),
-                  ),
-                ],
-                if (post.imageUrl != null) ...[
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: AspectRatio(
-                        aspectRatio: 1.3,
-                        child: Image.network(
-                          post.imageUrl!,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              color: const Color(0xFF1A1A1A),
-                              child: Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator.adaptive(
-                                    strokeWidth: 2,
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: const Color(0xFF252525),
-                            alignment: Alignment.center,
-                            child: PhosphorIcon(
-                              PhosphorIconsRegular.imageBroken,
-                              size: 40,
-                              color: AppColors.textHint,
+              ),
+              if (post.imageUrl != null) ...[
+                const SizedBox(height: 16),
+                AspectRatio(
+                  aspectRatio: 1.1,
+                  child: Image.network(
+                    post.imageUrl!,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: const Color(0xFF1A1A1A),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator.adaptive(
+                              strokeWidth: 2,
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
                             ),
                           ),
                         ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: const Color(0xFF252525),
+                      alignment: Alignment.center,
+                      child: PhosphorIcon(
+                        PhosphorIconsRegular.imageBroken,
+                        size: 40,
+                        color: AppColors.textHint,
                       ),
                     ),
                   ),
-                ],
-                const SizedBox(height: 12),
-                Row(
+                ),
+              ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+                child: Row(
                   children: [
                     _IconCountTap(
                       icon: post.isLiked
@@ -225,7 +231,9 @@ class NewsPostCard extends StatelessWidget {
                           : PhosphorIconsRegular.thumbsUp,
                       iconFill: post.isLiked ? 1.0 : null,
                       count: post.likes,
-                      color: post.isLiked ? AppColors.link : AppColors.textSecondary,
+                      color: post.isLiked
+                          ? AppColors.link
+                          : AppColors.textSecondary,
                       onTap: onLike,
                     ),
                     const SizedBox(width: 16),
@@ -249,11 +257,13 @@ class NewsPostCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
+        ),
+      ],
     );
   }
 }
@@ -300,6 +310,105 @@ class _IconCountTap extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RoleChip extends StatelessWidget {
+  const _RoleChip({required this.role});
+  final String role;
+
+  static const _map = <String, (String, Color)>{
+    'class representative': ('CR', Color(0xFF1565C0)),
+    'daruso leader':        ('DARUSO', Color(0xFF1B5E20)),
+    'lecturer':             ('Lecturer', Color(0xFF4A148C)),
+    'staff':                ('Lecturer', Color(0xFF4A148C)),
+    'admin':                ('Admin', Color(0xFF37474F)),
+    'super admin':          ('Admin', Color(0xFF37474F)),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final key = role.toLowerCase().trim();
+    final match = _map.entries
+        .where((e) => key.contains(e.key))
+        .map((e) => e.value)
+        .firstOrNull;
+    if (match == null) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: match.$2,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        match.$1,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+}
+
+class _ExpandableText extends StatefulWidget {
+  const _ExpandableText({required this.text});
+  final String text;
+
+  @override
+  State<_ExpandableText> createState() => _ExpandableTextState();
+}
+
+class _ExpandableTextState extends State<_ExpandableText> {
+  static const int _maxLines = 5;
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w500,
+          height: 1.45,
+        );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tp = TextPainter(
+          text: TextSpan(text: widget.text, style: style),
+          maxLines: _maxLines,
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: constraints.maxWidth);
+
+        final overflows = tp.didExceedMaxLines;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.text,
+              maxLines: _expanded ? null : _maxLines,
+              overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+              style: style,
+            ),
+            if (overflows) ...[
+              const SizedBox(height: 4),
+              GestureDetector(
+                onTap: () => setState(() => _expanded = !_expanded),
+                child: Text(
+                  _expanded ? 'Show less' : 'Show more',
+                  style: const TextStyle(
+                    color: AppColors.link,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

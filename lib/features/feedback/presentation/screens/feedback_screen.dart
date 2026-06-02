@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
+import 'package:udsm_connect/navigation/route_names.dart';
 import 'package:udsm_connect/core/theme/app_shapes.dart';
-import 'package:udsm_connect/core/widgets/status_badge.dart';
 import 'package:udsm_connect/core/widgets/empty_state_widget.dart';
 import 'package:udsm_connect/features/feedback/data/repositories/feedback_repository.dart';
 import 'package:udsm_connect/features/feedback/presentation/providers/feedback_provider.dart';
@@ -61,6 +62,16 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const PhosphorIcon(PhosphorIconsRegular.arrowLeft, size: 24),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed(RouteNames.announcements);
+            }
+          },
+        ),
         title: const Text('Feedback'),
         bottom: TabBar(
           controller: _tabController,
@@ -215,12 +226,12 @@ class _FeedbackHistoryTile extends StatelessWidget {
   IconData _statusIcon(String status) {
     switch (status.toUpperCase()) {
       case 'REVIEWED':
-        return Icons.mark_email_read_rounded;
+        return PhosphorIconsRegular.envelopeOpen;
       case 'RESOLVED':
-        return Icons.check_circle_rounded;
+        return PhosphorIconsRegular.sealCheck;
       case 'PENDING':
       default:
-        return Icons.hourglass_top_rounded;
+        return PhosphorIconsRegular.paperPlaneTilt;
     }
   }
 
@@ -233,6 +244,18 @@ class _FeedbackHistoryTile extends StatelessWidget {
       case 'PENDING':
       default:
         return AppColors.statusPending;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status.toUpperCase()) {
+      case 'REVIEWED':
+        return 'Reviewed';
+      case 'RESOLVED':
+        return 'Resolved';
+      case 'PENDING':
+      default:
+        return 'Pending';
     }
   }
 
@@ -268,7 +291,7 @@ class _FeedbackHistoryTile extends StatelessWidget {
                   borderRadius: AppShapes.cardBorderRadius,
                 ),
                 child:
-                    Icon(_statusIcon(item.status), color: iconColor, size: 22),
+                    Icon(_statusIcon(item.status), color: Colors.white, size: 22),
               ),
               title: Text(
                 item.subject,
@@ -282,14 +305,12 @@ class _FeedbackHistoryTile extends StatelessWidget {
                       color: AppColors.textSecondary,
                     ),
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StatusBadge(status: _mapStatus(item.status)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right_rounded,
-                      size: 18, color: AppColors.textSecondary),
-                ],
+              trailing: Text(
+                _statusLabel(item.status),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: _statusColor(item.status),
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ),
             if (item.adminNote != null && item.adminNote!.isNotEmpty)
@@ -379,7 +400,7 @@ class _FeedbackDetailSheet extends StatelessWidget {
                             borderRadius: AppShapes.cardBorderRadius,
                           ),
                           child: Icon(_statusIconFor(item.status),
-                              color: iconColor, size: 24),
+                              color: Colors.white, size: 24),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -400,34 +421,16 @@ class _FeedbackDetailSheet extends StatelessWidget {
                             ],
                           ),
                         ),
-                        StatusBadge(status: _mapStatus(item.status)),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Category chip
-                    if (item.category != null) ...[
-                      _SectionLabel(label: 'Category'),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.2)),
-                        ),
-                        child: Text(
-                          item.category!.name,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.primary,
+                        Text(
+                          _statusLabelFor(item.status),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: _statusColorFor(item.status),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
+                      ],
+                    ),
+                    const SizedBox(height: 20),
 
                     // Message body
                     _SectionLabel(label: 'Your Message'),
@@ -446,41 +449,6 @@ class _FeedbackDetailSheet extends StatelessWidget {
                             ?.copyWith(height: 1.6),
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    // Admin response note
-                    if (item.adminNote != null &&
-                        item.adminNote!.isNotEmpty) ...[
-                      _SectionLabel(label: 'Admin Response'),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.15)),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.admin_panel_settings_rounded,
-                                size: 16, color: AppColors.primary),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                item.adminNote!,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  height: 1.6,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -494,11 +462,11 @@ class _FeedbackDetailSheet extends StatelessWidget {
   IconData _statusIconFor(String status) {
     switch (status.toUpperCase()) {
       case 'REVIEWED':
-        return Icons.mark_email_read_rounded;
+        return PhosphorIconsRegular.envelopeOpen;
       case 'RESOLVED':
-        return Icons.check_circle_rounded;
+        return PhosphorIconsRegular.sealCheck;
       default:
-        return Icons.hourglass_top_rounded;
+        return PhosphorIconsRegular.paperPlaneTilt;
     }
   }
 
@@ -510,6 +478,17 @@ class _FeedbackDetailSheet extends StatelessWidget {
         return AppColors.statusReviewed;
       default:
         return AppColors.statusPending;
+    }
+  }
+
+  String _statusLabelFor(String status) {
+    switch (status.toUpperCase()) {
+      case 'REVIEWED':
+        return 'Reviewed';
+      case 'RESOLVED':
+        return 'Resolved';
+      default:
+        return 'Pending';
     }
   }
 }
@@ -535,17 +514,6 @@ class _SectionLabel extends StatelessWidget {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-FeedbackStatus _mapStatus(String status) {
-  switch (status.toUpperCase()) {
-    case 'REVIEWED':
-      return FeedbackStatus.reviewed;
-    case 'RESOLVED':
-      return FeedbackStatus.resolved;
-    case 'PENDING':
-    default:
-      return FeedbackStatus.pending;
-  }
-}
 
 String _formatTimestamp(DateTime dt) {
   final diff = DateTime.now().difference(dt);

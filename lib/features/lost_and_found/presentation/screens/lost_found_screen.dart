@@ -30,7 +30,18 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
   Widget build(BuildContext context) {
     final itemsAsync = ref.watch(filteredLostFoundProvider);
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.goNamed(RouteNames.announcements);
+          }
+        }
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -51,7 +62,13 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
                     child: Row(
                       children: [
                         IconButton(
-                          onPressed: () => context.pop(),
+                          onPressed: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.goNamed(RouteNames.announcements);
+                            }
+                          },
                           icon: const Icon(Icons.arrow_back, color: Colors.white),
                         ),
                         Expanded(
@@ -208,6 +225,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

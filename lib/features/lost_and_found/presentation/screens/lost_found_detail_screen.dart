@@ -401,35 +401,11 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _ContactButton(
-                                  icon: Icons.phone_rounded,
-                                  label: 'Call',
-                                  onTap: () => _launch(
-                                      'tel:${widget.item.contactInfo}'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _ContactButton(
-                                  icon: Icons.sms_outlined,
-                                  label: 'SMS',
-                                  onTap: () => _launch(
-                                      'sms:${widget.item.contactInfo}'),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _ContactButton(
-                                  icon: Icons.email_outlined,
-                                  label: 'Email',
-                                  onTap: () => _launch(
-                                      'mailto:${widget.item.contactInfo}'),
-                                ),
-                              ),
-                            ],
+                          _ContactButton(
+                            icon: Icons.phone_rounded,
+                            label: 'Call',
+                            onTap: () =>
+                                _launch('tel:${widget.item.contactInfo}'),
                           ),
                         ],
                       ),

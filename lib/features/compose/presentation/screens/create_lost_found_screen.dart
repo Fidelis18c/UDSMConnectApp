@@ -171,42 +171,15 @@ class _CreateLostFoundScreenState
                     height: 180,
                     decoration: BoxDecoration(
                       color: const Color(0xFF161616),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primary.withAlpha(50),
-                        width: 1,
-                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.divider),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withAlpha(20),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.add_photo_alternate_outlined,
-                              color: AppColors.primary, size: 28),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Add Photos (Max 5)',
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Helps identify the item quicker',
-                          style: GoogleFonts.inter(
-                            color: AppColors.textHint,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                    child: const Center(
+                      child: Icon(
+                        Icons.camera_alt_outlined,
+                        size: 40,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 )

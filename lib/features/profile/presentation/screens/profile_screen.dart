@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
+import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
 import 'package:udsm_connect/features/profile/presentation/widgets/edit_profile_bottom_sheet.dart';
 import 'package:udsm_connect/features/profile/presentation/widgets/profile_info_card.dart';
@@ -17,6 +21,33 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  Uint8List? _localImageBytes;
+  bool _uploadingPic = false;
+
+  Future<void> _pickProfilePicture() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (image == null || !mounted) return;
+    final bytes = await image.readAsBytes();
+    setState(() => _localImageBytes = bytes);
+    try {
+      setState(() => _uploadingPic = true);
+      final repo = ref.read(announcementsRepositoryProvider);
+      final url = await repo.uploadMediaBytesGetUrl(bytes, filename: image.name);
+      ref.read(userProvider.notifier).updateProfilePic(url);
+      setState(() => _localImageBytes = null);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to upload picture. Try again.')),
+        );
+        setState(() => _localImageBytes = null);
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingPic = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -112,30 +143,76 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       left: 0,
                       right: 0,
                       child: Center(
-                        child: DecoratedBox(
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0x40000000),
-                                blurRadius: 12,
-                                offset: Offset(0, 4),
+                        child: GestureDetector(
+                          onTap: _uploadingPic ? null : _pickProfilePicture,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              DecoratedBox(
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Color(0x40000000),
+                                      blurRadius: 12,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppColors.textPrimary.withValues(alpha: 0.9),
+                                      width: 2.5,
+                                    ),
+                                  ),
+                                  child: _localImageBytes != null
+                                      ? ClipOval(
+                                          child: Image.memory(
+                                            _localImageBytes!,
+                                            width: 88,
+                                            height: 88,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : AvatarInitials(
+                                          initials: initials,
+                                          imageUrl: user.profilePic,
+                                          radius: 44,
+                                        ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppColors.background,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: _uploadingPic
+                                      ? const Padding(
+                                          padding: EdgeInsets.all(6),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.camera_alt,
+                                          size: 14,
+                                          color: Colors.white,
+                                        ),
+                                ),
                               ),
                             ],
-                          ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.textPrimary.withValues(alpha: 0.9),
-                                width: 2.5,
-                              ),
-                            ),
-                            child: AvatarInitials(
-                              initials: initials,
-                              imageUrl: user.profilePic,
-                              radius: 44,
-                            ),
                           ),
                         ),
                       ),

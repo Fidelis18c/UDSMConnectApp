@@ -176,17 +176,22 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Edge-to-edge interactive banner
-                    GestureDetector(
+                    // Banner image picker
+                    Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    child: GestureDetector(
                       onTap: _pickImage,
                       child: Container(
                         height: 200,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surface,
-                          border: const Border(bottom: BorderSide(color: AppColors.divider)),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.divider),
                         ),
-                        child: _imageBytes != null
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: _imageBytes != null
                             ? Stack(
                                 fit: StackFit.expand,
                                 children: [
@@ -198,25 +203,18 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                   )
                                 ],
                               )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_photo_alternate_rounded, size: 48, color: AppColors.primary.withOpacity(0.8)),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    'Upload Event Banner',
-                                    style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'Make it wide and visually appealing',
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                                  ),
-                                ],
+                            : const Center(
+                                child: Icon(
+                                  Icons.camera_alt_outlined,
+                                  size: 40,
+                                  color: Colors.white,
+                                ),
                               ),
+                        ),
                       ),
                     ),
-                    
+                    ),
+
                     Padding(
                       padding: const EdgeInsets.all(20.0),
                       child: Column(

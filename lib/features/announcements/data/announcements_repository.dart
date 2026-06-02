@@ -47,6 +47,27 @@ class AnnouncementsRepository {
     return id;
   }
 
+  /// Same as [uploadMediaBytes] but returns the CDN URL instead of the media ID.
+  Future<String> uploadMediaBytesGetUrl(List<int> bytes, {required String filename}) async {
+    final formData = FormData.fromMap({
+      'file': MultipartFile.fromBytes(bytes, filename: filename),
+    });
+    final response = await _api.dio.post<Map<String, dynamic>>(
+      '/media/upload',
+      data: formData,
+    );
+    final data = response.data?['data'] as Map<String, dynamic>? ?? {};
+    final url = data['url'] as String?;
+    if (url == null || url.isEmpty) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        response: response,
+        type: DioExceptionType.badResponse,
+      );
+    }
+    return url;
+  }
+
   /// `POST /announcements` — see openapi `Create an announcement`.
   Future<String> createAnnouncement({
     required String title,

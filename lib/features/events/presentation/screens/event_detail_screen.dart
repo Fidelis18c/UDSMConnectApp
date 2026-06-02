@@ -232,7 +232,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   // Date
                   _InfoRow(
                     icon: Icons.calendar_today,
-                    iconColor: AppColors.primary,
+                    iconColor: Colors.white,
                     title: _formatDate(widget.event.startDateTime),
                     subtitle:
                         '${_formatTime(widget.event.startDateTime)} — ${_formatTime(widget.event.endDateTime)}',
@@ -251,9 +251,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     },
                     child: _InfoRow(
                       icon: Icons.location_on,
-                      iconColor: widget.event.locationUrl != null
-                          ? AppColors.primary
-                          : AppColors.textSecondary,
+                      iconColor: Colors.white,
                       title: widget.event.location,
                       subtitle: widget.event.locationUrl != null
                           ? 'Tap to view on Map'
@@ -266,7 +264,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     const SizedBox(height: 14),
                     _InfoRow(
                       icon: Icons.people_outline,
-                      iconColor: AppColors.primary,
+                      iconColor: Colors.white,
                       title: 'Capacity',
                       subtitle:
                           '${widget.event.maxAttendees} max attendees',
