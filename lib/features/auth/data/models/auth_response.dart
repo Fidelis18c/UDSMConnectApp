@@ -71,6 +71,14 @@ class UserData {
     return lower.intersection(allowedRoles).isNotEmpty;
   }
 
+  /// Only admins, staff, and DARUSO/college leaders can add Stories.
+  /// Class Representatives are explicitly excluded.
+  bool get canAddStories {
+    final allowedRoles = {'admin', 'super admin', 'daruso leader', 'staff', 'college rep', 'college representative'};
+    final lower = roleNames.map((r) => r.toLowerCase().replaceAll('_', ' ')).toSet();
+    return lower.intersection(allowedRoles).isNotEmpty;
+  }
+
   // -----------------------------------------------
 
   factory UserData.fromJson(Map<String, dynamic> json) {

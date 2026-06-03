@@ -15,8 +15,7 @@ class StoriesTray extends ConsumerWidget {
     final groupedStoriesAsync = ref.watch(groupedStoriesProvider);
     final isStoriesLoading = ref.watch(storiesProvider).isLoading;
     final user = ref.watch(authProvider).user;
-    final isStudent = user?.isStudent ?? false;
-    final canAddStories = !isStudent;
+    final canAddStories = user?.canAddStories ?? false;
 
     if (groupedStoriesAsync.isEmpty && !isStoriesLoading && !canAddStories) {
       return const SizedBox.shrink();
