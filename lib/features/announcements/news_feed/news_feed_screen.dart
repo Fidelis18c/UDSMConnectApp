@@ -21,7 +21,7 @@ class NewsFeedScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPosts = ref.watch(announcementsProvider);
     final authUser = ref.watch(authProvider).user;
-    final isStudent = authUser?.isStudent ?? false;
+    final canPostNews = authUser?.canPostNews ?? false;
     final user = ref.watch(userProvider);
     final initials = user.name.isNotEmpty
         ? user.name.trim().split(' ').where((e) => e.isNotEmpty).map((e) => e[0]).join().toUpperCase()
@@ -29,7 +29,7 @@ class NewsFeedScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      floatingActionButton: isStudent ? null : Consumer(
+      floatingActionButton: !canPostNews ? null : Consumer(
         builder: (context, ref, child) {
           final isVisible = ref.watch(scrollVisibilityProvider);
           return AnimatedSlide(

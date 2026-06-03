@@ -65,6 +65,12 @@ class UserData {
 
   bool get hasPrivilegedRole => !isStudent;
 
+  bool get canPostNews {
+    final allowedRoles = {'admin', 'super admin', 'daruso leader', 'staff', 'college rep', 'college representative'};
+    final lower = roleNames.map((r) => r.toLowerCase().replaceAll('_', ' ')).toSet();
+    return lower.intersection(allowedRoles).isNotEmpty;
+  }
+
   // -----------------------------------------------
 
   factory UserData.fromJson(Map<String, dynamic> json) {
