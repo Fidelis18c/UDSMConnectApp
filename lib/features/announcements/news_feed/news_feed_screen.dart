@@ -72,7 +72,11 @@ class NewsFeedScreen extends ConsumerWidget {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(99),
                           onTap: () => context.pushNamed(RouteNames.profile),
-                          child: AvatarInitials(initials: initials, radius: 18),
+                          child: AvatarInitials(
+                            initials: initials,
+                            imageUrl: user.profilePic,
+                            radius: 18,
+                          ),
                         ),
                       ),
                     ),

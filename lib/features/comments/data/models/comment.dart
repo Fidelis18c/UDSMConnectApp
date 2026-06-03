@@ -3,6 +3,7 @@ class Comment {
   final String? parentId;
   final String authorId;
   final String authorName;
+  final String? authorProfilePic;
   final String content;
   final String? imageUrl;
   final int likeCount;
@@ -16,6 +17,7 @@ class Comment {
     this.parentId,
     required this.authorId,
     required this.authorName,
+    this.authorProfilePic,
     required this.content,
     this.imageUrl,
     this.likeCount = 0,
@@ -31,6 +33,7 @@ class Comment {
       parentId: json['parentId']?.toString(),
       authorId: json['authorId']?.toString() ?? '',
       authorName: json['authorName']?.toString() ?? 'Unknown',
+      authorProfilePic: json['authorAvatarUrl']?.toString(),
       content: json['content']?.toString() ?? '',
       imageUrl: json['imageUrl']?.toString(),
       likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
+import 'package:udsm_connect/core/widgets/avatar_initials.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import '../../data/models/comment.dart';
 import '../providers/comments_provider.dart';
@@ -348,24 +349,10 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Avatar
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(200),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    cleanAuthorName.isNotEmpty
-                        ? cleanAuthorName[0].toUpperCase()
-                        : '?',
-                    style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700),
-                  ),
-                ),
+              AvatarInitials(
+                initials: cleanAuthorName.isNotEmpty ? cleanAuthorName[0].toUpperCase() : '?',
+                imageUrl: widget.comment.authorProfilePic,
+                radius: 14,
               ),
               const SizedBox(width: 12),
               Expanded(
