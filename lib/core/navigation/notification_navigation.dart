@@ -51,3 +51,15 @@ IconData notificationTypeIcon(String type) {
       return Icons.newspaper_outlined;
   }
 }
+
+Color notificationTypeColor(String type) {
+  switch (type) {
+    case 'EVENT':
+      return Colors.orange;
+    case 'FEEDBACK':
+      return Colors.green;
+    case 'POST':
+    default:
+      return Colors.blue;
+  }
+}
