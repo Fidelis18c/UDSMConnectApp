@@ -210,18 +210,16 @@ class _HistoryTab extends ConsumerWidget {
             );
           }
 
-          return ListView.separated(
+          return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             itemCount: items.length,
-            separatorBuilder: (_, __) => Divider(
-              height: 1,
-              color: AppColors.divider,
-              indent: 72,
-            ),
             itemBuilder: (context, index) {
               final item = items[index];
-              return _FeedbackHistoryTile(item: item);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _FeedbackHistoryTile(item: item),
+              );
             },
           );
         },
@@ -282,97 +280,126 @@ class _FeedbackHistoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = _statusColor(item.status);
+    final statusColor = _statusColor(item.status);
+    final isResolved = item.status.toUpperCase() == 'RESOLVED';
 
     return InkWell(
       onTap: () => _openDetail(context),
-      borderRadius: AppShapes.cardBorderRadius,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ListTile(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.12),
-                  borderRadius: AppShapes.cardBorderRadius,
-                ),
-                child:
-                    Icon(_statusIcon(item.status), color: Colors.white, size: 22),
-              ),
-              title: Text(
-                item.subject,
-                style: Theme.of(context).textTheme.titleMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(
-                '${item.category?.name ?? 'Uncategorized'} • ${_formatTimestamp(item.createdAt)}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-              ),
-              trailing: Text(
-                _statusLabel(item.status),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: _statusColor(item.status),
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ),
-            if (item.adminNote != null && item.adminNote!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(left: 64, right: 16, bottom: 12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                    ),
-                  ),
-                  child: Row(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Icon(Icons.quickreply_rounded, size: 14, color: AppColors.primary),
+                      Text(
+                        item.subject,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Admin Response',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Category: ${item.category?.name ?? 'Uncategorized'}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              item.adminNote!,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.primary,
-                                height: 1.3,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _formatTimestamp(item.createdAt),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary.withValues(alpha: 0.6),
                             ),
-                          ],
-                        ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: isResolved ? 0.15 : 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _statusLabel(item.status),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: statusColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                )
+              ],
+            ),
+            if (item.adminNote != null && item.adminNote!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.06),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                    topLeft: Radius.circular(4), // Chat bubble tip
+                  ),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(PhosphorIconsRegular.chatsTeardrop,
+                            size: 14, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Admin Response',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.adminNote!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.primary,
+                            height: 1.4,
+                          ),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
+            ]
           ],
         ),
       ),
