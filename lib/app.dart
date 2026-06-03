@@ -17,8 +17,10 @@ class _UdsmConnectAppState extends ConsumerState<UdsmConnectApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Request notification permission early so the OS prompt appears on first launch.
+      // Token registration happens AFTER login in auth_provider.dart — at that point
+      // the auth header is set and the API call will succeed.
       await ensureNotificationPermission();
-      await registerFcmTokenIfPossible();
     });
   }
 

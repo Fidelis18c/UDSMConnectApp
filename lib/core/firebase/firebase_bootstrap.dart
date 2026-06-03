@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../firebase_options.dart';
 import '../../features/notifications/data/notification_repository.dart';
@@ -88,8 +89,14 @@ Future<void> bootstrapFirebase() async {
   }
 
   FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+    // Only register the refreshed token if the user is already authenticated.
+    // Otherwise the API call will fail with 401 and be swallowed silently.
+    final prefs = await SharedPreferences.getInstance();
+    final storedToken = prefs.getString('auth_token');
+    if (storedToken == null || storedToken.isEmpty) return;
     try {
       await NotificationRepository().registerToken(token);
+      if (kDebugMode) debugPrint('FCM token refreshed and re-registered');
     } catch (e) {
       if (kDebugMode) debugPrint('FCM token refresh register failed: $e');
     }
@@ -143,12 +150,27 @@ Future<void> showForegroundLocalNotification(RemoteMessage message) async {
   );
 }
 
+/// Registers the FCM token with the backend.
+/// IMPORTANT: Only call this when the user is authenticated, otherwise
+/// the backend will reject the request with 401.
 Future<void> registerFcmTokenIfPossible() async {
   try {
+    // Guard: don't attempt if no auth token is stored.
+    // This prevents a silent 401 failure on fresh installs before login.
+    final prefs = await SharedPreferences.getInstance();
+    final storedAuthToken = prefs.getString('auth_token');
+    if (storedAuthToken == null || storedAuthToken.isEmpty) {
+      if (kDebugMode) debugPrint('FCM token registration skipped — user not authenticated');
+      return;
+    }
+
     final token = await FirebaseMessaging.instance.getToken();
-    if (token == null || token.isEmpty) return;
+    if (token == null || token.isEmpty) {
+      if (kDebugMode) debugPrint('FCM token registration skipped — no FCM token available (permission not granted?)');
+      return;
+    }
     await NotificationRepository().registerToken(token);
-    if (kDebugMode) debugPrint('FCM token registered with backend');
+    if (kDebugMode) debugPrint('FCM token registered with backend: ${token.substring(0, 20)}...');
   } catch (e) {
     if (kDebugMode) debugPrint('FCM token register failed: $e');
   }
