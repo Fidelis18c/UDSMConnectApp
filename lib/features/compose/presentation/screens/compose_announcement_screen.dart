@@ -106,7 +106,9 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
         setState(() {
           _userRole = AudienceUserRole.collegeRep;
           _filterCollegeId = userProfile.collegeId;
-          _audienceSelection = AudienceSelection(targetType: 'DEPARTMENT'); 
+          // Default to targeting the whole college — they can narrow it down to
+          // a Department or Programme from the audience sheet if desired.
+          _audienceSelection = AudienceSelection(targetType: 'COLLEGE');
         });
       }
     } catch (_) {
@@ -185,6 +187,9 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
       case 'PROGRAMME_YEAR':
         return '📅 ${_audienceSelection.programme?.code ?? 'Programme'} - Year ${_audienceSelection.year ?? '?'}';
       case 'COLLEGE':
+        if (_userRole == AudienceUserRole.collegeRep) {
+          return '🏛️ Whole College';
+        }
         return '🏛️ ${_audienceSelection.college?.name ?? 'Specific College'}';
       case 'DEPARTMENT':
         return '💼 ${_audienceSelection.department?.shortName ?? _audienceSelection.department?.name ?? 'Specific Department'}';
@@ -258,10 +263,11 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
           audiences.add({'targetType': 'ALL'});
         }
       } else if (_audienceSelection.targetType == 'COLLEGE') {
-        if (_audienceSelection.college != null) {
+        final collegeId = _audienceSelection.college?.id ?? _filterCollegeId;
+        if (collegeId != null) {
           audiences.add({
             'targetType': 'COLLEGE',
-            'collegeId': _audienceSelection.college!.id,
+            'collegeId': collegeId,
           });
         } else {
           audiences.add({'targetType': 'ALL'});

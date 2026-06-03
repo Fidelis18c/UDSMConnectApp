@@ -242,6 +242,15 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                           hint: 'Search and select a college',
                         ),
                       ),
+
+                    // College Reps (DARUSO) can target their whole college
+                    if (widget.userRole == AudienceUserRole.collegeRep)
+                      _buildOptionRow(
+                        value: 'COLLEGE',
+                        icon: PhosphorIconsRegular.buildings,
+                        title: 'Whole College',
+                        subtitle: 'All students in your college',
+                      ),
                     
                     _buildOptionRow(
                       value: 'DEPARTMENT',
