@@ -13,6 +13,7 @@ import 'package:udsm_connect/features/announcements/data/posts_repository.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/auth/data/users_repository.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
+import 'package:udsm_connect/core/models/programme.dart';
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
 
 import '../widgets/audience_bottom_sheet.dart';
@@ -49,6 +50,9 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
   bool _isAudienceLocked = false;
   String? _lockedLabel;
   String? _lockedNotice;
+  
+  AudienceUserRole _userRole = AudienceUserRole.admin;
+  String? _filterCollegeId;
 
   @override
   void initState() {
@@ -58,29 +62,48 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
   }
 
   Future<void> _checkRoleRestriction() async {
-    final userId = ref.read(authProvider).user?.id;
-    if (userId == null) {
+    final user = ref.read(authProvider).user;
+    if (user == null) {
       if (mounted) setState(() => _isLoadingRole = false);
       return;
     }
+    
     try {
-      final userProfile = await ref.read(usersRepositoryProvider).fetchUser(userId);
+      final userProfile = await ref.read(usersRepositoryProvider).fetchUser(user.id);
       if (!mounted) return;
       
-      final roles = userProfile.roleName?.toLowerCase() ?? '';
-      if (roles.contains('class_representative') && !roles.contains('admin') && !roles.contains('staff')) {
+      final roles = user.roleNames.map((r) => r.toLowerCase()).toList();
+      
+      bool isAdmin = roles.any((r) => r.contains('admin') || r.contains('staff'));
+      bool isClassRep = roles.any((r) => r.contains('class') || r.contains('representative'));
+      bool isCollegeRep = roles.any((r) => r.contains('daruso') || r.contains('college'));
+
+      if (isAdmin) {
         setState(() {
+          _userRole = AudienceUserRole.admin;
+        });
+      } else if (isClassRep) {
+        setState(() {
+          _userRole = AudienceUserRole.classRep;
           _isAudienceLocked = true;
           _lockedLabel = '📅 ${userProfile.programmeName ?? 'Class'} - Year ${userProfile.yearOfStudy ?? '?'}';
           _lockedNotice = 'Your role restricts targeting to your class only.';
-          _audienceSelection = AudienceSelection(targetType: 'PROGRAMME_YEAR');
+          
+          final programme = userProfile.programmeId != null 
+              ? Programme(id: userProfile.programmeId!, code: userProfile.programmeName ?? 'Class', name: userProfile.programmeName ?? '', durationYears: 3)
+              : null;
+              
+          _audienceSelection = AudienceSelection(
+            targetType: 'PROGRAMME_YEAR',
+            programme: programme,
+            year: userProfile.yearOfStudy,
+          );
         });
-      } else if ((roles.contains('daruso') || roles.contains('daruso leader')) && !roles.contains('admin') && !roles.contains('staff')) {
+      } else if (isCollegeRep) {
         setState(() {
-          _isAudienceLocked = true;
-          _lockedLabel = '🏛️ ${userProfile.collegeName ?? 'Your College'}';
-          _lockedNotice = 'Your role restricts targeting to your college only.';
-          _audienceSelection = AudienceSelection(targetType: 'COLLEGE');
+          _userRole = AudienceUserRole.collegeRep;
+          _filterCollegeId = userProfile.collegeId;
+          _audienceSelection = AudienceSelection(targetType: 'DEPARTMENT'); 
         });
       }
     } catch (_) {
@@ -132,7 +155,14 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
     // Hide keyboard
     FocusScope.of(context).unfocus();
     
-    final result = await AudienceBottomSheet.show(context, initialSelection: _audienceSelection);
+    if (_userRole == AudienceUserRole.classRep) return;
+    
+    final result = await AudienceBottomSheet.show(
+      context, 
+      initialSelection: _audienceSelection,
+      userRole: _userRole,
+      filterCollegeId: _filterCollegeId,
+    );
     if (result != null) {
       setState(() {
         _audienceSelection = result;

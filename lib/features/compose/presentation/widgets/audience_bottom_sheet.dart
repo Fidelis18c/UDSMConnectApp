@@ -9,6 +9,8 @@ import 'package:udsm_connect/features/auth/presentation/widgets/searchable_progr
 
 import '../../../../core/theme/app_colors.dart';
 
+enum AudienceUserRole { admin, collegeRep, classRep }
+
 class AudienceSelection {
   final String targetType;
   final Programme? programme;
@@ -27,21 +29,31 @@ class AudienceSelection {
 
 class AudienceBottomSheet extends StatefulWidget {
   final AudienceSelection initialSelection;
+  final AudienceUserRole userRole;
+  final String? filterCollegeId;
 
   const AudienceBottomSheet({
     Key? key,
     required this.initialSelection,
+    required this.userRole,
+    this.filterCollegeId,
   }) : super(key: key);
 
   static Future<AudienceSelection?> show(
     BuildContext context, {
     required AudienceSelection initialSelection,
+    required AudienceUserRole userRole,
+    String? filterCollegeId,
   }) {
     return showModalBottomSheet<AudienceSelection>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AudienceBottomSheet(initialSelection: initialSelection),
+      builder: (context) => AudienceBottomSheet(
+        initialSelection: initialSelection,
+        userRole: userRole,
+        filterCollegeId: filterCollegeId,
+      ),
     );
   }
 
@@ -207,19 +219,21 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    _buildOptionRow(
-                      value: 'ALL',
-                      icon: PhosphorIconsRegular.globeHemisphereWest,
-                      title: 'All Students',
-                      subtitle: 'Everyone at UDSM',
-                    ),
-                    _buildOptionRow(
-                      value: 'COLLEGE',
-                      icon: PhosphorIconsRegular.buildings,
-                      title: 'Specific College',
-                      subtitle: 'Target a specific college',
-                    ),
-                    if (_targetType == 'COLLEGE')
+                    if (widget.userRole == AudienceUserRole.admin) ...[
+                      _buildOptionRow(
+                        value: 'ALL',
+                        icon: PhosphorIconsRegular.globeHemisphereWest,
+                        title: 'All Students',
+                        subtitle: 'Everyone at UDSM',
+                      ),
+                      _buildOptionRow(
+                        value: 'COLLEGE',
+                        icon: PhosphorIconsRegular.buildings,
+                        title: 'Specific College',
+                        subtitle: 'Target a specific college',
+                      ),
+                    ],
+                    if (_targetType == 'COLLEGE' && widget.userRole == AudienceUserRole.admin)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                         child: SearchableCollegeDropdown(
@@ -242,6 +256,7 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                           selectedDepartment: _department,
                           onSelected: (d) => setState(() => _department = d),
                           hint: 'Search and select a department',
+                          filterCollegeId: widget.filterCollegeId,
                         ),
                       ),
 
@@ -258,6 +273,7 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                           selectedProgramme: _programme,
                           onSelected: (p) => setState(() => _programme = p),
                           hint: 'Search and select a programme',
+                          filterCollegeId: widget.filterCollegeId,
                         ),
                       ),
 

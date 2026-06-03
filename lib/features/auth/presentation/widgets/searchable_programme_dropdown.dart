@@ -5,12 +5,14 @@ import '../providers/programme_provider.dart';
 
 class SearchableProgrammeDropdown extends ConsumerStatefulWidget {
   final Programme? selectedProgramme;
+  final String? filterCollegeId;
   final Function(Programme) onSelected;
   final String hint;
 
   const SearchableProgrammeDropdown({
     Key? key,
     required this.selectedProgramme,
+    this.filterCollegeId,
     required this.onSelected,
     this.hint = 'Select Programme',
   }) : super(key: key);
@@ -97,7 +99,7 @@ class _SearchableProgrammeDropdownState extends ConsumerState<SearchableProgramm
 
   @override
   Widget build(BuildContext context) {
-    final programmeAsync = ref.watch(programmeProvider);
+    final programmeAsync = ref.watch(programmeProvider(widget.filterCollegeId));
 
     return InkWell(
       onTap: () {
