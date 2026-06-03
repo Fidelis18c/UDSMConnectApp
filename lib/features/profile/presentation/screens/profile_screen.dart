@@ -7,8 +7,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
+import 'package:udsm_connect/core/widgets/news_post_card.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
+import 'package:udsm_connect/features/profile/presentation/providers/user_posts_provider.dart';
 import 'package:udsm_connect/features/profile/presentation/widgets/edit_profile_bottom_sheet.dart';
 import 'package:udsm_connect/features/profile/presentation/widgets/profile_info_card.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
@@ -305,27 +307,74 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-                  ),
-                  child: Text(
-                    'No posts yet.\nAnything you publish can show up here later.',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                          height: 1.45,
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    if (user.id == 'guest' || user.id.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final postsAsync = ref.watch(userPostsProvider(user.id));
+                    return postsAsync.when(
+                      data: (posts) {
+                        if (posts.isEmpty) {
+                          return _buildEmptyState(context);
+                        }
+                        return ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: posts.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final post = posts[index];
+                            return NewsPostCard(
+                              post: post,
+                              replyCount: post.commentCount,
+                              onOpen: () => context.pushNamed(RouteNames.postDetail, extra: post.id),
+                              onLike: () {}, // Optional: implement like toggle here
+                              onReplyTap: () => context.pushNamed(RouteNames.postDetail, extra: post.id),
+                            );
+                          },
+                        );
+                      },
+                      loading: () => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24.0),
+                          child: CircularProgressIndicator(),
                         ),
-                  ),
+                      ),
+                      error: (err, stack) => Center(
+                        child: Text(
+                          'Error loading posts',
+                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Text(
+        'No posts yet.\nAnything you publish can show up here later.',
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.45,
+            ),
       ),
     );
   }

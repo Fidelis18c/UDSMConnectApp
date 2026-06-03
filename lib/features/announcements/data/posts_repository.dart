@@ -11,13 +11,16 @@ class PostsRepository {
 
   final ApiClient _api;
 
-  Future<List<Post>> fetchFeed({int page = 1, int pageSize = 20}) async {
+  Future<List<Post>> fetchFeed({int page = 1, int pageSize = 20, String? authorId}) async {
+    final queryParameters = <String, dynamic>{
+      'page': page,
+      'pageSize': pageSize,
+    };
+    if (authorId != null) queryParameters['authorId'] = authorId;
+
     final response = await _api.dio.get<Map<String, dynamic>>(
       '/posts',
-      queryParameters: {
-        'page': page,
-        'pageSize': pageSize,
-      },
+      queryParameters: queryParameters,
     );
 
     final rawList = response.data?['data'] as List<dynamic>? ?? [];
