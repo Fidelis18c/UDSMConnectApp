@@ -14,6 +14,7 @@ class UserProfile {
   final String? programmeName;
   final int? yearOfStudy;
   final String? roleName;
+  final List<String> roleNames;
   final int? currentSemester;
   final String? avatarUrl;
   final String? phoneNumber;
@@ -29,6 +30,7 @@ class UserProfile {
     this.programmeName,
     this.yearOfStudy,
     this.roleName,
+    this.roleNames = const [],
     this.currentSemester,
     this.avatarUrl,
     this.phoneNumber,
@@ -49,6 +51,10 @@ class UserProfile {
       programmeName: programme?['name'] as String?,
       yearOfStudy: yearRaw is int ? yearRaw : int.tryParse('$yearRaw'),
       roleName: json['roleName'] as String?,
+      roleNames: (json['roles'] as List<dynamic>? ?? [])
+          .map((r) => (r as Map<String, dynamic>)['name'] as String? ?? '')
+          .where((n) => n.isNotEmpty)
+          .toList(),
       currentSemester: json['currentSemester'] as int?,
       avatarUrl: json['avatarUrl'] as String?,
       phoneNumber: json['phoneNumber'] as String?,

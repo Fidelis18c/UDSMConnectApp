@@ -72,7 +72,10 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
       final userProfile = await ref.read(usersRepositoryProvider).fetchUser(user.id);
       if (!mounted) return;
       
-      final roles = user.roleNames.map((r) => r.toLowerCase()).toList();
+      final roles = userProfile.roleNames.map((r) => r.toLowerCase()).toList();
+      if (roles.isEmpty && userProfile.roleName != null) {
+        roles.add(userProfile.roleName!.toLowerCase());
+      }
       
       bool isAdmin = roles.any((r) => r.contains('admin') || r.contains('staff'));
       bool isClassRep = roles.any((r) => r.contains('class') || r.contains('representative'));
