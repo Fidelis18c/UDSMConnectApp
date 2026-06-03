@@ -320,7 +320,7 @@ class _RoleChip extends StatelessWidget {
 
   static const _map = <String, (String, Color)>{
     'class representative': ('CR', Color(0xFF1565C0)),
-    'daruso leader':        ('DARUSO', Color(0xFF1B5E20)),
+    'daruso':               ('DARUSO', Color(0xFF1B5E20)),
     'lecturer':             ('Lecturer', Color(0xFF4A148C)),
     'staff':                ('Lecturer', Color(0xFF4A148C)),
     'admin':                ('Admin', Color(0xFF37474F)),
@@ -329,9 +329,10 @@ class _RoleChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final key = role.toLowerCase().trim();
+    // Normalize string by replacing underscores with spaces
+    final key = role.toLowerCase().replaceAll('_', ' ').trim();
     final match = _map.entries
-        .where((e) => key.contains(e.key))
+        .where((e) => key.contains(e.key) || key == 'cr')
         .map((e) => e.value)
         .firstOrNull;
     if (match == null) return const SizedBox.shrink();

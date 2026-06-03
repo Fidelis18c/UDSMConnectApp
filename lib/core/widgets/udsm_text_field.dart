@@ -9,6 +9,7 @@ class UdsmTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
+  final bool readOnly;
 
   const UdsmTextField({
     Key? key,
@@ -20,6 +21,7 @@ class UdsmTextField extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.validator,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -40,6 +42,7 @@ class _UdsmTextFieldState extends State<UdsmTextField> {
     return TextFormField(
       controller: widget.controller,
       obscureText: _obscureText,
+      readOnly: widget.readOnly,
       keyboardType: widget.keyboardType,
       validator: widget.validator,
       cursorColor: Theme.of(context).primaryColor,

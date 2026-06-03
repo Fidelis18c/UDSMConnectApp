@@ -34,7 +34,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       setState(() => _uploadingPic = true);
       final repo = ref.read(announcementsRepositoryProvider);
       final url = await repo.uploadMediaBytesGetUrl(bytes, filename: image.name);
-      ref.read(userProvider.notifier).updateProfilePic(url);
+      await ref.read(userProvider.notifier).updateProfilePic(url);
       setState(() => _localImageBytes = null);
     } catch (_) {
       if (mounted) {
@@ -80,8 +80,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         required email,
         required phone,
         required year,
-      }) {
-        ref.read(userProvider.notifier).updateProfile(
+      }) async {
+        await ref.read(userProvider.notifier).updateProfile(
               name: name,
               registrationNumber: registrationNumber,
               programme: programme,
@@ -90,6 +90,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               phone: phone,
               year: year,
             );
+        return;
       },
     );
   }

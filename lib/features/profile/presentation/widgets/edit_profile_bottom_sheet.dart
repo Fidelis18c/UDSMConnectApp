@@ -8,7 +8,7 @@ import 'package:udsm_connect/core/widgets/udsm_text_field.dart';
 Future<void> showEditProfileBottomSheet(
   BuildContext context, {
   required UserModel user,
-  required void Function({
+  required Future<void> Function({
     required String name,
     required String registrationNumber,
     required String programme,
@@ -39,8 +39,8 @@ Future<void> showEditProfileBottomSheet(
           required email,
           required phone,
           required year,
-        }) {
-          onSave(
+        }) async {
+          await onSave(
             name: name,
             registrationNumber: registrationNumber,
             programme: programme,
@@ -49,7 +49,9 @@ Future<void> showEditProfileBottomSheet(
             phone: phone,
             year: year,
           );
-          Navigator.of(sheetContext).pop();
+          if (sheetContext.mounted) {
+            Navigator.of(sheetContext).pop();
+          }
         },
       );
     },
@@ -63,7 +65,7 @@ class _EditProfileBottomSheetBody extends StatefulWidget {
   });
 
   final UserModel user;
-  final void Function({
+  final Future<void> Function({
     required String name,
     required String registrationNumber,
     required String programme,
@@ -112,16 +114,31 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
     super.dispose();
   }
 
-  void _submit() {
-    widget.onSave(
-      name: _name.text.trim(),
-      registrationNumber: _id.text.trim(),
-      programme: _programme.text.trim(),
-      college: _college.text.trim(),
-      email: _email.text.trim(),
-      phone: _phone.text.trim(),
-      year: _year.text.trim(),
-    );
+  bool _isSaving = false;
+
+  Future<void> _submit() async {
+    setState(() => _isSaving = true);
+    try {
+      await widget.onSave(
+        name: _name.text.trim(),
+        registrationNumber: _id.text.trim(),
+        programme: _programme.text.trim(),
+        college: _college.text.trim(),
+        email: _email.text.trim(),
+        phone: _phone.text.trim(),
+        year: _year.text.trim(),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update profile')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   @override
@@ -165,6 +182,7 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
                 hint: 'Registration ID',
                 labelText: 'Id',
                 prefixIcon: Icons.badge_outlined,
+                readOnly: true,
               ),
               const SizedBox(height: 12),
               UdsmTextField(
@@ -172,6 +190,7 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
                 hint: 'Programme',
                 labelText: 'Programme',
                 prefixIcon: Icons.school_outlined,
+                readOnly: true,
               ),
               const SizedBox(height: 12),
               UdsmTextField(
@@ -179,6 +198,7 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
                 hint: 'College',
                 labelText: 'College',
                 prefixIcon: Icons.apartment_outlined,
+                readOnly: true,
               ),
               const SizedBox(height: 12),
               UdsmTextField(
@@ -207,6 +227,7 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
               UdsmButton(
                 onPressed: _submit,
                 label: 'Save',
+                isLoading: _isSaving,
               ),
             ],
           ),

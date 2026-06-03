@@ -34,13 +34,15 @@ class UserNotifier extends Notifier<UserModel> {
         year: profile.yearOfStudy?.toString() ?? 'N/A',
         college: profile.collegeName ?? profile.collegeId ?? 'N/A',
         programme: profile.programmeName ?? profile.programmeId ?? 'N/A',
+        profilePic: profile.avatarUrl,
+        phone: profile.phoneNumber ?? '',
       );
     } catch (e) {
       // Handle error or keep current state
     }
   }
 
-  void updateProfile({
+  Future<void> updateProfile({
     String? name,
     String? email,
     String? registrationNumber,
@@ -48,7 +50,16 @@ class UserNotifier extends Notifier<UserModel> {
     String? programme,
     String? year,
     String? phone,
-  }) {
+  }) async {
+    final repo = ref.read(usersRepositoryProvider);
+    final data = <String, dynamic>{};
+    if (name != null) data['fullName'] = name;
+    if (email != null) data['email'] = email;
+    if (phone != null) data['phoneNumber'] = phone;
+    if (year != null && int.tryParse(year) != null) data['yearOfStudy'] = int.parse(year);
+
+    await repo.updateUser(data);
+
     state = state.copyWith(
       name: name,
       email: email,
@@ -60,7 +71,9 @@ class UserNotifier extends Notifier<UserModel> {
     );
   }
 
-  void updateProfilePic(String url) {
+  Future<void> updateProfilePic(String url) async {
+    final repo = ref.read(usersRepositoryProvider);
+    await repo.updateUser({'avatarUrl': url});
     state = state.copyWith(profilePic: url);
   }
 }

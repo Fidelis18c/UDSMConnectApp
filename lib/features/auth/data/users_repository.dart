@@ -15,6 +15,8 @@ class UserProfile {
   final int? yearOfStudy;
   final String? roleName;
   final int? currentSemester;
+  final String? avatarUrl;
+  final String? phoneNumber;
 
   const UserProfile({
     required this.id,
@@ -28,6 +30,8 @@ class UserProfile {
     this.yearOfStudy,
     this.roleName,
     this.currentSemester,
+    this.avatarUrl,
+    this.phoneNumber,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -46,6 +50,8 @@ class UserProfile {
       yearOfStudy: yearRaw is int ? yearRaw : int.tryParse('$yearRaw'),
       roleName: json['roleName'] as String?,
       currentSemester: json['currentSemester'] as int?,
+      avatarUrl: json['avatarUrl'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
     );
   }
 }
@@ -59,6 +65,10 @@ class UsersRepository {
     final response = await _api.dio.get<Map<String, dynamic>>('/users/$userId');
     final payload = response.data?['data'] as Map<String, dynamic>? ?? {};
     return UserProfile.fromJson(Map<String, dynamic>.from(payload));
+  }
+
+  Future<void> updateUser(Map<String, dynamic> data) async {
+    await _api.dio.put<Map<String, dynamic>>('/users/me', data: data);
   }
 }
 
