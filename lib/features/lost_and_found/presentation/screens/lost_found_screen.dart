@@ -9,6 +9,7 @@ import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import '../providers/lost_found_provider.dart';
 import '../widgets/lost_found_card.dart';
+import 'package:udsm_connect/core/providers/scroll_visibility_provider.dart';
 
 class LostFoundScreen extends ConsumerStatefulWidget {
   const LostFoundScreen({super.key});
@@ -19,6 +20,15 @@ class LostFoundScreen extends ConsumerStatefulWidget {
 
 class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Reset scroll visibility to true when arriving on this screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(scrollVisibilityProvider.notifier).set(true);
+    });
+  }
 
   @override
   void dispose() {
@@ -45,7 +55,18 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Colors.black,
-        floatingActionButton: const _ExpandableFab(),
+        floatingActionButton: Consumer(
+          builder: (context, ref, child) {
+            final isVisible = ref.watch(scrollVisibilityProvider);
+            return AnimatedSlide(
+              duration: const Duration(milliseconds: 300),
+              offset: isVisible ? Offset.zero : const Offset(0, 2.5),
+              curve: Curves.fastOutSlowIn,
+              child: child!,
+            );
+          },
+          child: const _ExpandableFab(),
+        ),
         body: RefreshIndicator(
           onRefresh: () => ref.read(lostFoundItemsProvider.notifier).refresh(),
           color: AppColors.primary,

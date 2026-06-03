@@ -26,10 +26,22 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (_tabController.index == 1 && !_tabController.indexIsChanging) {
+      Future.microtask(() {
+        if (mounted) {
+          ref.read(feedbackProvider.notifier).refresh();
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -315,26 +327,50 @@ class _FeedbackHistoryTile extends StatelessWidget {
             ),
             if (item.adminNote != null && item.adminNote!.isNotEmpty)
               Padding(
-                padding:
-                    const EdgeInsets.only(left: 64, right: 16, bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.admin_panel_settings,
-                      size: 12,
-                      color: AppColors.textSecondary,
+                padding: const EdgeInsets.only(left: 64, right: 16, bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.15),
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        item.adminNote!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(Icons.quickreply_rounded, size: 14, color: AppColors.primary),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Admin Response',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              item.adminNote!,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.primary,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],

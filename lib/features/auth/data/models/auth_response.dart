@@ -47,21 +47,21 @@ class UserData {
 
   /// True only if the user has NO privileged roles (i.e., a plain student)
   bool get isStudent {
-    final lower = roleNames.map((r) => r.toLowerCase()).toSet();
+    final lower = roleNames.map((r) => r.toLowerCase().replaceAll('_', ' ')).toSet();
     return lower.intersection(_privilegedRoles).isEmpty;
   }
 
   bool get isAdmin =>
-      roleNames.any((r) => r.toLowerCase() == 'admin' || r.toLowerCase() == 'super admin');
+      roleNames.any((r) => r.toLowerCase().replaceAll('_', ' ') == 'admin' || r.toLowerCase().replaceAll('_', ' ') == 'super admin');
 
   bool get isDarusoLeader =>
-      roleNames.any((r) => r.toLowerCase() == 'daruso leader');
+      roleNames.any((r) => r.toLowerCase().replaceAll('_', ' ') == 'daruso leader');
 
   bool get isStaff =>
-      roleNames.any((r) => r.toLowerCase() == 'staff');
+      roleNames.any((r) => r.toLowerCase().replaceAll('_', ' ') == 'staff');
 
   bool get isClassRepresentative =>
-      roleNames.any((r) => r.toLowerCase() == 'class representative');
+      roleNames.any((r) => r.toLowerCase().replaceAll('_', ' ') == 'class representative');
 
   bool get hasPrivilegedRole => !isStudent;
 

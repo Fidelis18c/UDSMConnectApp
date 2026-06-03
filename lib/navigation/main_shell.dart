@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:udsm_connect/core/providers/scroll_visibility_provider.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 
-class MainShell extends StatefulWidget {
+class MainShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainShell({Key? key, required this.navigationShell}) : super(key: key);
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> {
   bool _navVisible = true;
 
   bool _onScrollNotification(ScrollNotification notification) {
@@ -20,8 +22,10 @@ class _MainShellState extends State<MainShell> {
       final delta = notification.scrollDelta ?? 0;
       if (delta > 4 && _navVisible) {
         setState(() => _navVisible = false);
+        ref.read(scrollVisibilityProvider.notifier).set(false);
       } else if (delta < -4 && !_navVisible) {
         setState(() => _navVisible = true);
+        ref.read(scrollVisibilityProvider.notifier).set(true);
       }
     }
     return false;
@@ -29,7 +33,10 @@ class _MainShellState extends State<MainShell> {
 
   void _onTap(BuildContext context, int index) {
     // Always show nav when switching tabs
-    if (!_navVisible) setState(() => _navVisible = true);
+    if (!_navVisible) {
+      setState(() => _navVisible = true);
+      ref.read(scrollVisibilityProvider.notifier).set(true);
+    }
     widget.navigationShell.goBranch(
       index,
       initialLocation: index == widget.navigationShell.currentIndex,

@@ -21,14 +21,10 @@ class StoryRepository {
   }
 
   Future<void> createStory(String mediaId, {String? caption}) async {
-    try {
-      await _dio.post('/stories', data: {
-        'mediaId': mediaId,
-        if (caption != null && caption.isNotEmpty) 'caption': caption,
-      });
-    } catch (e) {
-      throw Exception('Failed to create story: $e');
-    }
+    await _dio.post('/stories', data: {
+      'mediaId': mediaId,
+      if (caption != null && caption.isNotEmpty) 'caption': caption,
+    });
   }
 
   Future<void> markViewed(String storyId) async {

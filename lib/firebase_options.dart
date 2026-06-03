@@ -6,9 +6,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions has not been configured for web.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -32,6 +30,15 @@ class DefaultFirebaseOptions {
     appId: '1:939981785979:android:1b5c3f1f1d0a27ab270bde',
     messagingSenderId: '939981785979',
     projectId: 'udsm-connect',
+    storageBucket: 'udsm-connect.firebasestorage.app',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDjUiYv2_Z6J6yHYs-N9V0FB8qDirMI420',
+    appId: '1:939981785979:web:2fbd76040bce447e', 
+    messagingSenderId: '939981785979',
+    projectId: 'udsm-connect',
+    authDomain: 'udsm-connect.firebaseapp.com',
     storageBucket: 'udsm-connect.firebasestorage.app',
   );
 }

@@ -12,6 +12,7 @@ import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.
 import 'package:udsm_connect/core/theme/theme_provider.dart';
 import 'package:udsm_connect/features/notifications/presentation/providers/notifications_provider.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
+import 'package:udsm_connect/core/providers/scroll_visibility_provider.dart';
 
 class NewsFeedScreen extends ConsumerWidget {
   const NewsFeedScreen({super.key});
@@ -28,10 +29,21 @@ class NewsFeedScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      floatingActionButton: isStudent ? null : FloatingActionButton(
-        elevation: 2,
-        onPressed: () => context.pushNamed(RouteNames.composeAnnouncement),
-        child: const PhosphorIcon(PhosphorIconsBold.plus, size: 26),
+      floatingActionButton: isStudent ? null : Consumer(
+        builder: (context, ref, child) {
+          final isVisible = ref.watch(scrollVisibilityProvider);
+          return AnimatedSlide(
+            duration: const Duration(milliseconds: 300),
+            offset: isVisible ? Offset.zero : const Offset(0, 2.5),
+            curve: Curves.fastOutSlowIn,
+            child: child!,
+          );
+        },
+        child: FloatingActionButton(
+          elevation: 2,
+          onPressed: () => context.pushNamed(RouteNames.composeAnnouncement),
+          child: const PhosphorIcon(PhosphorIconsBold.plus, size: 26),
+        ),
       ),
       body: RefreshIndicator.adaptive(
         color: AppColors.primary,

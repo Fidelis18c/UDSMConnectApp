@@ -10,6 +10,7 @@ import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.
 import '../widgets/upcoming_event_card.dart';
 import '../widgets/past_event_card.dart';
 import '../widgets/event_skeleton.dart';
+import 'package:udsm_connect/core/providers/scroll_visibility_provider.dart';
 
 class EventsScreen extends ConsumerStatefulWidget {
   const EventsScreen({Key? key}) : super(key: key);
@@ -63,10 +64,21 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
         backgroundColor: Colors.black,
         floatingActionButton: isStudent
             ? null
-            : FloatingActionButton(
-                onPressed: () => context.pushNamed(RouteNames.createEvent),
-                backgroundColor: const Color(0xFF1565C0),
-                child: const Icon(Icons.add, color: Colors.white),
+            : Consumer(
+                builder: (context, ref, child) {
+                  final isVisible = ref.watch(scrollVisibilityProvider);
+                  return AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    offset: isVisible ? Offset.zero : const Offset(0, 2.5),
+                    curve: Curves.fastOutSlowIn,
+                    child: child!,
+                  );
+                },
+                child: FloatingActionButton(
+                  onPressed: () => context.pushNamed(RouteNames.createEvent),
+                  backgroundColor: const Color(0xFF1565C0),
+                  child: const Icon(Icons.add, color: Colors.white),
+                ),
               ),
         body: RefreshIndicator(
           onRefresh: _onRefresh,
