@@ -9,7 +9,6 @@ import 'package:udsm_connect/features/announcements/presentation/providers/annou
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
 import 'package:udsm_connect/features/stories/presentation/widgets/stories_tray.dart';
-import 'package:udsm_connect/core/providers/scroll_visibility_provider.dart';
 
 /// Personalised / class-scoped content (filtered from the main feed).
 class ForYouScreen extends ConsumerWidget {
@@ -26,28 +25,17 @@ class ForYouScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('For you'),
       ),
-      floatingActionButton: isStudent ? null : Consumer(
-        builder: (context, ref, child) {
-          final isVisible = ref.watch(scrollVisibilityProvider);
-          return AnimatedSlide(
-            duration: const Duration(milliseconds: 300),
-            offset: isVisible ? Offset.zero : const Offset(0, 2.5),
-            curve: Curves.fastOutSlowIn,
-            child: child!,
-          );
-        },
-        child: FloatingActionButton(
-          elevation: 2,
-          onPressed: () => context.pushNamed(
-            RouteNames.composeAnnouncement,
-            extra: {
-              'title': 'Class Announcement',
-              'bodyHint': 'Write your class announcement here...',
-              'postType': 'NOTICE',
-            },
-          ),
-          child: const PhosphorIcon(PhosphorIconsBold.plus, size: 26),
+      floatingActionButton: isStudent ? null : FloatingActionButton(
+        elevation: 2,
+        onPressed: () => context.pushNamed(
+          RouteNames.composeAnnouncement,
+          extra: {
+            'title': 'Class Announcement',
+            'bodyHint': 'Write your class announcement here...',
+            'postType': 'NOTICE',
+          },
         ),
+        child: const PhosphorIcon(PhosphorIconsBold.plus, size: 26),
       ),
       body: RefreshIndicator.adaptive(
         color: AppColors.primary,
