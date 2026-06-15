@@ -5,7 +5,7 @@ import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.
 import 'package:udsm_connect/features/announcements/presentation/providers/stories_provider.dart';
 import 'package:udsm_connect/features/stories/presentation/widgets/story_bubble.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
-import 'package:udsm_connect/features/stories/presentation/screens/story_viewer_screen.dart';
+import 'package:udsm_connect/core/utils/story_grouping.dart';
 
 class StoriesTray extends ConsumerWidget {
   const StoriesTray({Key? key}) : super(key: key);

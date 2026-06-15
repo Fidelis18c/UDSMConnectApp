@@ -27,7 +27,7 @@ class SettingsBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet> {
-  bool? _postsNotifications;
+  NotificationPreferences? _prefs;
   bool _loadingPrefs = true;
 
   @override
@@ -38,30 +38,61 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet> {
 
   Future<void> _loadPrefs() async {
     try {
-      final enabled = await NotificationRepository().getPostsPreference();
+      final prefs = await NotificationRepository().getPreferences();
       if (mounted) {
         setState(() {
-          _postsNotifications = enabled;
+          _prefs = prefs;
           _loadingPrefs = false;
         });
       }
     } catch (_) {
       if (mounted) {
         setState(() {
-          _postsNotifications = true;
+          _prefs = const NotificationPreferences(
+            posts: true,
+            announcements: true,
+            stories: true,
+            lostFound: true,
+          );
           _loadingPrefs = false;
         });
       }
     }
   }
 
-  Future<void> _setPostsNotifications(bool value) async {
-    setState(() => _postsNotifications = value);
+  Future<void> _updatePref({
+    bool? posts,
+    bool? announcements,
+    bool? stories,
+    bool? lostFound,
+  }) async {
+    final current = _prefs ??
+        const NotificationPreferences(
+          posts: true,
+          announcements: true,
+          stories: true,
+          lostFound: true,
+        );
+
+    final next = NotificationPreferences(
+      posts: posts ?? current.posts,
+      announcements: announcements ?? current.announcements,
+      stories: stories ?? current.stories,
+      lostFound: lostFound ?? current.lostFound,
+    );
+
+    setState(() => _prefs = next);
+
     try {
-      await NotificationRepository().setPostsPreference(value);
+      await NotificationRepository().updatePreferences(
+        posts: posts,
+        announcements: announcements,
+        stories: stories,
+        lostFound: lostFound,
+      );
     } catch (_) {
       if (mounted) {
-        setState(() => _postsNotifications = !value);
+        setState(() => _prefs = current);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not update notification preference')),
         );
@@ -73,6 +104,7 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet> {
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     final isDarkMode = themeMode == ThemeMode.dark;
+    final prefs = _prefs;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -99,12 +131,44 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet> {
             },
             activeColor: Theme.of(context).primaryColor,
           ),
+          const Divider(),
+          Text(
+            'Notifications',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 8),
           SwitchListTile(
-            title: const Text('New post notifications'),
-            subtitle: const Text('Push alerts when posts are published for you'),
-            secondary: const PhosphorIcon(PhosphorIconsRegular.bell),
-            value: _postsNotifications ?? true,
-            onChanged: _loadingPrefs ? null : _setPostsNotifications,
+            title: const Text('Posts'),
+            subtitle: const Text('New posts in your feed'),
+            secondary: const PhosphorIcon(PhosphorIconsRegular.newspaper),
+            value: prefs?.posts ?? true,
+            onChanged: _loadingPrefs ? null : (v) => _updatePref(posts: v),
+            activeColor: Theme.of(context).primaryColor,
+          ),
+          SwitchListTile(
+            title: const Text('Announcements'),
+            subtitle: const Text('Official announcements for you'),
+            secondary: const PhosphorIcon(PhosphorIconsRegular.megaphone),
+            value: prefs?.announcements ?? true,
+            onChanged: _loadingPrefs ? null : (v) => _updatePref(announcements: v),
+            activeColor: Theme.of(context).primaryColor,
+          ),
+          SwitchListTile(
+            title: const Text('Stories'),
+            subtitle: const Text('New stories in your college'),
+            secondary: const PhosphorIcon(PhosphorIconsRegular.filmStrip),
+            value: prefs?.stories ?? true,
+            onChanged: _loadingPrefs ? null : (v) => _updatePref(stories: v),
+            activeColor: Theme.of(context).primaryColor,
+          ),
+          SwitchListTile(
+            title: const Text('Lost & Found'),
+            subtitle: const Text('Reports in your college'),
+            secondary: const PhosphorIcon(PhosphorIconsRegular.package),
+            value: prefs?.lostFound ?? true,
+            onChanged: _loadingPrefs ? null : (v) => _updatePref(lostFound: v),
             activeColor: Theme.of(context).primaryColor,
           ),
           const Divider(),

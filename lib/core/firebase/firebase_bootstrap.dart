@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../firebase_options.dart';
 import '../../features/notifications/data/notification_repository.dart';
 import '../navigation/notification_navigation.dart';
+import '../notifications/notification_events.dart';
 import '../../navigation/app_router.dart';
 
 /// Android channel for heads-up popups (foreground local + FCM default).
@@ -80,7 +81,10 @@ Future<void> bootstrapFirebase() async {
   await initLocalNotifications();
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  FirebaseMessaging.onMessage.listen(showForegroundLocalNotification);
+  FirebaseMessaging.onMessage.listen((message) async {
+    await showForegroundLocalNotification(message);
+    requestUnreadRefresh();
+  });
 
   FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationNavigation);
   final initial = await FirebaseMessaging.instance.getInitialMessage();

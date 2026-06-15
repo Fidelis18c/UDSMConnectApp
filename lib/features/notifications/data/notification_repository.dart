@@ -47,6 +47,29 @@ class NotificationListResult {
   });
 }
 
+class NotificationPreferences {
+  final bool posts;
+  final bool announcements;
+  final bool stories;
+  final bool lostFound;
+
+  const NotificationPreferences({
+    required this.posts,
+    required this.announcements,
+    required this.stories,
+    required this.lostFound,
+  });
+
+  factory NotificationPreferences.fromJson(Map<String, dynamic> json) {
+    return NotificationPreferences(
+      posts: json['posts'] as bool? ?? true,
+      announcements: json['announcements'] as bool? ?? true,
+      stories: json['stories'] as bool? ?? true,
+      lostFound: json['lostFound'] as bool? ?? true,
+    );
+  }
+}
+
 class NotificationRepository {
   final ApiClient _api = ApiClient();
 
@@ -87,13 +110,23 @@ class NotificationRepository {
     await _api.dio.put('/notifications/read-all');
   }
 
-  Future<bool> getPostsPreference() async {
+  Future<NotificationPreferences> getPreferences() async {
     final response = await _api.dio.get('/notifications/preferences');
     final data = response.data['data'] as Map<String, dynamic>? ?? {};
-    return data['posts'] as bool? ?? true;
+    return NotificationPreferences.fromJson(data);
   }
 
-  Future<void> setPostsPreference(bool enabled) async {
-    await _api.dio.put('/notifications/preferences', data: {'posts': enabled});
+  Future<void> updatePreferences({
+    bool? posts,
+    bool? announcements,
+    bool? stories,
+    bool? lostFound,
+  }) async {
+    await _api.dio.put('/notifications/preferences', data: {
+      if (posts != null) 'posts': posts,
+      if (announcements != null) 'announcements': announcements,
+      if (stories != null) 'stories': stories,
+      if (lostFound != null) 'lostFound': lostFound,
+    });
   }
 }

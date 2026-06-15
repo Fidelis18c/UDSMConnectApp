@@ -2,16 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:udsm_connect/core/utils/story_grouping.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/stories_provider.dart';
 import 'package:udsm_connect/features/stories/presentation/widgets/story_progress_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-class StoryViewerArgs {
-  final List<StoryGroup> groups;
-  final int initialGroupIndex;
-
-  StoryViewerArgs({required this.groups, required this.initialGroupIndex});
-}
 
 class StoryViewerScreen extends ConsumerStatefulWidget {
   final StoryViewerArgs args;

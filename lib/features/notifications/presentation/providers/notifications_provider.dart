@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:udsm_connect/core/navigation/notification_navigation.dart';
+import 'package:udsm_connect/core/models/notification_type.dart';
 import 'package:udsm_connect/features/notifications/data/notification_repository.dart';
 
 final notificationRepositoryProvider = Provider((ref) => NotificationRepository());
@@ -45,8 +47,6 @@ final unreadCountProvider = FutureProvider<int>((ref) async {
   return ref.read(notificationRepositoryProvider).fetchUnreadCount();
 });
 
-enum NotificationFilter { all, feedbacks, posts, events }
-
 class NotificationFilterNotifier extends Notifier<NotificationFilter> {
   @override
   NotificationFilter build() => NotificationFilter.all;
@@ -56,24 +56,20 @@ class NotificationFilterNotifier extends Notifier<NotificationFilter> {
   }
 }
 
-final notificationFilterProvider = NotifierProvider<NotificationFilterNotifier, NotificationFilter>(
+final notificationFilterProvider =
+    NotifierProvider<NotificationFilterNotifier, NotificationFilter>(
   NotificationFilterNotifier.new,
 );
 
 final filteredNotificationsProvider = Provider<AsyncValue<List<NotificationItem>>>((ref) {
   final allNotificationsAsync = ref.watch(notificationsProvider);
   final filter = ref.watch(notificationFilterProvider);
+  final typeMatch = notificationFilterType(filter);
 
   return allNotificationsAsync.whenData((items) {
-    if (filter == NotificationFilter.all) return items;
-    
-    final typeMatch = switch (filter) {
-      NotificationFilter.feedbacks => 'FEEDBACK',
-      NotificationFilter.posts => 'POST',
-      NotificationFilter.events => 'EVENT',
-      _ => '',
-    };
-    
-    return items.where((item) => item.type == typeMatch).toList();
+    if (typeMatch == null) return items;
+    return items
+        .where((item) => NotificationTypes.normalize(item.type) == typeMatch)
+        .toList();
   });
 });

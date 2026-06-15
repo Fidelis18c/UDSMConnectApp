@@ -18,13 +18,19 @@ class NotificationsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Notifications'),
         actions: [
-          IconButton(
-            onPressed: () {}, // Search or Settings
-            icon: const Icon(Icons.search),
-          ),
-          IconButton(
-            onPressed: () {}, // Options
+          PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
+            onSelected: (value) async {
+              if (value == 'mark_all_read') {
+                await ref.read(notificationsProvider.notifier).markAllRead();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'mark_all_read',
+                child: Text('Mark all as read'),
+              ),
+            ],
           ),
         ],
       ),
@@ -97,12 +103,7 @@ class _FilterChips extends ConsumerWidget {
       child: Row(
         children: NotificationFilter.values.map((filter) {
           final isSelected = filter == currentFilter;
-          final title = switch (filter) {
-            NotificationFilter.all => 'All',
-            NotificationFilter.feedbacks => 'Feedbacks',
-            NotificationFilter.posts => 'Posts',
-            NotificationFilter.events => 'Events',
-          };
+          final title = notificationFilterLabel(filter);
           
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
