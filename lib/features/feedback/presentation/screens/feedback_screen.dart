@@ -85,10 +85,14 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen>
           },
         ),
         title: const Text('Feedback'),
+        elevation: 0,
+        scrolledUnderElevation: 0,
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
-          indicatorWeight: 2.5,
+          indicatorWeight: 1.5,
+          dividerHeight: 0.2,
+          dividerColor: AppColors.divider,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textSecondary,
           labelStyle: Theme.of(context)
@@ -101,8 +105,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen>
               text: 'Send Feedback',
             ),
             Tab(
-              icon: PhosphorIcon(PhosphorIconsRegular.clockCounterClockwise,
-                  size: 18),
+              icon: PhosphorIcon(PhosphorIconsFill.clock, size: 18),
               text: 'My History',
             ),
           ],
@@ -281,7 +284,6 @@ class _FeedbackHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(item.status);
-    final isResolved = item.status.toUpperCase() == 'RESOLVED';
 
     return InkWell(
       onTap: () => _openDetail(context),
@@ -336,12 +338,8 @@ class _FeedbackHistoryTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Container(
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: isResolved ? 0.15 : 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
                   child: Text(
                     _statusLabel(item.status),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(

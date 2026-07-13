@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
@@ -29,7 +30,8 @@ class AvatarInitials extends StatelessWidget {
         CircleAvatar(
           radius: radius,
           backgroundColor: bgColor,
-          backgroundImage: hasImage ? NetworkImage(imageUrl!) : null,
+          backgroundImage:
+              hasImage ? CachedNetworkImageProvider(imageUrl!) : null,
           child: !hasImage
               ? Text(
                   initials.toUpperCase(),

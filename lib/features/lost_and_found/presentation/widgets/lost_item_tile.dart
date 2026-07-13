@@ -57,7 +57,7 @@ class LostItemTile extends StatelessWidget {
                 Container(
                   height: 220,
                   width: double.infinity,
-                  color: Colors.grey[900],
+                  color: Theme.of(context).colorScheme.surface,
                   child: Image.network(
                     imageUrl,
                     fit: BoxFit.cover,
@@ -147,7 +147,10 @@ class LostItemTile extends StatelessWidget {
                       child: Text(
                         item.location ?? 'Unknown location',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? AppColors.textSecondary
+                                  : Colors.black54,
                             ),
                       ),
                     ),

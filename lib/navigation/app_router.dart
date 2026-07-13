@@ -35,6 +35,9 @@ import '../features/lost_and_found/presentation/screens/lost_found_screen.dart';
 import '../features/lost_and_found/presentation/screens/lost_found_detail_screen.dart';
 import '../features/compose/presentation/screens/create_lost_found_screen.dart';
 import '../features/notifications/presentation/screens/notifications_screen.dart';
+import '../features/comments/presentation/screens/comments_screen.dart';
+import '../features/comments/presentation/screens/reply_screen.dart';
+import '../features/comments/data/models/comment.dart';
 
 /// Root navigator — post detail and other full-screen routes use this so they
 /// can be opened from outside the bottom-nav shell (e.g. notifications).
@@ -146,6 +149,29 @@ final appRouter = GoRouter(
                       prefetchPost: extra is Post ? extra : null,
                     );
                   },
+                  routes: [
+                    GoRoute(
+                      path: 'comments',
+                      name: RouteNames.postComments,
+                      parentNavigatorKey: rootNavigatorKey,
+                      builder: (context, state) {
+                        final id = state.pathParameters['id']!;
+                        return CommentsScreen(targetId: id);
+                      },
+                      routes: [
+                        GoRoute(
+                          path: 'reply',
+                          name: RouteNames.commentReply,
+                          parentNavigatorKey: rootNavigatorKey,
+                          builder: (context, state) {
+                            final id = state.pathParameters['id']!;
+                            final comment = state.extra as Comment;
+                            return ReplyScreen(targetId: id, comment: comment);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),

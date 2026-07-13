@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 
@@ -26,6 +27,24 @@ class StoryBubble extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (isAddStory)
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border.all(color: AppColors.divider, width: 1.2),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.add,
+                    size: 22,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              )
+            else
             Container(
               width: 72,
               height: 72,
@@ -58,8 +77,8 @@ class StoryBubble extends StatelessWidget {
                         color: Theme.of(context).colorScheme.surface,
                         image: isAddStory ? null : DecorationImage(
                           image: imageUrl != null && imageUrl!.isNotEmpty
-                              ? NetworkImage(imageUrl!)
-                              : NetworkImage('https://ui-avatars.com/api/?name=${Uri.encodeComponent(label)}&background=random') as ImageProvider,
+                              ? CachedNetworkImageProvider(imageUrl!)
+                              : CachedNetworkImageProvider('https://ui-avatars.com/api/?name=${Uri.encodeComponent(label)}&background=random') as ImageProvider,
                           fit: BoxFit.cover,
                         ),
                       ),

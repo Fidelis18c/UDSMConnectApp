@@ -53,7 +53,7 @@ class _CreateLostFoundScreenState
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final images = await picker.pickMultiImage(imageQuality: 70);
+    final images = await picker.pickMultiImage(maxWidth: 1600, imageQuality: 70);
     if (images.isNotEmpty) {
       if (_selectedImages.length + images.length > 5) {
         if (!mounted) return;

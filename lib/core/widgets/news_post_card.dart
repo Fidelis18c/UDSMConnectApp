@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -6,6 +7,7 @@ import 'package:udsm_connect/core/formatting/relative_time.dart';
 import 'package:udsm_connect/core/models/post.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
+import 'package:udsm_connect/core/widgets/full_screen_image_viewer.dart';
 
 /// Feed card for a news / social post — reusable across NEWS, previews, etc.
 class NewsPostCard extends StatelessWidget {
@@ -123,7 +125,10 @@ class NewsPostCard extends StatelessWidget {
                                         .textTheme
                                         .labelMedium
                                         ?.copyWith(
-                                          color: AppColors.textSecondary,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                   ),
                                   IconButton(
@@ -134,9 +139,10 @@ class NewsPostCard extends StatelessWidget {
                                       minHeight: 32,
                                     ),
                                     icon: PhosphorIcon(
-                                      PhosphorIconsRegular.dotsThreeVertical,
+                                      PhosphorIconsBold.dotsThreeVertical,
                                       size: 20,
-                                      color: AppColors.textSecondary,
+                                      color:
+                                          Theme.of(context).colorScheme.onSurface,
                                     ),
                                     onPressed: onMenuTap ?? () {},
                                   ),
@@ -184,45 +190,68 @@ class NewsPostCard extends StatelessWidget {
                 ),
               ),
               if (post.imageUrl != null) ...[
-                const SizedBox(height: 16),
-                AspectRatio(
-                  aspectRatio: 1.1,
-                  child: Image.network(
-                    post.imageUrl!,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        color: const Color(0xFF1A1A1A),
-                        child: Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator.adaptive(
-                              strokeWidth: 2,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
+                const SizedBox(height: 8),
+                // Fixed frame: the whole image fits inside a rounded 4:3 card
+                // without cropping. Tapping the image opens it full-screen;
+                // tapping anywhere else on the card opens the post.
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: GestureDetector(
+                    onTap: () => openFullScreenImage(context, post.imageUrl!),
+                    child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: Container(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF101010)
+                        : const Color(0xFFEDEDED),
+                    child: CachedNetworkImage(
+                    imageUrl: post.imageUrl!,
+                    width: double.infinity,
+                    fit: BoxFit.contain,
+                    fadeInDuration: Duration.zero,
+                    fadeOutDuration: Duration.zero,
+                    placeholderFadeInDuration: Duration.zero,
+                    // Decode at screen width instead of the full upload size.
+                    memCacheWidth: (MediaQuery.of(context).size.width *
+                            MediaQuery.of(context).devicePixelRatio)
+                        .round(),
+                    progressIndicatorBuilder: (context, url, progress) =>
+                        Container(
+                      color: const Color(0xFF1A1A1A),
+                      child: Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator.adaptive(
+                            strokeWidth: 2,
+                            value: progress.progress,
                           ),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) {
+                      debugPrint('IMAGE LOAD ERROR url=$url err=$error');
+                      return Container(
+                        color: const Color(0xFF252525),
+                        alignment: Alignment.center,
+                        child: PhosphorIcon(
+                          PhosphorIconsRegular.imageBroken,
+                          size: 40,
+                          color: AppColors.textHint,
                         ),
                       );
                     },
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: const Color(0xFF252525),
-                      alignment: Alignment.center,
-                      child: PhosphorIcon(
-                        PhosphorIconsRegular.imageBroken,
-                        size: 40,
-                        color: AppColors.textHint,
-                      ),
                     ),
+                  ),
+                    ),
+                  ),
                   ),
                 ),
               ],
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+                padding: const EdgeInsets.fromLTRB(14, 2, 14, 14),
                 child: Row(
                   children: [
                     _IconCountTap(
@@ -370,7 +399,8 @@ class _ExpandableTextState extends State<_ExpandableText> {
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurface,
           height: 1.45,
         );
 

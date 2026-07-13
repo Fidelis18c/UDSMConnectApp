@@ -83,11 +83,11 @@ class Post {
     String body;
     if (excerpt != null && excerpt.trim().isNotEmpty) {
       body = excerpt.trim();
-    } else if (title.isNotEmpty) {
-      body = title;
     } else {
       body = '';
     }
+    // Never repeat the title as the body.
+    if (body == title) body = '';
 
     return Post(
       id: json['id'] as String,
@@ -122,8 +122,10 @@ class Post {
     } else if (excerpt != null && excerpt.isNotEmpty) {
       body = excerpt;
     } else {
-      body = title;
+      body = '';
     }
+    // Never repeat the title as the body.
+    if (body == title) body = '';
 
     String? imageUrl = cover?['url'] as String?;
     final mediaItems = json['media'] as List<dynamic>?;

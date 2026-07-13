@@ -4,12 +4,14 @@ class UdsmTextArea extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final int maxLines;
+  final EdgeInsetsGeometry? contentPadding;
 
   const UdsmTextArea({
     Key? key,
     required this.controller,
     required this.hint,
     this.maxLines = 5,
+    this.contentPadding,
   }) : super(key: key);
 
   @override
@@ -22,6 +24,7 @@ class UdsmTextArea extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         alignLabelWithHint: true,
+        contentPadding: contentPadding,
       ),
     );
   }

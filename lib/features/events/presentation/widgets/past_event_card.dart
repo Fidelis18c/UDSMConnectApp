@@ -24,7 +24,7 @@ class PastEventCard extends StatelessWidget {
         width: 160,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
         ),
         clipBehavior: Clip.antiAlias,
@@ -43,11 +43,16 @@ class PastEventCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           loadingBuilder: (ctx, child, progress) {
                             if (progress == null) return child;
-                            return Container(color: const Color(0xFF2A2A2A));
+                            return Container(
+                              color: Theme.of(ctx).brightness ==
+                                      Brightness.dark
+                                  ? const Color(0xFF2A2A2A)
+                                  : const Color(0xFFE0E0E0),
+                            );
                           },
-                          errorBuilder: (ctx, _, __) => _placeholder(),
+                          errorBuilder: (ctx, _, __) => _placeholder(ctx),
                         )
-                      : _placeholder(),
+                      : _placeholder(context),
 
                   // Bottom gradient for readability
                   Positioned(
@@ -103,7 +108,9 @@ class PastEventCard extends StatelessWidget {
                     '${event.startDateTime.day} ${_monthAbbr(event.startDateTime.month)} · $categoryLabel',
                     style: GoogleFonts.inter(
                       fontSize: 10,
-                      color: const Color(0xFF888888),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF888888)
+                          : Colors.black54,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -114,7 +121,7 @@ class PastEventCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -128,11 +135,14 @@ class PastEventCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() {
+  Widget _placeholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFF2A2A2A),
-      child: const Center(
-        child: Icon(Icons.event_busy, size: 36, color: Color(0xFF444444)),
+      color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      child: Center(
+        child: Icon(Icons.event_busy,
+            size: 36,
+            color: isDark ? const Color(0xFF444444) : Colors.black26),
       ),
     );
   }

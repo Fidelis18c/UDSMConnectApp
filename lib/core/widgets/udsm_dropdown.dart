@@ -5,6 +5,7 @@ class UdsmDropdown<T> extends StatelessWidget {
   final List<DropdownMenuItem<T>> items;
   final void Function(T?) onChanged;
   final String hint;
+  final EdgeInsetsGeometry? contentPadding;
 
   const UdsmDropdown({
     Key? key,
@@ -12,6 +13,7 @@ class UdsmDropdown<T> extends StatelessWidget {
     required this.items,
     required this.onChanged,
     required this.hint,
+    this.contentPadding,
   }) : super(key: key);
 
   @override
@@ -28,7 +30,8 @@ class UdsmDropdown<T> extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyLarge,
       decoration: InputDecoration(
         hintText: hint,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: contentPadding ??
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }

@@ -10,6 +10,7 @@ class UdsmTextField extends StatefulWidget {
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final bool readOnly;
+  final EdgeInsetsGeometry? contentPadding;
 
   const UdsmTextField({
     Key? key,
@@ -22,6 +23,7 @@ class UdsmTextField extends StatefulWidget {
     this.suffixIcon,
     this.validator,
     this.readOnly = false,
+    this.contentPadding,
   }) : super(key: key);
 
   @override
@@ -50,6 +52,7 @@ class _UdsmTextFieldState extends State<UdsmTextField> {
       decoration: InputDecoration(
         hintText: widget.hint,
         labelText: widget.labelText,
+        contentPadding: widget.contentPadding,
         prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
         suffixIcon: widget.isPassword
             ? IconButton(

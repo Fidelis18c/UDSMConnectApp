@@ -52,9 +52,11 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: Theme.of(context).brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         floatingActionButton: Consumer(
           builder: (context, ref, child) {
             final isVisible = ref.watch(scrollVisibilityProvider);
@@ -70,7 +72,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
         body: RefreshIndicator(
           onRefresh: () => ref.read(lostFoundItemsProvider.notifier).refresh(),
           color: AppColors.primary,
-          backgroundColor: const Color(0xFF1A1A1A),
+          backgroundColor: Theme.of(context).colorScheme.surface,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
@@ -90,7 +92,8 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
                               context.goNamed(RouteNames.announcements);
                             }
                           },
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          icon: Icon(Icons.arrow_back,
+                              color: Theme.of(context).colorScheme.onSurface),
                         ),
                         Expanded(
                           child: Center(
@@ -101,14 +104,17 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
                                   style: GoogleFonts.inter(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 Text(
                                   'Reuniting people with belongings',
                                   style: GoogleFonts.inter(
                                     fontSize: 11,
-                                    color: AppColors.textSecondary,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? AppColors.textSecondary
+                                        : Colors.black54,
                                   ),
                                 ),
                               ],
@@ -128,27 +134,39 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: TextField(
                       controller: _searchController,
-                      style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                      style: GoogleFonts.inter(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 14),
                       onChanged: (val) =>
                           ref.read(lfSearchQueryProvider.notifier).set(val),
                       decoration: InputDecoration(
                         hintText: 'Search Post',
                         hintStyle: GoogleFonts.inter(
-                            color: const Color(0xFF666666), fontSize: 14),
-                        prefixIcon: const Icon(
-                            Icons.search_rounded, color: Color(0xFF666666), size: 22),
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF666666)
+                                : Colors.black54,
+                            fontSize: 14),
+                        prefixIcon: Icon(Icons.search_rounded,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF666666)
+                                : Colors.black54,
+                            size: 22),
                         suffixIcon: ValueListenableBuilder<TextEditingValue>(
                           valueListenable: _searchController,
                           builder: (ctx, val, _) {
                             if (val.text.isEmpty) return const SizedBox.shrink();
                             return IconButton(
-                              icon: const Icon(Icons.close_rounded,
-                                  color: Color(0xFF666666), size: 20),
+                              icon: Icon(Icons.close_rounded,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? const Color(0xFF666666)
+                                      : Colors.black54,
+                                  size: 20),
                               onPressed: () {
                                 _searchController.clear();
                                 ref.read(lfSearchQueryProvider.notifier).set('');
@@ -177,7 +195,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -189,7 +207,8 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(32),
                     child: Text('Failed to load items',
-                        style: TextStyle(color: Colors.white)),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface)),
                   ),
                 ),
                 loading: () => const SliverToBoxAdapter(
@@ -270,7 +289,9 @@ class _TypeFilters extends ConsumerWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary : const Color(0xFF1E1E1E),
+            color: selected
+                ? AppColors.primary
+                : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -278,7 +299,11 @@ class _TypeFilters extends ConsumerWidget {
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? Colors.white : const Color(0xFF888888),
+              color: selected
+                  ? Colors.white
+                  : (Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF888888)
+                      : Colors.black54),
             ),
           ),
         ),
@@ -366,7 +391,7 @@ class _ExpandableFabState extends State<_ExpandableFab>
                 children: [
                   Text('Report Found',
                       style: GoogleFonts.inter(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                           fontSize: 14)),
                   const SizedBox(width: 12),
@@ -391,7 +416,7 @@ class _ExpandableFabState extends State<_ExpandableFab>
                 children: [
                   Text('Report Lost',
                       style: GoogleFonts.inter(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                           fontSize: 14)),
                   const SizedBox(width: 12),

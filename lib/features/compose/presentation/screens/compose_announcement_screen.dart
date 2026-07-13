@@ -89,7 +89,7 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
         setState(() {
           _userRole = AudienceUserRole.classRep;
           _isAudienceLocked = true;
-          _lockedLabel = '📅 ${userProfile.programmeName ?? 'Class'} - Year ${userProfile.yearOfStudy ?? '?'}';
+          _lockedLabel = '${userProfile.programmeName ?? 'Class'} - Year ${userProfile.yearOfStudy ?? '?'}';
           _lockedNotice = 'Your role restricts targeting to your class only.';
           
           final programme = userProfile.programmeId != null 
@@ -136,8 +136,8 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
     final picker = ImagePicker();
     final xFile = await picker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 2048,
-      imageQuality: 85,
+      maxWidth: 1280,
+      imageQuality: 75,
     );
     if (xFile == null) return;
     final bytes = await xFile.readAsBytes();
@@ -181,20 +181,20 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
     }
     switch (_audienceSelection.targetType) {
       case 'ALL':
-        return '🌍 All Students';
+        return 'All Students';
       case 'PROGRAMME':
-        return '🎓 ${_audienceSelection.programme?.code ?? 'Specific Programme'}';
+        return _audienceSelection.programme?.code ?? 'Specific Programme';
       case 'PROGRAMME_YEAR':
-        return '📅 ${_audienceSelection.programme?.code ?? 'Programme'} - Year ${_audienceSelection.year ?? '?'}';
+        return '${_audienceSelection.programme?.code ?? 'Programme'} - Year ${_audienceSelection.year ?? '?'}';
       case 'COLLEGE':
         if (_userRole == AudienceUserRole.collegeRep) {
-          return '🏛️ Whole College';
+          return 'Whole College';
         }
-        return '🏛️ ${_audienceSelection.college?.name ?? 'Specific College'}';
+        return _audienceSelection.college?.name ?? 'Specific College';
       case 'DEPARTMENT':
-        return '💼 ${_audienceSelection.department?.shortName ?? _audienceSelection.department?.name ?? 'Specific Department'}';
+        return _audienceSelection.department?.shortName ?? _audienceSelection.department?.name ?? 'Specific Department';
       default:
-        return '🌍 All Students';
+        return 'All Students';
     }
   }
 
@@ -283,11 +283,22 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
         }
       }
 
-      final excerpt = bodyText.length > 500 ? bodyText.substring(0, 500) : bodyText;
+      // When no title is typed, promote the first line of the body to the
+      // title and remove it from the body so it isn't shown twice.
+      String finalTitle = title;
+      String finalBody = bodyText;
+      if (finalTitle.isEmpty) {
+        final lines = bodyText.split('\n');
+        finalTitle = lines.first.trim();
+        final rest = lines.skip(1).join('\n').trim();
+        if (rest.isNotEmpty) finalBody = rest;
+      }
+
+      final excerpt = finalBody.length > 500 ? finalBody.substring(0, 500) : finalBody;
 
       await postsRepo.createPost(
-        title: title.isEmpty ? bodyText.split('\n')[0] : title,
-        content: bodyText,
+        title: finalTitle,
+        content: finalBody,
         excerpt: excerpt,
         audiences: audiences,
         status: 'PUBLISHED',
@@ -340,6 +351,7 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
               onPressed: _submitting ? null : _onPost,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
@@ -380,14 +392,17 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
                             const SizedBox(height: 4),
                             InkWell(
                               onTap: (_submitting || _isAudienceLocked) ? null : _openAudienceSheet,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(20),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: _isAudienceLocked
-                                      ? Theme.of(context).colorScheme.surfaceContainerHighest
-                                      : AppColors.primary.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: _isAudienceLocked
+                                        ? Theme.of(context).dividerColor
+                                        : AppColors.primary,
+                                    width: 1.2,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -435,7 +450,8 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
                       controller: _titleController,
                       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
-                        hintText: 'Title (Optional)',
+                        filled: false,
+                        hintText: 'Title',
                         hintStyle: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -449,12 +465,17 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
                       textCapitalization: TextCapitalization.sentences,
                     ),
                     
+                    const SizedBox(height: 4),
+
+                    // Content section — plain on the page's dark background
                     TextField(
                       controller: _bodyController,
                       style: const TextStyle(fontSize: 16, height: 1.5),
+                      minLines: 6,
                       maxLines: null,
                       keyboardType: TextInputType.multiline,
                       decoration: InputDecoration(
+                        filled: false,
                         hintText: widget.bodyHint ?? "What's happening at UDSM?",
                         hintStyle: TextStyle(
                           fontSize: 16,
@@ -463,10 +484,11 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.only(top: 8, bottom: 24),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       textCapitalization: TextCapitalization.sentences,
                     ),
+                    const SizedBox(height: 16),
 
                     // Image Preview
                     if (_imageBytes != null)
@@ -512,7 +534,10 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
                     children: [
                       IconButton(
                         onPressed: _submitting ? null : _pickBanner,
-                        icon: const PhosphorIcon(PhosphorIconsRegular.image, color: AppColors.primary),
+                        icon: PhosphorIcon(
+                          PhosphorIconsRegular.image,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                         tooltip: 'Add Image',
                       ),
                     ],

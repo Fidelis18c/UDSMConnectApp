@@ -46,7 +46,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final image = await picker.pickImage(
+        source: ImageSource.gallery, maxWidth: 1600, imageQuality: 70);
     if (image != null) {
       final bytes = await image.readAsBytes();
       setState(() {

@@ -6,6 +6,7 @@ import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
 import 'package:udsm_connect/core/widgets/empty_state_widget.dart';
 import 'package:udsm_connect/core/widgets/news_post_card.dart';
+import 'package:udsm_connect/core/widgets/post_menu.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
@@ -155,22 +156,48 @@ class NewsFeedScreen extends ConsumerWidget {
                                     }
                                   }
                                 },
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 'logout',
-                                    child: Row(
-                                      children: [
-                                        PhosphorIcon(
-                                          PhosphorIconsRegular.signOut,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 12),
-                                        Text('Logout', style: TextStyle(color: Colors.white)),
-                                      ],
+                                itemBuilder: (context) {
+                                  final isDark =
+                                      ref.read(themeProvider) == ThemeMode.dark;
+                                  final itemColor =
+                                      Theme.of(context).colorScheme.onSurface;
+                                  return [
+                                    PopupMenuItem(
+                                      value: 'theme',
+                                      child: Row(
+                                        children: [
+                                          PhosphorIcon(
+                                            isDark
+                                                ? PhosphorIconsRegular.sun
+                                                : PhosphorIconsRegular.moon,
+                                            color: itemColor,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            isDark ? 'Light mode' : 'Dark mode',
+                                            style: TextStyle(color: itemColor),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    PopupMenuItem(
+                                      value: 'logout',
+                                      child: Row(
+                                        children: [
+                                          PhosphorIcon(
+                                            PhosphorIconsRegular.signOut,
+                                            color: itemColor,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text('Logout',
+                                              style: TextStyle(color: itemColor)),
+                                        ],
+                                      ),
+                                    ),
+                                  ];
+                                },
                               );
                             },
                           ),
@@ -258,6 +285,7 @@ class NewsFeedScreen extends ConsumerWidget {
                           ),
                           onLike: () =>
                               ref.read(announcementsProvider.notifier).toggleLike(post.id),
+                          onMenuTap: () => showPostMenu(context, ref, post),
                         );
                       },
                     ),

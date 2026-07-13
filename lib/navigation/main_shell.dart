@@ -47,6 +47,7 @@ class _MainShellState extends ConsumerState<MainShell> {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     const navBarHeight = 76.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: NotificationListener<ScrollNotification>(
@@ -62,7 +63,8 @@ class _MainShellState extends ConsumerState<MainShell> {
           child: NavigationBarTheme(
             data: NavigationBarThemeData(
               height: 72,
-              backgroundColor: const Color(0xFF070707),
+              // Twitter-style: near-black in dark mode, white in light mode.
+              backgroundColor: isDark ? const Color(0xFF070707) : Colors.white,
               surfaceTintColor: Colors.transparent,
               shadowColor: Colors.black38,
               elevation: 6,
@@ -76,19 +78,25 @@ class _MainShellState extends ConsumerState<MainShell> {
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 final selected = states.contains(WidgetState.selected);
+                final color = isDark
+                    ? (selected ? AppColors.primary : AppColors.textHint)
+                    : (selected ? Colors.black : Colors.black54);
                 return IconThemeData(
-                  color: selected ? AppColors.primary : AppColors.textHint,
+                  color: color,
                   size: selected ? 26 : 24,
                 );
               }),
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 final selected = states.contains(WidgetState.selected);
+                final color = isDark
+                    ? (selected ? AppColors.primary : AppColors.textHint)
+                    : (selected ? Colors.black : Colors.black54);
                 return TextStyle(
                   fontSize: 11,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                   letterSpacing: -0.2,
                   height: 1.1,
-                  color: selected ? AppColors.primary : AppColors.textHint,
+                  color: color,
                 );
               }),
             ),

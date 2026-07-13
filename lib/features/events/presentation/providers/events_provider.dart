@@ -90,7 +90,7 @@ final filteredUpcomingEventsProvider = Provider<AsyncValue<List<Event>>>((ref) {
   });
 });
 
-// Past events: events where endDateTime is before now
+// Past events: ended already, but no longer shown 1 day after their end time
 final pastEventsProvider = FutureProvider<List<Event>>((ref) async {
   final categoryId = ref.watch(selectedEventCategoryIdProvider);
   try {
@@ -101,7 +101,11 @@ final pastEventsProvider = FutureProvider<List<Event>>((ref) async {
       pageSize: 20,
     );
     final now = DateTime.now();
-    return all.where((e) => e.endDateTime.isBefore(now)).toList();
+    final cutoff = now.subtract(const Duration(days: 1));
+    return all
+        .where((e) =>
+            e.endDateTime.isBefore(now) && e.endDateTime.isAfter(cutoff))
+        .toList();
   } catch (e) {
     return [];
   }

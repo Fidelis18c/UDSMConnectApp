@@ -22,7 +22,7 @@ class UpcomingEventCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -49,11 +49,11 @@ class UpcomingEventCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           loadingBuilder: (ctx, child, progress) {
                             if (progress == null) return child;
-                            return _imageSkeleton();
+                            return _imageSkeleton(ctx);
                           },
-                          errorBuilder: (ctx, _, __) => _placeholder(),
+                          errorBuilder: (ctx, _, __) => _placeholder(ctx),
                         )
-                      : _placeholder(),
+                      : _placeholder(context),
 
                   // Subtle gradient overlay at bottom of image
                   Positioned(
@@ -62,11 +62,14 @@ class UpcomingEventCard extends StatelessWidget {
                     right: 0,
                     child: Container(
                       height: 40,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
-                          colors: [Color(0xFF1A1A1A), Colors.transparent],
+                          colors: [
+                            Theme.of(context).colorScheme.surface,
+                            Colors.transparent,
+                          ],
                         ),
                       ),
                     ),
@@ -126,7 +129,7 @@ class UpcomingEventCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         letterSpacing: 0.2,
                       ),
                       maxLines: 2,
@@ -134,14 +137,15 @@ class UpcomingEventCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 11, color: Color(0xFF888888)),
+                        Icon(Icons.location_on,
+                            size: 11, color: _secondaryColor(context)),
                         const SizedBox(width: 3),
                         Expanded(
                           child: Text(
                             event.location,
                             style: GoogleFonts.inter(
                               fontSize: 10,
-                              color: const Color(0xFF888888),
+                              color: _secondaryColor(context),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -151,13 +155,14 @@ class UpcomingEventCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 11, color: Color(0xFF888888)),
+                        Icon(Icons.calendar_today,
+                            size: 11, color: _secondaryColor(context)),
                         const SizedBox(width: 3),
                         Text(
                           _formatDate(event.startDateTime),
                           style: GoogleFonts.inter(
                             fontSize: 10,
-                            color: const Color(0xFF888888),
+                            color: _secondaryColor(context),
                           ),
                         ),
                       ],
@@ -172,17 +177,29 @@ class UpcomingEventCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() {
+  Color _secondaryColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF888888)
+          : Colors.black54;
+
+  Widget _placeholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFF2A2A2A),
-      child: const Center(
-        child: Icon(Icons.event, size: 36, color: Color(0xFF444444)),
+      color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      child: Center(
+        child: Icon(Icons.event,
+            size: 36,
+            color: isDark ? const Color(0xFF444444) : Colors.black26),
       ),
     );
   }
 
-  Widget _imageSkeleton() {
-    return Container(color: const Color(0xFF2A2A2A));
+  Widget _imageSkeleton(BuildContext context) {
+    return Container(
+      color: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF2A2A2A)
+          : const Color(0xFFE0E0E0),
+    );
   }
 
   String _monthAbbr(int month) {

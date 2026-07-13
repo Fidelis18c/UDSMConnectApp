@@ -59,9 +59,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: Theme.of(context).brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         floatingActionButton: isStudent
             ? null
             : Consumer(
@@ -83,7 +85,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
         body: RefreshIndicator(
           onRefresh: _onRefresh,
           color: const Color(0xFF1565C0),
-          backgroundColor: const Color(0xFF1A1A1A),
+          backgroundColor: Theme.of(context).colorScheme.surface,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
@@ -100,7 +102,8 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                             if (context.canPop()) context.pop();
                             else context.goNamed(RouteNames.announcements);
                           },
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          icon: Icon(Icons.arrow_back,
+                              color: Theme.of(context).colorScheme.onSurface),
                         ),
                         Expanded(
                           child: Center(
@@ -109,7 +112,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                               style: GoogleFonts.inter(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -127,13 +130,13 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: TextField(
                       controller: _searchController,
                       style: GoogleFonts.inter(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 14,
                       ),
                       onChanged: (val) {
@@ -142,12 +145,16 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       decoration: InputDecoration(
                         hintText: 'Search events',
                         hintStyle: GoogleFonts.inter(
-                          color: const Color(0xFF666666),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF666666)
+                              : Colors.black54,
                           fontSize: 14,
                         ),
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.search_rounded,
-                          color: Color(0xFF666666),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF666666)
+                              : Colors.black54,
                           size: 22,
                         ),
                         suffixIcon: ValueListenableBuilder<TextEditingValue>(
@@ -157,9 +164,12 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                               return const SizedBox.shrink();
                             }
                             return IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.close_rounded,
-                                color: Color(0xFF666666),
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFF666666)
+                                    : Colors.black54,
                                 size: 20,
                               ),
                               onPressed: () {
@@ -199,7 +209,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -277,7 +287,7 @@ class _CategoriesSection extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? const Color(0xFF1565C0)
-                          : const Color(0xFF1E1E1E),
+                          : Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -289,7 +299,9 @@ class _CategoriesSection extends ConsumerWidget {
                             : FontWeight.w500,
                         color: isSelected
                             ? Colors.white
-                            : const Color(0xFF888888),
+                            : Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF888888)
+                                : Colors.black54,
                       ),
                     ),
                   ),
@@ -356,7 +368,7 @@ class _PastEventsSection extends ConsumerWidget {
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -416,7 +428,9 @@ class _UpcomingEventsGrid extends ConsumerWidget {
               'Failed to load events.\nPull down to retry.',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
-                color: const Color(0xFF666666),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF666666)
+                    : Colors.black54,
                 fontSize: 14,
               ),
             ),
@@ -432,7 +446,9 @@ class _UpcomingEventsGrid extends ConsumerWidget {
                 child: Text(
                   'No upcoming events',
                   style: GoogleFonts.inter(
-                    color: const Color(0xFF666666),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF666666)
+                        : Colors.black54,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),

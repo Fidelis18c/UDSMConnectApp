@@ -87,7 +87,11 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
   }
 
   Future<void> _pickBanner() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1440,
+      imageQuality: 80,
+    );
     if (image != null) {
       final bytes = await image.readAsBytes();
       setState(() {

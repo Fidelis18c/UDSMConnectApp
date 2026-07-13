@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,10 +9,14 @@ import 'package:udsm_connect/core/formatting/relative_time.dart';
 import 'package:udsm_connect/core/models/post.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
+import 'package:udsm_connect/core/widgets/full_screen_image_viewer.dart';
 import 'package:udsm_connect/features/announcements/data/posts_repository.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/comments/presentation/widgets/comment_section.dart';
 import 'package:udsm_connect/features/comments/presentation/providers/comments_provider.dart';
+import 'package:udsm_connect/navigation/route_names.dart';
+import 'package:udsm_connect/core/theme/theme_provider.dart';
+import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   /// Server id from the URL (`/announcements/:id`).
@@ -70,6 +75,86 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     }
     if (_remote != null) return _remote;
     return widget.prefetchPost;
+  }
+
+  void _showPostMenu(Post display) {
+    final currentUserId = ref.read(authProvider).user?.id;
+    final isOwner = currentUserId != null && currentUserId == display.authorId;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const PhosphorIcon(PhosphorIconsRegular.shareNetwork, size: 22),
+              title: const Text('Share post'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _share(display);
+              },
+            ),
+            if (isOwner)
+              ListTile(
+                leading: PhosphorIcon(
+                  PhosphorIconsRegular.trash,
+                  size: 22,
+                  color: Colors.red.shade400,
+                ),
+                title: Text(
+                  'Delete post',
+                  style: TextStyle(color: Colors.red.shade400),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _confirmDelete(display);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(Post display) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Delete post?'),
+        content: const Text('This will permanently remove the post.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('DELETE', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(postsRepositoryProvider).deletePost(display.id);
+      await ref.read(announcementsProvider.notifier).refresh();
+      if (!mounted) return;
+      context.pop();
+      messenger.showSnackBar(const SnackBar(content: Text('Post deleted.')));
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Failed to delete post. Try again.')),
+      );
+    }
   }
 
   Future<void> _share(Post display) async {
@@ -160,7 +245,19 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          final isDark =
+                              ref.read(themeProvider) == ThemeMode.dark;
+                          ref.read(themeProvider.notifier).toggleTheme();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(isDark
+                                  ? 'Switched to light mode'
+                                  : 'Switched to dark mode'),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        },
                         visualDensity: VisualDensity.compact,
                         icon: PhosphorIcon(
                           PhosphorIconsRegular.gearSix,
@@ -213,7 +310,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                         Text(
                                           formatShortRelative(display.timestamp),
                                           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                                color: AppColors.textSecondary,
+                                                color: Theme.of(context).colorScheme.onSurface,
+                                                fontWeight: FontWeight.w700,
                                               ),
                                         ),
                                         IconButton(
@@ -221,11 +319,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                           padding: EdgeInsets.zero,
                                           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                                           icon: PhosphorIcon(
-                                            PhosphorIconsRegular.dotsThreeVertical,
+                                            PhosphorIconsBold.dotsThreeVertical,
                                             size: 20,
-                                            color: AppColors.textSecondary,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
-                                          onPressed: () {},
+                                          onPressed: () => _showPostMenu(display),
                                         ),
                                       ],
                                     ),
@@ -255,7 +353,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                           Text(
                             display.text,
                             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w500,
                                   height: 1.55,
                                 ),
                           ),
@@ -263,22 +362,45 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       ),
                     ),
                     if (display.imageUrl != null) ...[
-                      const SizedBox(height: 16),
-                      AspectRatio(
-                        aspectRatio: 1.1,
-                        child: Image.network(
-                          display.imageUrl!,
-                          width: double.infinity,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            color: const Color(0xFF252525),
-                            alignment: Alignment.center,
-                            child: PhosphorIcon(
-                              PhosphorIconsRegular.imageBroken,
-                              size: 56,
-                              color: AppColors.textHint,
+                      const SizedBox(height: 8),
+                      // Fixed frame: whole image fits a rounded 4:3 card, no cropping.
+                      // Tapping the image opens it full-screen.
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: GestureDetector(
+                          onTap: () =>
+                              openFullScreenImage(context, display.imageUrl!),
+                          child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: AspectRatio(
+                            aspectRatio: 4 / 3,
+                            child: Container(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? const Color(0xFF101010)
+                                  : const Color(0xFFEDEDED),
+                              child: CachedNetworkImage(
+                                imageUrl: display.imageUrl!,
+                                width: double.infinity,
+                                fit: BoxFit.contain,
+                                fadeInDuration: Duration.zero,
+                                fadeOutDuration: Duration.zero,
+                                placeholderFadeInDuration: Duration.zero,
+                                memCacheWidth: (MediaQuery.of(context).size.width *
+                                        MediaQuery.of(context).devicePixelRatio)
+                                    .round(),
+                                errorWidget: (context, url, error) => Container(
+                                  color: const Color(0xFF252525),
+                                  alignment: Alignment.center,
+                                  child: PhosphorIcon(
+                                    PhosphorIconsRegular.imageBroken,
+                                    size: 56,
+                                    color: AppColors.textHint,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
+                        ),
                         ),
                       ),
                     ],
@@ -289,7 +411,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                         children: [
                           // Twitter-like metadata line
                           Padding(
-                            padding: const EdgeInsets.only(top: 24),
+                            padding: const EdgeInsets.only(top: 10),
                             child: Text(
                               '${formatDetailFooterTime(display.timestamp)} · ${formatDetailFooterDate(display.timestamp)}',
                               style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -323,7 +445,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                           '$commentsCount',
                                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                                 fontWeight: FontWeight.w700,
-                                                color: Colors.white,
+                                                color: Theme.of(context).colorScheme.onSurface,
                                               ),
                                         ),
                                         const SizedBox(width: 4),
@@ -344,7 +466,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                       '${display.likes}',
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                             fontWeight: FontWeight.w700,
-                                            color: Colors.white,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                     ),
                                     const SizedBox(width: 4),
@@ -367,7 +489,10 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 IconButton(
-                                  onPressed: () {},
+                                  onPressed: () => context.pushNamed(
+                                    RouteNames.postComments,
+                                    pathParameters: {'id': display.id},
+                                  ),
                                   icon: const PhosphorIcon(PhosphorIconsRegular.chatCircle, size: 22, color: AppColors.textHint),
                                 ),
                                 IconButton(
@@ -392,6 +517,12 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                           CommentSection(
                             targetId: display.id,
                             targetType: 'ANNOUNCEMENT',
+                            showInput: false,
+                            onReplyTap: (comment) => context.pushNamed(
+                              RouteNames.commentReply,
+                              pathParameters: {'id': display.id},
+                              extra: comment,
+                            ),
                           ),
                         ],
                       ),

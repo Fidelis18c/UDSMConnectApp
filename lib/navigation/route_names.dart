@@ -16,6 +16,8 @@ class RouteNames {
   // Main Shell (Home)
   static const String announcements = 'announcements';
   static const String postDetail = 'postDetail';
+  static const String postComments = 'postComments';
+  static const String commentReply = 'commentReply';
   static const String composeAnnouncement = 'composeAnnouncement';
 
   static const String feedback = 'feedback';

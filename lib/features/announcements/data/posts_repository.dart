@@ -39,6 +39,10 @@ class PostsRepository {
     await _api.dio.post<void>('/posts/$postId/reactions');
   }
 
+  Future<void> deletePost(String postId) async {
+    await _api.dio.delete<void>('/posts/$postId');
+  }
+
   Future<String> createPost({
     required String title,
     required String content,

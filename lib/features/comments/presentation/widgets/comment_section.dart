@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,10 +19,20 @@ class CommentSection extends ConsumerWidget {
   final String targetId;
   final String targetType;
 
+  /// When false, hides the top-level "write a comment" box so the section
+  /// only lists already-written comments (e.g. on the post detail screen).
+  final bool showInput;
+
+  /// When set, tapping a comment's reply icon calls this instead of opening
+  /// an inline reply box below the comment.
+  final void Function(Comment comment)? onReplyTap;
+
   const CommentSection({
     super.key,
     required this.targetId,
     required this.targetType,
+    this.showInput = true,
+    this.onReplyTap,
   });
 
   @override
@@ -63,8 +74,10 @@ class CommentSection extends ConsumerWidget {
         ),
 
         // New top-level comment box
-        _NewCommentBox(params: params),
-        const SizedBox(height: 20),
+        if (showInput) ...[
+          NewCommentBox(params: params),
+          const SizedBox(height: 20),
+        ],
 
         // Thread
         commentsAsync.when(
@@ -97,6 +110,7 @@ class CommentSection extends ConsumerWidget {
                         depth: 0,
                         params: params,
                         currentUserId: currentUserId,
+                        onReplyTap: onReplyTap,
                       ))
                   .toList(),
             );
@@ -114,13 +128,14 @@ class CommentSection extends ConsumerWidget {
 // New comment / reply input box
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _NewCommentBox extends ConsumerStatefulWidget {
+class NewCommentBox extends ConsumerStatefulWidget {
   final CommentsParams params;
   final String? parentId;
   final String? hintOverride;
   final VoidCallback? onSuccess;
 
-  const _NewCommentBox({
+  const NewCommentBox({
+    super.key,
     required this.params,
     this.parentId,
     this.hintOverride,
@@ -128,10 +143,10 @@ class _NewCommentBox extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_NewCommentBox> createState() => _NewCommentBoxState();
+  ConsumerState<NewCommentBox> createState() => _NewCommentBoxState();
 }
 
-class _NewCommentBoxState extends ConsumerState<_NewCommentBox> {
+class _NewCommentBoxState extends ConsumerState<NewCommentBox> {
   final TextEditingController _controller = TextEditingController();
   bool _posting = false;
   XFile? _pickedImage;
@@ -226,12 +241,14 @@ class _NewCommentBoxState extends ConsumerState<_NewCommentBox> {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: TextField(
                   controller: _controller,
-                  style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+                  style: GoogleFonts.inter(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 13),
                   maxLines: null,
                   decoration: InputDecoration(
                     hintText: widget.hintOverride ?? 'Write a comment…',
@@ -294,6 +311,7 @@ class _CommentItem extends ConsumerStatefulWidget {
   final CommentsParams params;
   final String? currentUserId;
   final String? parentAuthorName;
+  final void Function(Comment comment)? onReplyTap;
 
   const _CommentItem({
     required this.comment,
@@ -301,6 +319,7 @@ class _CommentItem extends ConsumerStatefulWidget {
     required this.params,
     this.currentUserId,
     this.parentAuthorName,
+    this.onReplyTap,
   });
 
   @override
@@ -372,7 +391,7 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 TextSpan(
@@ -412,12 +431,14 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                         children: [
                           Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1E1E1E),
+                              color: Theme.of(context).colorScheme.surface,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: TextField(
                               controller: _editController,
-                              style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+                              style: GoogleFonts.inter(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 13),
                               maxLines: null,
                               decoration: const InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -459,7 +480,7 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                         widget.comment.content,
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: const Color(0xFFEFEFEF),
+                          color: Theme.of(context).colorScheme.onSurface,
                           height: 1.4,
                         ),
                       ),
@@ -469,21 +490,24 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                       const SizedBox(height: 10),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(14),
-                        child: Image.network(
-                          widget.comment.imageUrl!,
+                        child: CachedNetworkImage(
+                          imageUrl: widget.comment.imageUrl!,
                           fit: BoxFit.cover,
                           width: double.infinity,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                          loadingBuilder: (_, child, progress) {
-                            if (progress == null) return child;
-                            return Container(
-                              height: 160,
-                              color: const Color(0xFF1E1E1E),
-                              alignment: Alignment.center,
-                              child: const CircularProgressIndicator(
-                                  color: AppColors.primary, strokeWidth: 2),
-                            );
-                          },
+                          fadeInDuration: Duration.zero,
+                          fadeOutDuration: Duration.zero,
+                          placeholderFadeInDuration: Duration.zero,
+                          memCacheWidth: (MediaQuery.of(context).size.width *
+                                  MediaQuery.of(context).devicePixelRatio)
+                              .round(),
+                          errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                          placeholder: (_, __) => Container(
+                            height: 160,
+                            color: const Color(0xFF1E1E1E),
+                            alignment: Alignment.center,
+                            child: const CircularProgressIndicator(
+                                color: AppColors.primary, strokeWidth: 2),
+                          ),
                         ),
                       ),
                     ],
@@ -496,7 +520,13 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                         _ActionIcon(
                           icon: Icons.chat_bubble_outline_rounded,
                           label: widget.comment.replyCount > 0 ? '${widget.comment.replyCount}' : null,
-                          onTap: () => setState(() => _showReply = !_showReply),
+                          onTap: () {
+                            if (widget.onReplyTap != null) {
+                              widget.onReplyTap!(widget.comment);
+                            } else {
+                              setState(() => _showReply = !_showReply);
+                            }
+                          },
                         ),
                         const SizedBox(width: 24),
                         _ActionIcon(
@@ -527,12 +557,9 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                               final confirmed = await showDialog<bool>(
                                 context: context,
                                 builder: (c) => AlertDialog(
-                                  backgroundColor: const Color(0xFF1E1E1E),
-                                  title: const Text('Delete comment?',
-                                      style: TextStyle(color: Colors.white)),
+                                  title: const Text('Delete comment?'),
                                   content: const Text(
-                                      'This will also delete all replies.',
-                                      style: TextStyle(color: Colors.white70)),
+                                      'This will also delete all replies.'),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(c, false),
@@ -566,14 +593,14 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                                   _collapsed ? 'Show replies' : 'Hide',
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
-                                    color: AppColors.primary,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 Icon(
                                   _collapsed ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
                                   size: 16,
-                                  color: AppColors.primary,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ],
                             ),
@@ -591,7 +618,7 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
           if (_showReply)
             Padding(
               padding: const EdgeInsets.only(top: 12, left: 40),
-              child: _NewCommentBox(
+              child: NewCommentBox(
                 params: widget.params,
                 parentId: widget.comment.id,
                 hintOverride: 'Post your reply',
@@ -620,6 +647,7 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                     params: widget.params,
                     currentUserId: widget.currentUserId,
                     parentAuthorName: widget.comment.authorName, // Pass down parent author
+                    onReplyTap: widget.onReplyTap,
                   ),
                 ).toList(),
               ),

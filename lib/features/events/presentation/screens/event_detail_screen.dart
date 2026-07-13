@@ -137,14 +137,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final isAttending = rsvpMap[widget.event.id] ?? false;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           // ── Hero App Bar ──────────────────────────────────────────────────
           SliverAppBar(
             expandedHeight: 280.0,
             pinned: true,
-            backgroundColor: Colors.black,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             leading: GestureDetector(
               onTap: () => context.pop(),
               child: Container(
@@ -166,13 +166,16 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _imagePlaceholder(),
                         ),
-                        const DecoratedBox(
+                        DecoratedBox(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, Colors.black],
-                              stops: [0.5, 1.0],
+                              colors: [
+                                Colors.transparent,
+                                Theme.of(context).scaffoldBackgroundColor,
+                              ],
+                              stops: const [0.5, 1.0],
                             ),
                           ),
                         ),
@@ -199,7 +202,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             height: 1.2,
                           ),
                         ),
@@ -232,7 +235,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   // Date
                   _InfoRow(
                     icon: Icons.calendar_today,
-                    iconColor: Colors.white,
+                    iconColor: Theme.of(context).colorScheme.onSurface,
                     title: _formatDate(widget.event.startDateTime),
                     subtitle:
                         '${_formatTime(widget.event.startDateTime)} — ${_formatTime(widget.event.endDateTime)}',
@@ -251,7 +254,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     },
                     child: _InfoRow(
                       icon: Icons.location_on,
-                      iconColor: Colors.white,
+                      iconColor: Theme.of(context).colorScheme.onSurface,
                       title: widget.event.location,
                       subtitle: widget.event.locationUrl != null
                           ? 'Tap to view on Map'
@@ -264,7 +267,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     const SizedBox(height: 14),
                     _InfoRow(
                       icon: Icons.people_outline,
-                      iconColor: Colors.white,
+                      iconColor: Theme.of(context).colorScheme.onSurface,
                       title: 'Capacity',
                       subtitle:
                           '${widget.event.maxAttendees} max attendees',
@@ -304,7 +307,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   ),
 
                   const SizedBox(height: 28),
-                  const Divider(color: Color(0xFF222222)),
+                  Divider(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF222222)
+                          : Colors.black12),
                   const SizedBox(height: 16),
 
                   // Organizer
@@ -325,7 +331,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               'Organizer',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
-                                color: AppColors.textSecondary,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors.textSecondary
+                                    : Colors.black54,
                               ),
                             ),
                             Text(
@@ -333,7 +342,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color:
+                                    Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ],
@@ -343,7 +353,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   ),
 
                   const SizedBox(height: 16),
-                  const Divider(color: Color(0xFF222222)),
+                  Divider(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF222222)
+                          : Colors.black12),
                   const SizedBox(height: 20),
 
                   // About
@@ -352,7 +365,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -360,7 +373,9 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     widget.event.description,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondary
+                          : Colors.black54,
                       height: 1.7,
                     ),
                   ),
@@ -385,12 +400,14 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   Widget _buildCTA({required bool isOrganizer, required bool isAttending}) {
     // Past / cancelled
     if (_isEventOver) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       return SizedBox(
         height: 52,
         child: ElevatedButton(
           onPressed: null,
           style: ElevatedButton.styleFrom(
-            disabledBackgroundColor: const Color(0xFF2A2A2A),
+            disabledBackgroundColor:
+                isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14)),
           ),
@@ -399,7 +416,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 ? 'Event Cancelled'
                 : 'Event Has Ended',
             style: GoogleFonts.inter(
-                color: const Color(0xFF666666), fontWeight: FontWeight.w600),
+                color: isDark ? const Color(0xFF666666) : Colors.black54,
+                fontWeight: FontWeight.w600),
           ),
         ),
       );
@@ -489,12 +507,17 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     );
   }
 
-  Widget _imagePlaceholder() => Container(
-        color: const Color(0xFF1A1A1A),
-        child: const Center(
-          child: Icon(Icons.event, size: 80, color: Color(0xFF333333)),
-        ),
-      );
+  Widget _imagePlaceholder() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFE0E0E0),
+      child: Center(
+        child: Icon(Icons.event,
+            size: 80,
+            color: isDark ? const Color(0xFF333333) : Colors.black26),
+      ),
+    );
+  }
 
   String _formatDate(DateTime dt) {
     const months = [
@@ -547,7 +570,7 @@ class _InfoRow extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               if (subtitle != null)
@@ -555,7 +578,10 @@ class _InfoRow extends StatelessWidget {
                   subtitle!,
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: subtitleColor ?? const Color(0xFF888888),
+                    color: subtitleColor ??
+                        (Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF888888)
+                            : Colors.black54),
                   ),
                 ),
             ],

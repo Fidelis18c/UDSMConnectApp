@@ -61,9 +61,9 @@ class EventCard extends StatelessWidget {
                       ? Image.network(
                           event.imageUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+                          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(context),
                         )
-                      : _buildPlaceholder(),
+                      : _buildPlaceholder(context),
                 ),
                 // Status Badge Overlay
                 Positioned(
@@ -111,7 +111,7 @@ class EventCard extends StatelessWidget {
                         child: Text(
                           _formatTimestamp(event.startDateTime),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textPrimary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
@@ -123,13 +123,19 @@ class EventCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 16, color: AppColors.textSecondary),
+                      Icon(Icons.location_on,
+                          size: 16,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.textSecondary
+                              : Colors.black54),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           event.location,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.textSecondary
+                                : Colors.black54,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -146,11 +152,14 @@ class EventCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: Colors.grey[900],
-      child: const Center(
-        child: Icon(Icons.event_available, size: 48, color: AppColors.textSecondary),
+      color: isDark ? Colors.grey[900] : const Color(0xFFE0E0E0),
+      child: Center(
+        child: Icon(Icons.event_available,
+            size: 48,
+            color: isDark ? AppColors.textSecondary : Colors.black26),
       ),
     );
   }

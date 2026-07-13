@@ -75,16 +75,15 @@ class _FeedbackFormState extends State<FeedbackForm> {
         )
         .toList();
 
+    const inputPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 12);
+
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: AppShapes.cardBorderRadius,
-        border: Border(
-          left: BorderSide(color: AppColors.primary, width: 3),
-        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -104,20 +103,23 @@ class _FeedbackFormState extends State<FeedbackForm> {
                 value: _selectedCategoryId,
                 hint: 'Category',
                 items: categoryItems,
+                contentPadding: inputPadding,
                 onChanged: widget.submitting
                     ? (_) {}
                     : (val) => setState(() => _selectedCategoryId = val),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             UdsmTextField(
               controller: _subjectController,
               hint: 'Subject',
+              contentPadding: inputPadding,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             UdsmTextArea(
               controller: _messageController,
               hint: 'Describe your feedback or issue...',
-              maxLines: 5,
+              maxLines: 4,
+              contentPadding: inputPadding,
             ),
             const SizedBox(height: 6),
             Align(

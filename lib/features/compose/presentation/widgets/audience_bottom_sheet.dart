@@ -93,7 +93,6 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
 
   Widget _buildOptionRow({
     required String value,
-    required IconData icon,
     required String title,
     required String subtitle,
   }) {
@@ -113,51 +112,25 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
           }
         });
       },
-      child: Container(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary.withOpacity(0.2) : theme.colorScheme.surfaceContainerHighest,
-                shape: BoxShape.circle,
-              ),
-              child: PhosphorIcon(
-                icon,
-                color: isSelected ? AppColors.primary : theme.iconTheme.color,
-                size: 24,
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primary : null,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? AppColors.primary : null,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
               ),
             ),
-            if (isSelected)
-              const PhosphorIcon(
-                PhosphorIconsBold.check,
-                color: AppColors.primary,
-                size: 20,
-              ),
           ],
         ),
       ),
@@ -214,21 +187,20 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                 ],
               ),
             ),
-            const Divider(height: 1),
+            const Divider(height: 1, thickness: 0.5, color: AppColors.divider),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (widget.userRole == AudienceUserRole.admin) ...[
                       _buildOptionRow(
                         value: 'ALL',
-                        icon: PhosphorIconsRegular.globeHemisphereWest,
                         title: 'All Students',
                         subtitle: 'Everyone at UDSM',
                       ),
                       _buildOptionRow(
                         value: 'COLLEGE',
-                        icon: PhosphorIconsRegular.buildings,
                         title: 'Specific College',
                         subtitle: 'Target a specific college',
                       ),
@@ -247,14 +219,12 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                     if (widget.userRole == AudienceUserRole.collegeRep)
                       _buildOptionRow(
                         value: 'COLLEGE',
-                        icon: PhosphorIconsRegular.buildings,
                         title: 'Whole College',
                         subtitle: 'All students in your college',
                       ),
                     
                     _buildOptionRow(
                       value: 'DEPARTMENT',
-                      icon: PhosphorIconsRegular.briefcase,
                       title: 'Specific Department',
                       subtitle: 'Target a specific department',
                     ),
@@ -271,7 +241,6 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
 
                     _buildOptionRow(
                       value: 'PROGRAMME',
-                      icon: PhosphorIconsRegular.graduationCap,
                       title: 'Specific Programme',
                       subtitle: 'Target a degree programme',
                     ),
@@ -288,7 +257,6 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
 
                     _buildOptionRow(
                       value: 'PROGRAMME_YEAR',
-                      icon: PhosphorIconsRegular.calendarBlank,
                       title: 'Programme + Year',
                       subtitle: 'Target a specific year group',
                     ),

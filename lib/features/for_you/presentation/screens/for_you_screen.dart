@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
 import 'package:udsm_connect/core/widgets/empty_state_widget.dart';
 import 'package:udsm_connect/core/widgets/news_post_card.dart';
+import 'package:udsm_connect/core/widgets/post_menu.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import 'package:udsm_connect/navigation/route_names.dart';
@@ -47,7 +48,7 @@ class ForYouScreen extends ConsumerWidget {
               child: StoriesTray(),
             ),
             const SliverToBoxAdapter(
-              child: Divider(height: 1, thickness: 1),
+              child: Divider(height: 1, thickness: 0.5, color: AppColors.divider),
             ),
             asyncPosts.when(
               loading: () => const SliverFillRemaining(
@@ -99,6 +100,7 @@ class ForYouScreen extends ConsumerWidget {
                           onLike: () => ref
                               .read(announcementsProvider.notifier)
                               .toggleLike(post.id),
+                          onMenuTap: () => showPostMenu(context, ref, post),
                         );
                       },
                     ),

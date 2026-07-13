@@ -27,7 +27,7 @@ class LostFoundCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
@@ -51,9 +51,9 @@ class LostFoundCard extends StatelessWidget {
                       ? Image.network(
                           imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _placeholder(),
+                          errorBuilder: (_, __, ___) => _placeholder(context),
                         )
-                      : _placeholder(),
+                      : _placeholder(context),
 
                   // LOST / FOUND / RESOLVED badge
                   Positioned(
@@ -111,7 +111,9 @@ class LostFoundCard extends StatelessWidget {
                       item.location!,
                       style: GoogleFonts.inter(
                         fontSize: 11,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.textSecondary
+                            : Colors.black54,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -124,7 +126,10 @@ class LostFoundCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     text: TextSpan(
                       style: GoogleFonts.inter(
-                          fontSize: 11, color: AppColors.textSecondary),
+                          fontSize: 11,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.textSecondary
+                              : Colors.black54),
                       children: [
                         const TextSpan(text: 'Posted by '),
                         TextSpan(
@@ -144,12 +149,14 @@ class LostFoundCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() {
+  Widget _placeholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFF2A2A2A),
-      child: const Center(
+      color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0),
+      child: Center(
         child: Icon(Icons.image_not_supported_outlined,
-            size: 40, color: Color(0xFF444444)),
+            size: 40,
+            color: isDark ? const Color(0xFF444444) : Colors.black38),
       ),
     );
   }

@@ -87,9 +87,11 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
     final isOwner = user != null && widget.item.reporter?.id == user.id;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: Theme.of(context).brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: FutureBuilder<LostFoundItem>(
           future: _detailFuture,
           builder: (context, snapshot) {
@@ -112,7 +114,7 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                         height: 300,
                         child: images.isEmpty
                             ? Container(
-                                color: const Color(0xFF1A1A1A),
+                                color: Theme.of(context).colorScheme.surface,
                                 child: const Center(
                                   child: Icon(
                                     Icons.image_not_supported_outlined,
@@ -131,7 +133,7 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                   errorBuilder: (_, __, ___) => Container(
-                                    color: const Color(0xFF1A1A1A),
+                                    color: Theme.of(context).colorScheme.surface,
                                     child: const Icon(
                                         Icons.broken_image_outlined,
                                         size: 48,
@@ -166,9 +168,11 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                           right: 12,
                           child: Theme(
                             data: Theme.of(context).copyWith(
-                              popupMenuTheme: const PopupMenuThemeData(
-                                color: Color(0xFF1E1E1E),
-                                textStyle: TextStyle(color: Colors.white),
+                              popupMenuTheme: PopupMenuThemeData(
+                                color: Theme.of(context).colorScheme.surface,
+                                textStyle: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface),
                               ),
                             ),
                             child: PopupMenuButton<String>(
@@ -197,13 +201,13 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                                   final conf = await showDialog<bool>(
                                     context: context,
                                     builder: (c) => AlertDialog(
-                                      backgroundColor: const Color(0xFF1E1E1E),
-                                      title: const Text('Delete Report?', style: TextStyle(color: Colors.white)),
-                                      content: const Text('This action cannot be undone.', style: TextStyle(color: Colors.white70)),
+                                      backgroundColor: Theme.of(c).colorScheme.surface,
+                                      title: Text('Delete Report?', style: TextStyle(color: Theme.of(c).colorScheme.onSurface)),
+                                      content: Text('This action cannot be undone.', style: TextStyle(color: Theme.of(c).brightness == Brightness.dark ? Colors.white70 : Colors.black54)),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.pop(c, false),
-                                          child: const Text('CANCEL', style: TextStyle(color: AppColors.textHint)),
+                                          child: Text('CANCEL', style: TextStyle(color: Theme.of(c).brightness == Brightness.dark ? AppColors.textHint : Colors.black54)),
                                         ),
                                         TextButton(
                                           onPressed: () => Navigator.pop(c, true),
@@ -284,7 +288,7 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                   child: Container(
                     margin: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A1A),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -302,7 +306,7 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                                   style: GoogleFonts.inter(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -327,7 +331,11 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                           ),
                         ),
 
-                        const Divider(color: Color(0xFF2E2E2E), height: 24),
+                        Divider(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF2E2E2E)
+                                : Colors.black12,
+                            height: 24),
 
                         if (loading)
                           const Padding(
@@ -397,7 +405,10 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? AppColors.textSecondary
+                                  : Colors.black54,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -441,7 +452,11 @@ class _InfoRow extends StatelessWidget {
         crossAxisAlignment:
             multiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 18, color: AppColors.textHint),
+          Icon(icon,
+              size: 18,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.textHint
+                  : Colors.black54),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -451,7 +466,9 @@ class _InfoRow extends StatelessWidget {
                   label,
                   style: GoogleFonts.inter(
                     fontSize: 11,
-                    color: AppColors.textHint,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.textHint
+                        : Colors.black54,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),
@@ -461,7 +478,7 @@ class _InfoRow extends StatelessWidget {
                   value,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   maxLines: multiline ? null : 2,
                   overflow: multiline ? TextOverflow.visible : TextOverflow.ellipsis,
