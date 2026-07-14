@@ -25,6 +25,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    // If session was restored while on another route, or user lands here with a
+    // valid session, skip the form.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = ref.read(authProvider);
+      if (auth.isAuthenticated) {
+        final u = auth.user;
+        if (u != null) {
+          ref.read(userProvider.notifier).syncFromAuth(u);
+        }
+        context.goNamed(RouteNames.announcements);
+      }
+    });
+  }
+
   void _onLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();

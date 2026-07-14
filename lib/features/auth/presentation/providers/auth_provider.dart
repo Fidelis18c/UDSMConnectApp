@@ -11,6 +11,8 @@ class AuthState {
   final String? error;
   final UserData? user;
   final bool isAuthenticated;
+  /// True after [AuthNotifier.restoreSession] has finished once.
+  final bool isInitialized;
   final String? resetEmail;
   final String? resetToken;
 
@@ -19,6 +21,7 @@ class AuthState {
     this.error,
     this.user,
     this.isAuthenticated = false,
+    this.isInitialized = false,
     this.resetEmail,
     this.resetToken,
   });
@@ -28,6 +31,7 @@ class AuthState {
     String? error,
     UserData? user,
     bool? isAuthenticated,
+    bool? isInitialized,
     String? resetEmail,
     String? resetToken,
   }) {
@@ -36,6 +40,7 @@ class AuthState {
       error: error,
       user: user ?? this.user,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      isInitialized: isInitialized ?? this.isInitialized,
       resetEmail: resetEmail ?? this.resetEmail,
       resetToken: resetToken ?? this.resetToken,
     );
@@ -44,26 +49,61 @@ class AuthState {
 
 class AuthNotifier extends Notifier<AuthState> {
   AuthRepository get _repository => ref.read(authRepositoryProvider);
+  bool _restoreInFlight = false;
 
   @override
   AuthState build() {
     return AuthState();
   }
 
-  Future<void> login(String email, String password) async {
+  /// Rehydrate session from disk (and validate with `/users/me` when online).
+  Future<void> restoreSession() async {
+    if (state.isInitialized || _restoreInFlight) return;
+    _restoreInFlight = true;
     state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final user = await _repository.restoreSession();
+      if (user != null) {
+        state = AuthState(
+          isLoading: false,
+          user: user,
+          isAuthenticated: true,
+          isInitialized: true,
+        );
+        ref.invalidate(notificationsProvider);
+        ref.invalidate(unreadCountProvider);
+        await registerFcmTokenIfPossible();
+      } else {
+        state = AuthState(isLoading: false, isInitialized: true);
+      }
+    } catch (_) {
+      state = AuthState(isLoading: false, isInitialized: true);
+    } finally {
+      _restoreInFlight = false;
+    }
+  }
+
+  Future<void> login(String email, String password) async {
+    state = state.copyWith(isLoading: true, error: null, isInitialized: true);
     try {
       final response = await _repository.login(email, password);
       state = state.copyWith(
         isLoading: false,
         user: response.user,
         isAuthenticated: true,
+        isInitialized: true,
       );
       ref.invalidate(notificationsProvider);
       ref.invalidate(unreadCountProvider);
       await registerFcmTokenIfPossible();
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        isAuthenticated: false,
+        isInitialized: true,
+      );
     }
   }
 
@@ -131,7 +171,7 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       await _repository.resetPassword(state.resetToken!, newPassword);
-      state = AuthState(); // Reset everything on success
+      state = AuthState(isInitialized: true);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -145,7 +185,7 @@ class AuthNotifier extends Notifier<AuthState> {
     await _repository.logout();
     ref.invalidate(notificationsProvider);
     ref.invalidate(unreadCountProvider);
-    state = AuthState();
+    state = AuthState(isInitialized: true);
   }
 }
 

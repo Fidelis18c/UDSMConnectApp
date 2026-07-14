@@ -8,10 +8,11 @@ import 'app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await bootstrapFirebase();
+  // Attach JWT early so the first API calls (session restore) are authenticated.
+  // Full session restore + navigation is handled on the splash screen.
   final persisted = await AuthRepository().getToken();
   if (persisted != null && persisted.isNotEmpty) {
     ApiClient().setToken(persisted);
-    await registerFcmTokenIfPossible();
   }
   runApp(
     const ProviderScope(
