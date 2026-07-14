@@ -80,6 +80,17 @@ class NotificationRepository {
     );
   }
 
+  /// Remove this device's token so it no longer receives pushes for the current user.
+  Future<void> unregisterToken({String? fcmToken, String deviceType = 'ANDROID'}) async {
+    await _api.dio.delete(
+      '/notifications/token',
+      data: {
+        if (fcmToken != null && fcmToken.isNotEmpty) 'fcmToken': fcmToken,
+        'deviceType': deviceType,
+      },
+    );
+  }
+
   Future<NotificationListResult> fetchNotifications({int page = 1, int pageSize = 30}) async {
     final response = await _api.dio.get(
       '/notifications',

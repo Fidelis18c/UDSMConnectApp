@@ -180,6 +180,32 @@ Future<void> registerFcmTokenIfPossible() async {
   }
 }
 
+/// Unregister this device from push before clearing the auth session.
+/// Call while the JWT is still present so the API accepts the request.
+Future<void> unregisterFcmTokenIfPossible() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final storedAuthToken = prefs.getString('auth_token');
+    if (storedAuthToken == null || storedAuthToken.isEmpty) {
+      if (kDebugMode) debugPrint('FCM token unregister skipped — user not authenticated');
+      return;
+    }
+
+    final token = await FirebaseMessaging.instance.getToken();
+    try {
+      await NotificationRepository().unregisterToken(fcmToken: token);
+      if (kDebugMode) debugPrint('FCM token unregistered with backend');
+    } catch (e) {
+      if (kDebugMode) debugPrint('FCM token unregister API failed: $e');
+    }
+
+    // Drop local FCM token so a later login cannot reuse a stale association.
+    await FirebaseMessaging.instance.deleteToken();
+  } catch (e) {
+    if (kDebugMode) debugPrint('FCM token unregister failed: $e');
+  }
+}
+
 void _handleNotificationNavigation(RemoteMessage message) {
   final data = message.data;
   final type = data['type'] as String?;

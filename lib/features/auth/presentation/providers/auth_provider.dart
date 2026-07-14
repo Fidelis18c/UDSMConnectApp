@@ -140,6 +140,8 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Unregister FCM while JWT is still valid, then clear session.
+    await unregisterFcmTokenIfPossible();
     await _repository.logout();
     ref.invalidate(notificationsProvider);
     ref.invalidate(unreadCountProvider);
