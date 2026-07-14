@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 
 import 'package:udsm_connect/core/models/post.dart';
+import 'package:udsm_connect/core/utils/post_share.dart';
 import 'package:udsm_connect/features/announcements/data/posts_repository.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
@@ -31,12 +31,11 @@ void showPostMenu(BuildContext context, WidgetRef ref, Post post) {
             title: const Text('Share post'),
             onTap: () {
               Navigator.pop(sheetContext);
-              final snippet =
-                  '${post.title.isNotEmpty ? '${post.title}\n\n' : ''}${post.text}'
-                      .trim();
-              if (snippet.isNotEmpty) {
-                SharePlus.instance.share(ShareParams(text: snippet));
-              }
+              PostShare.sharePost(
+                postId: post.id,
+                title: post.title,
+                text: post.text,
+              );
             },
           ),
           if (isOwner)

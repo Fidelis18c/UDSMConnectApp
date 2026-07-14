@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 
 import 'package:udsm_connect/core/formatting/relative_time.dart';
 import 'package:udsm_connect/core/models/post.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
+import 'package:udsm_connect/core/utils/post_share.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
 import 'package:udsm_connect/core/widgets/full_screen_image_viewer.dart';
 
@@ -31,16 +31,17 @@ class NewsPostCard extends StatelessWidget {
   final int replyCount;
 
   Future<void> _share(BuildContext context) async {
-    final snippet =
-        '${post.title.isNotEmpty ? '${post.title}\n' : ''}${post.text}'.trim();
-    if (snippet.isEmpty) return;
     Rect? origin;
     final box = context.findRenderObject();
     if (box is RenderBox && box.hasSize) {
       origin = box.localToGlobal(Offset.zero) & box.size;
     }
-    await SharePlus.instance
-        .share(ShareParams(text: snippet, sharePositionOrigin: origin));
+    await PostShare.sharePost(
+      postId: post.id,
+      title: post.title,
+      text: post.text,
+      sharePositionOrigin: origin,
+    );
   }
 
   @override

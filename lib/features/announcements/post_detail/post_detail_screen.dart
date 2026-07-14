@@ -2,12 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import 'package:udsm_connect/core/formatting/relative_time.dart';
 import 'package:udsm_connect/core/models/post.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
+import 'package:udsm_connect/core/utils/post_share.dart';
 import 'package:udsm_connect/core/widgets/avatar_initials.dart';
 import 'package:udsm_connect/core/widgets/full_screen_image_viewer.dart';
 import 'package:udsm_connect/features/announcements/data/posts_repository.dart';
@@ -159,10 +159,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   }
 
   Future<void> _share(Post display) async {
-    final snippet =
-        '${display.title.isNotEmpty ? '${display.title}\n\n' : ''}${display.text}'.trim();
-    if (snippet.isEmpty) return;
-    await SharePlus.instance.share(ShareParams(text: snippet));
+    await PostShare.sharePost(
+      postId: display.id,
+      title: display.title,
+      text: display.text,
+    );
   }
 
   @override

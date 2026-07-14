@@ -111,6 +111,17 @@ final appRouter = GoRouter(
       builder: (context, state) => const NotificationsScreen(),
     ),
 
+    // Public share / App Link: https://www.udsminfo.com/posts/:id
+    GoRoute(
+      path: '/posts/:id',
+      name: RouteNames.postShare,
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return PostDetailScreen(announcementId: id);
+      },
+    ),
+
     // --- Main Shell (Bottom Nav) ---
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {

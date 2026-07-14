@@ -16,6 +16,8 @@ class RouteNames {
   // Main Shell (Home)
   static const String announcements = 'announcements';
   static const String postDetail = 'postDetail';
+  /// Deep-link / share URL path: `/posts/:id` (same screen as [postDetail]).
+  static const String postShare = 'postShare';
   static const String postComments = 'postComments';
   static const String commentReply = 'commentReply';
   static const String composeAnnouncement = 'composeAnnouncement';
