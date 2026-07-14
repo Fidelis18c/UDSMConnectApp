@@ -507,13 +507,9 @@ class _ContactButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withAlpha(30),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withAlpha(80)),
-        ),
         child: Column(
           children: [
             Icon(icon, color: AppColors.primary, size: 22),

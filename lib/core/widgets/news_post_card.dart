@@ -191,102 +191,112 @@ class NewsPostCard extends StatelessWidget {
               ),
               if (post.imageUrl != null) ...[
                 const SizedBox(height: 8),
-                // Fixed frame: the whole image fits inside a rounded 4:3 card
-                // without cropping. Tapping the image opens it full-screen;
-                // tapping anywhere else on the card opens the post.
+                // Twitter-style frame: the image always fills the card width
+                // at its natural aspect ratio; only very tall images
+                // (screenshots) hit the height cap and get cropped.
+                // Tapping the image opens it full-screen; tapping anywhere
+                // else on the card opens the post.
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: GestureDetector(
                     onTap: () => openFullScreenImage(context, post.imageUrl!),
                     child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: Container(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF101010)
-                        : const Color(0xFFEDEDED),
-                    child: CachedNetworkImage(
-                    imageUrl: post.imageUrl!,
-                    width: double.infinity,
-                    fit: BoxFit.contain,
-                    fadeInDuration: Duration.zero,
-                    fadeOutDuration: Duration.zero,
-                    placeholderFadeInDuration: Duration.zero,
-                    // Decode at screen width instead of the full upload size.
-                    memCacheWidth: (MediaQuery.of(context).size.width *
-                            MediaQuery.of(context).devicePixelRatio)
-                        .round(),
-                    progressIndicatorBuilder: (context, url, progress) =>
-                        Container(
-                      color: const Color(0xFF1A1A1A),
-                      child: Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator.adaptive(
-                            strokeWidth: 2,
-                            value: progress.progress,
+                      borderRadius: BorderRadius.circular(12),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.width * 1.1,
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: post.imageUrl!,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          fadeInDuration: Duration.zero,
+                          fadeOutDuration: Duration.zero,
+                          placeholderFadeInDuration: Duration.zero,
+                          // Decode at screen width instead of the full upload size.
+                          memCacheWidth: (MediaQuery.of(context).size.width *
+                                  MediaQuery.of(context).devicePixelRatio)
+                              .round(),
+                          progressIndicatorBuilder: (context, url, progress) =>
+                              AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Container(
+                              color: const Color(0xFF1A1A1A),
+                              child: Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator.adaptive(
+                                    strokeWidth: 2,
+                                    value: progress.progress,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
+                          errorWidget: (context, url, error) {
+                            debugPrint('IMAGE LOAD ERROR url=$url err=$error');
+                            return AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: Container(
+                                color: const Color(0xFF252525),
+                                alignment: Alignment.center,
+                                child: PhosphorIcon(
+                                  PhosphorIconsRegular.imageBroken,
+                                  size: 40,
+                                  color: AppColors.textHint,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
-                    errorWidget: (context, url, error) {
-                      debugPrint('IMAGE LOAD ERROR url=$url err=$error');
-                      return Container(
-                        color: const Color(0xFF252525),
-                        alignment: Alignment.center,
-                        child: PhosphorIcon(
-                          PhosphorIconsRegular.imageBroken,
-                          size: 40,
-                          color: AppColors.textHint,
-                        ),
-                      );
-                    },
-                    ),
-                  ),
-                    ),
-                  ),
                   ),
                 ),
               ],
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 2, 14, 14),
-                child: Row(
-                  children: [
-                    _IconCountTap(
-                      icon: post.isLiked
-                          ? PhosphorIconsFill.thumbsUp
-                          : PhosphorIconsRegular.thumbsUp,
-                      iconFill: post.isLiked ? 1.0 : null,
-                      count: post.likes,
-                      color: post.isLiked
-                          ? AppColors.link
-                          : AppColors.textSecondary,
-                      onTap: onLike,
-                    ),
-                    const SizedBox(width: 16),
-                    _IconCountTap(
-                      icon: PhosphorIconsRegular.chatCircleDots,
-                      count: replyCount,
-                      onTap: onReplyTap ?? () {},
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => _share(context),
-                      behavior: HitTestBehavior.opaque,
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: PhosphorIcon(
-                          PhosphorIconsRegular.shareFat,
-                          size: 22,
-                          color: AppColors.textSecondary,
+              Builder(builder: (context) {
+                final actionColor =
+                    Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.textSecondary
+                        : Colors.black;
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 2, 14, 14),
+                  child: Row(
+                    children: [
+                      _IconCountTap(
+                        icon: post.isLiked
+                            ? PhosphorIconsFill.thumbsUp
+                            : PhosphorIconsRegular.thumbsUp,
+                        iconFill: post.isLiked ? 1.0 : null,
+                        count: post.likes,
+                        color: post.isLiked ? AppColors.link : actionColor,
+                        onTap: onLike,
+                      ),
+                      const SizedBox(width: 16),
+                      _IconCountTap(
+                        icon: PhosphorIconsRegular.chatCircleDots,
+                        count: replyCount,
+                        color: actionColor,
+                        onTap: onReplyTap ?? () {},
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => _share(context),
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: PhosphorIcon(
+                            PhosphorIconsRegular.shareFat,
+                            size: 22,
+                            color: actionColor,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                );
+              }),
             ],
           ),
         ),
@@ -333,6 +343,7 @@ class _IconCountTap extends StatelessWidget {
               '$count',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: color,
+                    fontWeight: FontWeight.w700,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
             ),

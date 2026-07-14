@@ -44,11 +44,12 @@ void showPostMenu(BuildContext context, WidgetRef ref, Post post) {
               leading: PhosphorIcon(
                 PhosphorIconsRegular.trash,
                 size: 22,
-                color: Colors.red.shade400,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               title: Text(
                 'Delete post',
-                style: TextStyle(color: Colors.red.shade400),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
               onTap: () {
                 Navigator.pop(sheetContext);

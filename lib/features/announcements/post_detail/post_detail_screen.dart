@@ -105,11 +105,12 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                 leading: PhosphorIcon(
                   PhosphorIconsRegular.trash,
                   size: 22,
-                  color: Colors.red.shade400,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 title: Text(
                   'Delete post',
-                  style: TextStyle(color: Colors.red.shade400),
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -363,44 +364,46 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                     ),
                     if (display.imageUrl != null) ...[
                       const SizedBox(height: 8),
-                      // Fixed frame: whole image fits a rounded 4:3 card, no cropping.
-                      // Tapping the image opens it full-screen.
+                      // Twitter-style frame: image fills the width at its
+                      // natural ratio; only very tall images hit the height
+                      // cap and get cropped. Tap opens it full-screen.
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: GestureDetector(
                           onTap: () =>
                               openFullScreenImage(context, display.imageUrl!),
                           child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: AspectRatio(
-                            aspectRatio: 4 / 3,
-                            child: Container(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? const Color(0xFF101010)
-                                  : const Color(0xFFEDEDED),
+                            borderRadius: BorderRadius.circular(12),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.of(context).size.width * 1.1,
+                              ),
                               child: CachedNetworkImage(
                                 imageUrl: display.imageUrl!,
                                 width: double.infinity,
-                                fit: BoxFit.contain,
+                                fit: BoxFit.cover,
                                 fadeInDuration: Duration.zero,
                                 fadeOutDuration: Duration.zero,
                                 placeholderFadeInDuration: Duration.zero,
                                 memCacheWidth: (MediaQuery.of(context).size.width *
                                         MediaQuery.of(context).devicePixelRatio)
                                     .round(),
-                                errorWidget: (context, url, error) => Container(
-                                  color: const Color(0xFF252525),
-                                  alignment: Alignment.center,
-                                  child: PhosphorIcon(
-                                    PhosphorIconsRegular.imageBroken,
-                                    size: 56,
-                                    color: AppColors.textHint,
+                                errorWidget: (context, url, error) => AspectRatio(
+                                  aspectRatio: 16 / 9,
+                                  child: Container(
+                                    color: const Color(0xFF252525),
+                                    alignment: Alignment.center,
+                                    child: PhosphorIcon(
+                                      PhosphorIconsRegular.imageBroken,
+                                      size: 56,
+                                      color: AppColors.textHint,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
                         ),
                       ),
                     ],
@@ -483,35 +486,41 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                           ),
                           const Divider(height: 1, color: AppColors.divider),
                           // X-style Action Bar
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                IconButton(
-                                  onPressed: () => context.pushNamed(
-                                    RouteNames.postComments,
-                                    pathParameters: {'id': display.id},
+                          Builder(builder: (context) {
+                            final actionColor =
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.textHint
+                                    : Colors.black;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  IconButton(
+                                    onPressed: () => context.pushNamed(
+                                      RouteNames.postComments,
+                                      pathParameters: {'id': display.id},
+                                    ),
+                                    icon: PhosphorIcon(PhosphorIconsRegular.chatCircle, size: 22, color: actionColor),
                                   ),
-                                  icon: const PhosphorIcon(PhosphorIconsRegular.chatCircle, size: 22, color: AppColors.textHint),
-                                ),
-                                IconButton(
-                                  onPressed: () => ref
-                                      .read(announcementsProvider.notifier)
-                                      .toggleLike(display.id),
-                                  icon: PhosphorIcon(
-                                    display.isLiked ? PhosphorIconsFill.heart : PhosphorIconsRegular.heart,
-                                    size: 22,
-                                    color: display.isLiked ? Colors.pink : AppColors.textHint,
+                                  IconButton(
+                                    onPressed: () => ref
+                                        .read(announcementsProvider.notifier)
+                                        .toggleLike(display.id),
+                                    icon: PhosphorIcon(
+                                      display.isLiked ? PhosphorIconsFill.heart : PhosphorIconsRegular.heart,
+                                      size: 22,
+                                      color: display.isLiked ? Colors.pink : actionColor,
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  onPressed: () => _share(display),
-                                  icon: const PhosphorIcon(PhosphorIconsRegular.shareNetwork, size: 22, color: AppColors.textHint),
-                                ),
-                              ],
-                            ),
-                          ),
+                                  IconButton(
+                                    onPressed: () => _share(display),
+                                    icon: PhosphorIcon(PhosphorIconsRegular.shareNetwork, size: 22, color: actionColor),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
                           const Divider(height: 1, color: AppColors.divider),
                           const SizedBox(height: 24),
                           CommentSection(
