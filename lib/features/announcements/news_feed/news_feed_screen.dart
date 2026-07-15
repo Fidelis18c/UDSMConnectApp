@@ -100,40 +100,20 @@ class NewsFeedScreen extends ConsumerWidget {
                             builder: (context, ref, _) {
                               final unreadAsync = ref.watch(unreadCountProvider);
                               final unread = unreadAsync.value ?? 0;
-                              return Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  IconButton(
-                                    icon: PhosphorIcon(
-                                      PhosphorIconsRegular.bell,
-                                      size: 24,
-                                      color: Theme.of(context).iconTheme.color,
-                                    ),
-                                    onPressed: () => context.pushNamed(RouteNames.notifications),
-                                  ),
-                                  if (unread > 0)
-                                    Positioned(
-                                      right: 6,
-                                      top: 6,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: AppColors.primary,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                        child: Text(
-                                          unread > 9 ? '9+' : '$unread',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                              final hasNew = unread > 0;
+                              return IconButton(
+                                icon: PhosphorIcon(
+                                  hasNew
+                                      ? PhosphorIconsFill.bell
+                                      : PhosphorIconsRegular.bell,
+                                  size: 24,
+                                  // Lights up blue when something new arrived.
+                                  color: hasNew
+                                      ? AppColors.primary
+                                      : Theme.of(context).iconTheme.color,
+                                ),
+                                onPressed: () => context
+                                    .pushNamed(RouteNames.notifications),
                               );
                             },
                           ),

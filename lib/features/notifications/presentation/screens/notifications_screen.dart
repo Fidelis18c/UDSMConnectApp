@@ -12,7 +12,7 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncItems = ref.watch(filteredNotificationsProvider);
+    final asyncItems = ref.watch(notificationsProvider);
     
     return Scaffold(
       appBar: AppBar(
@@ -36,7 +36,6 @@ class NotificationsScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          const _FilterChips(),
           Expanded(
             child: RefreshIndicator.adaptive(
               onRefresh: () => ref.read(notificationsProvider.notifier).refresh(),
@@ -85,50 +84,6 @@ class NotificationsScreen extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FilterChips extends ConsumerWidget {
-  const _FilterChips();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final currentFilter = ref.watch(notificationFilterProvider);
-    
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        children: NotificationFilter.values.map((filter) {
-          final isSelected = filter == currentFilter;
-          final title = notificationFilterLabel(filter);
-          
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: FilterChip(
-              selected: isSelected,
-              showCheckmark: false,
-              label: Text(
-                title,
-                style: TextStyle(
-                  color: isSelected ? AppColors.background : AppColors.textPrimary,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-              selectedColor: AppColors.textPrimary, // White when selected
-              backgroundColor: AppColors.chipUnselected, // Dark grey when not
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide.none,
-              ),
-              onSelected: (_) {
-                ref.read(notificationFilterProvider.notifier).setFilter(filter);
-              },
-            ),
-          );
-        }).toList(),
       ),
     );
   }
