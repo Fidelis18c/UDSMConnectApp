@@ -128,7 +128,7 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
           _audienceSelection = AudienceSelection(targetType: 'COLLEGE');
         });
       } else if (isDeptStaff) {
-        // Lecturers / department staff → posts stay in their department.
+        // Lecturers / staff: default whole department; may narrow to programme/year.
         final dept = userProfile.departmentId != null
             ? Department(
                 id: userProfile.departmentId!,
@@ -139,12 +139,13 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
             : null;
         setState(() {
           _userRole = AudienceUserRole.deptStaff;
-          _isAudienceLocked = true;
+          // Not fully locked — they can open the sheet to pick programme/year.
+          _isAudienceLocked = dept == null;
           _filterCollegeId = userProfile.collegeId;
           _lockedLabel = userProfile.departmentName ?? 'Your department';
           _lockedNotice = dept == null
               ? 'Ask an admin to assign your department before posting.'
-              : 'Your posts are visible to students and staff in this department only.';
+              : 'You can post to your whole department, one programme, or a year group.';
           _audienceSelection = AudienceSelection(
             targetType: 'DEPARTMENT',
             department: dept,
@@ -197,19 +198,23 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
   }
 
   Future<void> _openAudienceSheet() async {
-    // Hide keyboard
     FocusScope.of(context).unfocus();
-    
-    if (_userRole == AudienceUserRole.classRep ||
-        _userRole == AudienceUserRole.deptStaff) {
+
+    // Class reps are hard-locked to their class only.
+    if (_userRole == AudienceUserRole.classRep) return;
+    // Dept staff without department cannot choose audience yet.
+    if (_userRole == AudienceUserRole.deptStaff &&
+        _audienceSelection.department == null) {
       return;
     }
 
     final result = await AudienceBottomSheet.show(
-      context, 
+      context,
       initialSelection: _audienceSelection,
       userRole: _userRole,
       filterCollegeId: _filterCollegeId,
+      filterDepartmentId: _audienceSelection.department?.id,
+      lockedDepartmentName: _audienceSelection.department?.name ?? _lockedLabel,
     );
     if (result != null) {
       setState(() {
@@ -219,23 +224,35 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
   }
 
   String get _audienceLabel {
-    if (_isAudienceLocked && _lockedLabel != null) {
+    if (_userRole == AudienceUserRole.classRep && _lockedLabel != null) {
       return _lockedLabel!;
     }
     switch (_audienceSelection.targetType) {
       case 'ALL':
         return 'All Students';
       case 'PROGRAMME':
-        return _audienceSelection.programme?.code ?? 'Specific Programme';
+        return _audienceSelection.programme?.code.isNotEmpty == true
+            ? _audienceSelection.programme!.code
+            : (_audienceSelection.programme?.name ?? 'Specific Programme');
       case 'PROGRAMME_YEAR':
-        return '${_audienceSelection.programme?.code ?? 'Programme'} - Year ${_audienceSelection.year ?? '?'}';
+        final code = _audienceSelection.programme?.code.isNotEmpty == true
+            ? _audienceSelection.programme!.code
+            : (_audienceSelection.programme?.name ?? 'Programme');
+        return '$code · Year ${_audienceSelection.year ?? '?'}';
       case 'COLLEGE':
         if (_userRole == AudienceUserRole.collegeRep) {
           return 'Whole College';
         }
         return _audienceSelection.college?.name ?? 'Specific College';
       case 'DEPARTMENT':
-        return _audienceSelection.department?.shortName ?? _audienceSelection.department?.name ?? 'Specific Department';
+        if (_userRole == AudienceUserRole.deptStaff) {
+          return _audienceSelection.department?.name ??
+              _lockedLabel ??
+              'Whole Department';
+        }
+        return _audienceSelection.department?.shortName ??
+            _audienceSelection.department?.name ??
+            'Specific Department';
       default:
         return 'All Students';
     }
@@ -276,8 +293,20 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
       }
 
       final List<Map<String, dynamic>> audiences = [];
+      Map<String, dynamic> deptFallback() {
+        final id = _audienceSelection.department?.id;
+        if (id != null) {
+          return {'targetType': 'DEPARTMENT', 'departmentId': id};
+        }
+        return {'targetType': 'ALL'};
+      }
+
       if (_audienceSelection.targetType == 'ALL') {
-        audiences.add({'targetType': 'ALL'});
+        audiences.add(
+          _userRole == AudienceUserRole.deptStaff
+              ? deptFallback()
+              : {'targetType': 'ALL'},
+        );
       } else if (_audienceSelection.targetType == 'PROGRAMME') {
         if (_audienceSelection.programme != null) {
           audiences.add({
@@ -285,17 +314,26 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
             'programmeId': _audienceSelection.programme!.id,
           });
         } else {
-          audiences.add({'targetType': 'ALL'});
+          audiences.add(
+            _userRole == AudienceUserRole.deptStaff
+                ? deptFallback()
+                : {'targetType': 'ALL'},
+          );
         }
       } else if (_audienceSelection.targetType == 'PROGRAMME_YEAR') {
-        if (_audienceSelection.programme != null && _audienceSelection.year != null) {
+        if (_audienceSelection.programme != null &&
+            _audienceSelection.year != null) {
           audiences.add({
             'targetType': 'PROGRAMME_YEAR',
             'programmeId': _audienceSelection.programme!.id,
             'yearOfStudy': _audienceSelection.year,
           });
         } else {
-          audiences.add({'targetType': 'ALL'});
+          audiences.add(
+            _userRole == AudienceUserRole.deptStaff
+                ? deptFallback()
+                : {'targetType': 'ALL'},
+          );
         }
       } else if (_audienceSelection.targetType == 'COLLEGE') {
         final collegeId = _audienceSelection.college?.id ?? _filterCollegeId;
@@ -308,14 +346,7 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
           audiences.add({'targetType': 'ALL'});
         }
       } else if (_audienceSelection.targetType == 'DEPARTMENT') {
-        if (_audienceSelection.department != null) {
-          audiences.add({
-            'targetType': 'DEPARTMENT',
-            'departmentId': _audienceSelection.department!.id,
-          });
-        } else {
-          audiences.add({'targetType': 'ALL'});
-        }
+        audiences.add(deptFallback());
       }
 
       // When no title is typed, promote the first line of the body to the

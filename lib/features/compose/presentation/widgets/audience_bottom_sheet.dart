@@ -31,12 +31,17 @@ class AudienceBottomSheet extends StatefulWidget {
   final AudienceSelection initialSelection;
   final AudienceUserRole userRole;
   final String? filterCollegeId;
+  /// When set (lecturer/staff), programmes are limited to this department.
+  final String? filterDepartmentId;
+  final String? lockedDepartmentName;
 
   const AudienceBottomSheet({
     Key? key,
     required this.initialSelection,
     required this.userRole,
     this.filterCollegeId,
+    this.filterDepartmentId,
+    this.lockedDepartmentName,
   }) : super(key: key);
 
   static Future<AudienceSelection?> show(
@@ -44,6 +49,8 @@ class AudienceBottomSheet extends StatefulWidget {
     required AudienceSelection initialSelection,
     required AudienceUserRole userRole,
     String? filterCollegeId,
+    String? filterDepartmentId,
+    String? lockedDepartmentName,
   }) {
     return showModalBottomSheet<AudienceSelection>(
       context: context,
@@ -53,6 +60,8 @@ class AudienceBottomSheet extends StatefulWidget {
         initialSelection: initialSelection,
         userRole: userRole,
         filterCollegeId: filterCollegeId,
+        filterDepartmentId: filterDepartmentId,
+        lockedDepartmentName: lockedDepartmentName,
       ),
     );
   }
@@ -68,6 +77,8 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
   Department? _department;
   int? _year;
 
+  bool get _isDeptStaff => widget.userRole == AudienceUserRole.deptStaff;
+
   @override
   void initState() {
     super.initState();
@@ -79,13 +90,34 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
   }
 
   void _onDone() {
+    // Dept staff must keep their department on DEPARTMENT target
+    final dept = _isDeptStaff
+        ? (widget.initialSelection.department ?? _department)
+        : _department;
+
+    if (_isDeptStaff) {
+      if (_targetType == 'PROGRAMME' && _programme == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Select a programme')),
+        );
+        return;
+      }
+      if (_targetType == 'PROGRAMME_YEAR' &&
+          (_programme == null || _year == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Select programme and year')),
+        );
+        return;
+      }
+    }
+
     Navigator.pop(
       context,
       AudienceSelection(
         targetType: _targetType,
         programme: _programme,
         college: _college,
-        department: _department,
+        department: dept,
         year: _year,
       ),
     );
@@ -103,12 +135,18 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
       onTap: () {
         setState(() {
           _targetType = value;
-          // Reset nested selections if completely changing types
           if (value == 'ALL') {
-             _programme = null;
-             _college = null;
-             _department = null;
-             _year = null;
+            _programme = null;
+            _college = null;
+            _department = null;
+            _year = null;
+          }
+          if (value == 'DEPARTMENT') {
+            _programme = null;
+            _year = null;
+          }
+          if (value == 'PROGRAMME') {
+            _year = null;
           }
         });
       },
@@ -140,7 +178,9 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final surface = Theme.of(context).colorScheme.surface;
-    
+    final deptLabel =
+        widget.lockedDepartmentName ?? _department?.name ?? 'your department';
+
     return Container(
       decoration: BoxDecoration(
         color: surface,
@@ -180,7 +220,10 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                     onPressed: _onDone,
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
-                      textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
                     ),
                     child: const Text('Save'),
                   )
@@ -193,6 +236,7 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // ── Admin ───────────────────────────────────────────
                     if (widget.userRole == AudienceUserRole.admin) ...[
                       _buildOptionRow(
                         value: 'ALL',
@@ -205,7 +249,8 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                         subtitle: 'Target a specific college',
                       ),
                     ],
-                    if (_targetType == 'COLLEGE' && widget.userRole == AudienceUserRole.admin)
+                    if (_targetType == 'COLLEGE' &&
+                        widget.userRole == AudienceUserRole.admin)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                         child: SearchableCollegeDropdown(
@@ -215,81 +260,152 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                         ),
                       ),
 
-                    // College Reps (DARUSO) can target their whole college
+                    // ── College rep ─────────────────────────────────────
                     if (widget.userRole == AudienceUserRole.collegeRep)
                       _buildOptionRow(
                         value: 'COLLEGE',
                         title: 'Whole College',
                         subtitle: 'All students in your college',
                       ),
-                    
-                    _buildOptionRow(
-                      value: 'DEPARTMENT',
-                      title: 'Specific Department',
-                      subtitle: 'Target a specific department',
-                    ),
-                    if (_targetType == 'DEPARTMENT')
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                        child: SearchableDepartmentDropdown(
-                          selectedDepartment: _department,
-                          onSelected: (d) => setState(() => _department = d),
-                          hint: 'Search and select a department',
-                          filterCollegeId: widget.filterCollegeId,
-                        ),
-                      ),
 
-                    _buildOptionRow(
-                      value: 'PROGRAMME',
-                      title: 'Specific Programme',
-                      subtitle: 'Target a degree programme',
-                    ),
-                    if (_targetType == 'PROGRAMME' || _targetType == 'PROGRAMME_YEAR')
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                        child: SearchableProgrammeDropdown(
-                          selectedProgramme: _programme,
-                          onSelected: (p) => setState(() => _programme = p),
-                          hint: 'Search and select a programme',
-                          filterCollegeId: widget.filterCollegeId,
-                        ),
+                    // ── Dept staff / lecturer ───────────────────────────
+                    if (_isDeptStaff) ...[
+                      _buildOptionRow(
+                        value: 'DEPARTMENT',
+                        title: 'Whole Department',
+                        subtitle: 'Everyone in $deptLabel',
                       ),
+                      _buildOptionRow(
+                        value: 'PROGRAMME',
+                        title: 'Specific Programme',
+                        subtitle: 'One degree programme in your department',
+                      ),
+                      if (_targetType == 'PROGRAMME' ||
+                          _targetType == 'PROGRAMME_YEAR')
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                          child: SearchableProgrammeDropdown(
+                            selectedProgramme: _programme,
+                            onSelected: (p) => setState(() => _programme = p),
+                            hint: 'Select programme in your department',
+                            filterDepartmentId: widget.filterDepartmentId,
+                            filterCollegeId: widget.filterCollegeId,
+                          ),
+                        ),
+                      _buildOptionRow(
+                        value: 'PROGRAMME_YEAR',
+                        title: 'Programme + Year',
+                        subtitle: 'e.g. Year 2 of a programme',
+                      ),
+                      if (_targetType == 'PROGRAMME_YEAR')
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                          child: DropdownButtonFormField<int>(
+                            value: _year,
+                            decoration: InputDecoration(
+                              hintText: 'Select Year of Study',
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            icon: const PhosphorIcon(
+                              PhosphorIconsRegular.caretDown,
+                              size: 20,
+                            ),
+                            items: List.generate(
+                              5,
+                              (index) => DropdownMenuItem(
+                                value: index + 1,
+                                child: Text('Year ${index + 1}'),
+                              ),
+                            ),
+                            onChanged: (val) {
+                              if (val != null) setState(() => _year = val);
+                            },
+                          ),
+                        ),
+                    ] else ...[
+                      // ── Admin / college rep: department option ───────
+                      if (widget.userRole != AudienceUserRole.classRep)
+                        _buildOptionRow(
+                          value: 'DEPARTMENT',
+                          title: 'Specific Department',
+                          subtitle: 'Target a specific department',
+                        ),
+                      if (_targetType == 'DEPARTMENT' &&
+                          widget.userRole != AudienceUserRole.classRep)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                          child: SearchableDepartmentDropdown(
+                            selectedDepartment: _department,
+                            onSelected: (d) => setState(() => _department = d),
+                            hint: 'Search and select a department',
+                            filterCollegeId: widget.filterCollegeId,
+                          ),
+                        ),
 
-                    _buildOptionRow(
-                      value: 'PROGRAMME_YEAR',
-                      title: 'Programme + Year',
-                      subtitle: 'Target a specific year group',
-                    ),
-                    if (_targetType == 'PROGRAMME_YEAR')
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                        child: DropdownButtonFormField<int>(
-                          value: _year,
-                          decoration: InputDecoration(
-                            hintText: 'Select Year of Study',
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2)),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.2)),
-                            ),
-                          ),
-                          icon: const PhosphorIcon(PhosphorIconsRegular.caretDown, size: 20),
-                          items: List.generate(
-                            5,
-                            (index) => DropdownMenuItem(
-                              value: index + 1,
-                              child: Text('Year ${index + 1}'),
-                            ),
-                          ),
-                          onChanged: (val) {
-                            if (val != null) setState(() => _year = val);
-                          },
+                      if (widget.userRole != AudienceUserRole.classRep)
+                        _buildOptionRow(
+                          value: 'PROGRAMME',
+                          title: 'Specific Programme',
+                          subtitle: 'Target a degree programme',
                         ),
-                      ),
+                      if ((_targetType == 'PROGRAMME' ||
+                              _targetType == 'PROGRAMME_YEAR') &&
+                          widget.userRole != AudienceUserRole.classRep)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                          child: SearchableProgrammeDropdown(
+                            selectedProgramme: _programme,
+                            onSelected: (p) => setState(() => _programme = p),
+                            hint: 'Search and select a programme',
+                            filterCollegeId: widget.filterCollegeId,
+                          ),
+                        ),
+
+                      if (widget.userRole != AudienceUserRole.classRep)
+                        _buildOptionRow(
+                          value: 'PROGRAMME_YEAR',
+                          title: 'Programme + Year',
+                          subtitle: 'Target a specific year group',
+                        ),
+                      if (_targetType == 'PROGRAMME_YEAR' &&
+                          widget.userRole != AudienceUserRole.classRep)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                          child: DropdownButtonFormField<int>(
+                            value: _year,
+                            decoration: InputDecoration(
+                              hintText: 'Select Year of Study',
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            icon: const PhosphorIcon(
+                              PhosphorIconsRegular.caretDown,
+                              size: 20,
+                            ),
+                            items: List.generate(
+                              5,
+                              (index) => DropdownMenuItem(
+                                value: index + 1,
+                                child: Text('Year ${index + 1}'),
+                              ),
+                            ),
+                            onChanged: (val) {
+                              if (val != null) setState(() => _year = val);
+                            },
+                          ),
+                        ),
+                    ],
                     const SizedBox(height: 20),
                   ],
                 ),

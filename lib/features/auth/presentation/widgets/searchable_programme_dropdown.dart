@@ -6,6 +6,7 @@ import '../providers/programme_provider.dart';
 class SearchableProgrammeDropdown extends ConsumerStatefulWidget {
   final Programme? selectedProgramme;
   final String? filterCollegeId;
+  final String? filterDepartmentId;
   final Function(Programme) onSelected;
   final String hint;
 
@@ -13,15 +14,18 @@ class SearchableProgrammeDropdown extends ConsumerStatefulWidget {
     Key? key,
     required this.selectedProgramme,
     this.filterCollegeId,
+    this.filterDepartmentId,
     required this.onSelected,
     this.hint = 'Select Programme',
   }) : super(key: key);
 
   @override
-  ConsumerState<SearchableProgrammeDropdown> createState() => _SearchableProgrammeDropdownState();
+  ConsumerState<SearchableProgrammeDropdown> createState() =>
+      _SearchableProgrammeDropdownState();
 }
 
-class _SearchableProgrammeDropdownState extends ConsumerState<SearchableProgrammeDropdown> {
+class _SearchableProgrammeDropdownState
+    extends ConsumerState<SearchableProgrammeDropdown> {
   final _searchController = TextEditingController();
   List<Programme> _filteredProgrammes = [];
 
@@ -75,20 +79,22 @@ class _SearchableProgrammeDropdownState extends ConsumerState<SearchableProgramm
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: _filteredProgrammes.length,
-                  itemBuilder: (context, index) {
-                    final programme = _filteredProgrammes[index];
-                    return ListTile(
-                      title: Text(programme.name),
-                      subtitle: Text(programme.code),
-                      onTap: () {
-                        widget.onSelected(programme);
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                ),
+                child: _filteredProgrammes.isEmpty
+                    ? const Center(child: Text('No programmes found'))
+                    : ListView.builder(
+                        itemCount: _filteredProgrammes.length,
+                        itemBuilder: (context, index) {
+                          final programme = _filteredProgrammes[index];
+                          return ListTile(
+                            title: Text(programme.name),
+                            subtitle: Text(programme.code),
+                            onTap: () {
+                              widget.onSelected(programme);
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
               ),
             ],
           ),
@@ -99,7 +105,11 @@ class _SearchableProgrammeDropdownState extends ConsumerState<SearchableProgramm
 
   @override
   Widget build(BuildContext context) {
-    final programmeAsync = ref.watch(programmeProvider(widget.filterCollegeId));
+    final query = ProgrammeQuery(
+      collegeId: widget.filterCollegeId,
+      departmentId: widget.filterDepartmentId,
+    );
+    final programmeAsync = ref.watch(programmeProvider(query));
 
     return InkWell(
       onTap: () {
