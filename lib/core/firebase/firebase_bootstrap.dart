@@ -12,9 +12,12 @@ import '../navigation/notification_navigation.dart';
 import '../notifications/notification_events.dart';
 import '../../navigation/app_router.dart';
 
-/// Android channel for heads-up popups (foreground local + FCM default).
-const String highImportanceChannelId = 'high_importance_channel';
-const String highImportanceChannelName = 'New notifications';
+/// Heads-up channel id — must match backend FCM `android.notification.channelId`.
+///
+/// Versioned (`_v2`) because Android never upgrades importance of an existing
+/// channel. If the old id was created without MAX importance, popups never show.
+const String highImportanceChannelId = 'udsm_alerts_v2';
+const String highImportanceChannelName = 'UDSM Alerts';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -26,9 +29,10 @@ bool _localNotificationsInitialized = false;
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await initLocalNotifications();
-  // FCM shows notification payload in tray when backgrounded; only mirror data-only messages.
+  // When FCM includes a `notification` payload, Android already posts it.
+  // For data-only messages, show a local heads-up ourselves.
   if (message.notification == null) {
-    await showForegroundLocalNotification(message);
+    await showLocalNotificationFromRemote(message);
   }
 }
 
@@ -43,11 +47,15 @@ Future<void> initLocalNotifications() async {
     onDidReceiveNotificationResponse: _onLocalNotificationTap,
   );
 
+  // MAX importance + sound/vibration → eligible for heads-up banner.
   const channel = AndroidNotificationChannel(
     highImportanceChannelId,
     highImportanceChannelName,
-    description: 'Post, event, and feedback alerts',
+    description: 'Urgent campus alerts: posts, announcements, feedback',
     importance: Importance.max,
+    playSound: true,
+    enableVibration: true,
+    showBadge: true,
   );
 
   final androidImpl = flutterLocalNotificationsPlugin
@@ -55,6 +63,9 @@ Future<void> initLocalNotifications() async {
   await androidImpl?.createNotificationChannel(channel);
 
   _localNotificationsInitialized = true;
+  if (kDebugMode) {
+    debugPrint('Local notifications ready (channel=$highImportanceChannelId)');
+  }
 }
 
 void _onLocalNotificationTap(NotificationResponse response) {
@@ -81,8 +92,21 @@ Future<void> bootstrapFirebase() async {
   await initLocalNotifications();
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
+  // High priority so OS delivers promptly (needed for heads-up eligibility).
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
   FirebaseMessaging.onMessage.listen((message) async {
-    await showForegroundLocalNotification(message);
+    if (kDebugMode) {
+      debugPrint(
+        'FCM foreground: title=${message.notification?.title} data=${message.data}',
+      );
+    }
+    // App open: system will NOT auto-show — we must post a local heads-up.
+    await showLocalNotificationFromRemote(message);
     requestUnreadRefresh();
   });
 
@@ -93,8 +117,6 @@ Future<void> bootstrapFirebase() async {
   }
 
   FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
-    // Only register the refreshed token if the user is already authenticated.
-    // Otherwise the API call will fail with 401 and be swallowed silently.
     final prefs = await SharedPreferences.getInstance();
     final storedToken = prefs.getString('auth_token');
     if (storedToken == null || storedToken.isEmpty) return;
@@ -111,23 +133,41 @@ Future<void> bootstrapFirebase() async {
 Future<void> ensureNotificationPermission() async {
   final androidImpl = flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-  if (androidImpl != null) {
-    await androidImpl.requestNotificationsPermission();
+
+  // Android 13+ runtime notification permission.
+  final granted = await androidImpl?.requestNotificationsPermission();
+  if (kDebugMode) {
+    debugPrint('POST_NOTIFICATIONS granted=$granted');
   }
 
-  await FirebaseMessaging.instance.requestPermission(
+  final settings = await FirebaseMessaging.instance.requestPermission(
     alert: true,
     badge: true,
     sound: true,
+    announcement: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
   );
+  if (kDebugMode) {
+    debugPrint('FCM permission: ${settings.authorizationStatus}');
+  }
+
+  // Ensure channel exists even if bootstrap order changes.
+  await initLocalNotifications();
 }
 
-Future<void> showForegroundLocalNotification(RemoteMessage message) async {
+/// Show a heads-up style local notification from an FCM [RemoteMessage].
+Future<void> showLocalNotificationFromRemote(RemoteMessage message) async {
   await initLocalNotifications();
 
   final notification = message.notification;
-  final title = notification?.title ?? 'Notification';
-  final body = notification?.body ?? '';
+  final title = notification?.title ??
+      message.data['title'] ??
+      'UDSM Connect';
+  final body = notification?.body ??
+      message.data['body'] ??
+      '';
 
   final type = message.data['type'] as String? ?? '';
   final targetId = message.data['targetId'] as String?;
@@ -137,21 +177,42 @@ Future<void> showForegroundLocalNotification(RemoteMessage message) async {
     if (targetId != null && targetId.isNotEmpty) 'targetId': targetId,
   });
 
-  const androidDetails = AndroidNotificationDetails(
+  final androidDetails = AndroidNotificationDetails(
     highImportanceChannelId,
     highImportanceChannelName,
-    channelDescription: 'Post, event, and feedback alerts',
+    channelDescription: 'Urgent campus alerts: posts, announcements, feedback',
     importance: Importance.max,
-    priority: Priority.high,
+    priority: Priority.max,
+    playSound: true,
+    enableVibration: true,
+    enableLights: true,
+    category: AndroidNotificationCategory.message,
+    visibility: NotificationVisibility.public,
+    ticker: title,
+    // Heads-up / banner when the phone is unlocked.
+    fullScreenIntent: false,
+    styleInformation: BigTextStyleInformation(
+      body.isEmpty ? title : body,
+      contentTitle: title,
+      summaryText: 'UDSM Connect',
+    ),
   );
 
+  // Unique id so concurrent alerts don't replace each other incorrectly.
+  final id = message.messageId?.hashCode ??
+      DateTime.now().millisecondsSinceEpoch.remainder(100000);
+
   await flutterLocalNotificationsPlugin.show(
-    message.hashCode,
+    id,
     title,
     body,
-    const NotificationDetails(android: androidDetails),
+    NotificationDetails(android: androidDetails),
     payload: payload,
   );
+
+  if (kDebugMode) {
+    debugPrint('Local heads-up shown: id=$id title=$title');
+  }
 }
 
 /// Registers the FCM token with the backend.
@@ -159,22 +220,28 @@ Future<void> showForegroundLocalNotification(RemoteMessage message) async {
 /// the backend will reject the request with 401.
 Future<void> registerFcmTokenIfPossible() async {
   try {
-    // Guard: don't attempt if no auth token is stored.
-    // This prevents a silent 401 failure on fresh installs before login.
     final prefs = await SharedPreferences.getInstance();
     final storedAuthToken = prefs.getString('auth_token');
     if (storedAuthToken == null || storedAuthToken.isEmpty) {
-      if (kDebugMode) debugPrint('FCM token registration skipped — user not authenticated');
+      if (kDebugMode) {
+        debugPrint('FCM token registration skipped — user not authenticated');
+      }
       return;
     }
 
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null || token.isEmpty) {
-      if (kDebugMode) debugPrint('FCM token registration skipped — no FCM token available (permission not granted?)');
+      if (kDebugMode) {
+        debugPrint(
+          'FCM token registration skipped — no FCM token (permission?)',
+        );
+      }
       return;
     }
     await NotificationRepository().registerToken(token);
-    if (kDebugMode) debugPrint('FCM token registered with backend: ${token.substring(0, 20)}...');
+    if (kDebugMode) {
+      debugPrint('FCM token registered with backend: ${token.substring(0, 20)}...');
+    }
   } catch (e) {
     if (kDebugMode) debugPrint('FCM token register failed: $e');
   }
@@ -187,7 +254,9 @@ Future<void> unregisterFcmTokenIfPossible() async {
     final prefs = await SharedPreferences.getInstance();
     final storedAuthToken = prefs.getString('auth_token');
     if (storedAuthToken == null || storedAuthToken.isEmpty) {
-      if (kDebugMode) debugPrint('FCM token unregister skipped — user not authenticated');
+      if (kDebugMode) {
+        debugPrint('FCM token unregister skipped — user not authenticated');
+      }
       return;
     }
 
@@ -199,7 +268,6 @@ Future<void> unregisterFcmTokenIfPossible() async {
       if (kDebugMode) debugPrint('FCM token unregister API failed: $e');
     }
 
-    // Drop local FCM token so a later login cannot reuse a stale association.
     await FirebaseMessaging.instance.deleteToken();
   } catch (e) {
     if (kDebugMode) debugPrint('FCM token unregister failed: $e');
