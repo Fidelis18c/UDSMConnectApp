@@ -9,7 +9,7 @@ import 'package:udsm_connect/features/auth/presentation/widgets/searchable_progr
 
 import '../../../../core/theme/app_colors.dart';
 
-enum AudienceUserRole { admin, collegeRep, classRep }
+enum AudienceUserRole { admin, collegeRep, classRep, deptStaff }
 
 class AudienceSelection {
   final String targetType;

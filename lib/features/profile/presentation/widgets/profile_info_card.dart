@@ -69,6 +69,10 @@ class ProfileInfoCard extends StatelessWidget {
           Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
           ProfilePersonalRow(label: 'Programme', value: user.programme),
           Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
+          if (user.department.trim().isNotEmpty && user.department != 'N/A') ...[
+            ProfilePersonalRow(label: 'Department', value: user.department),
+            Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
+          ],
           ProfilePersonalRow(label: 'College', value: user.college),
           Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
           ProfilePersonalRow(label: 'E-mail', value: user.email),

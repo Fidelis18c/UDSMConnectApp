@@ -13,6 +13,7 @@ import 'package:udsm_connect/features/announcements/data/posts_repository.dart';
 import 'package:udsm_connect/features/announcements/presentation/providers/announcements_provider.dart';
 import 'package:udsm_connect/features/auth/data/users_repository.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
+import 'package:udsm_connect/core/models/department.dart';
 import 'package:udsm_connect/core/models/programme.dart';
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
 import 'package:udsm_connect/core/models/post.dart';
@@ -73,16 +74,28 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
       final userProfile = await ref.read(usersRepositoryProvider).fetchUser(user.id);
       if (!mounted) return;
       
-      final roles = userProfile.roleNames.map((r) => r.toLowerCase()).toList();
+      final roles = userProfile.roleNames.map((r) => r.toLowerCase().replaceAll('_', ' ')).toList();
       if (roles.isEmpty && userProfile.roleName != null) {
-        roles.add(userProfile.roleName!.toLowerCase());
+        roles.add(userProfile.roleName!.toLowerCase().replaceAll('_', ' '));
       }
-      
-      bool isAdmin = roles.any((r) => r.contains('admin') || r.contains('staff'));
-      bool isClassRep = roles.any((r) => r.contains('class') || r.contains('representative'));
-      bool isCollegeRep = roles.any((r) => r.contains('daruso') || r.contains('college'));
 
-      if (isAdmin) {
+      // Platform admins only — staff/lecturer are department-scoped.
+      final isElevatedAdmin = roles.any(
+        (r) => r == 'admin' || r.contains('super admin'),
+      );
+      final isClassRep = roles.any(
+        (r) =>
+            (r.contains('class') && r.contains('rep')) ||
+            r.contains('class representative'),
+      );
+      final isCollegeRep = roles.any(
+        (r) => r.contains('daruso') || r.contains('college rep') || r.contains('college leader'),
+      );
+      final isDeptStaff = roles.any(
+        (r) => r == 'staff' || r.contains('lecturer') || r.contains('department staff'),
+      );
+
+      if (isElevatedAdmin) {
         setState(() {
           _userRole = AudienceUserRole.admin;
         });
@@ -92,11 +105,16 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
           _isAudienceLocked = true;
           _lockedLabel = '${userProfile.programmeName ?? 'Class'} - Year ${userProfile.yearOfStudy ?? '?'}';
           _lockedNotice = 'Your role restricts targeting to your class only.';
-          
-          final programme = userProfile.programmeId != null 
-              ? Programme(id: userProfile.programmeId!, code: userProfile.programmeName ?? 'Class', name: userProfile.programmeName ?? '', durationYears: 3)
+
+          final programme = userProfile.programmeId != null
+              ? Programme(
+                  id: userProfile.programmeId!,
+                  code: userProfile.programmeName ?? 'Class',
+                  name: userProfile.programmeName ?? '',
+                  durationYears: 3,
+                )
               : null;
-              
+
           _audienceSelection = AudienceSelection(
             targetType: 'PROGRAMME_YEAR',
             programme: programme,
@@ -107,9 +125,30 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
         setState(() {
           _userRole = AudienceUserRole.collegeRep;
           _filterCollegeId = userProfile.collegeId;
-          // Default to targeting the whole college — they can narrow it down to
-          // a Department or Programme from the audience sheet if desired.
           _audienceSelection = AudienceSelection(targetType: 'COLLEGE');
+        });
+      } else if (isDeptStaff) {
+        // Lecturers / department staff → posts stay in their department.
+        final dept = userProfile.departmentId != null
+            ? Department(
+                id: userProfile.departmentId!,
+                name: userProfile.departmentName ?? 'Department',
+                shortName: userProfile.departmentName ?? 'Dept',
+                collegeId: userProfile.collegeId ?? '',
+              )
+            : null;
+        setState(() {
+          _userRole = AudienceUserRole.deptStaff;
+          _isAudienceLocked = true;
+          _filterCollegeId = userProfile.collegeId;
+          _lockedLabel = userProfile.departmentName ?? 'Your department';
+          _lockedNotice = dept == null
+              ? 'Ask an admin to assign your department before posting.'
+              : 'Your posts are visible to students and staff in this department only.';
+          _audienceSelection = AudienceSelection(
+            targetType: 'DEPARTMENT',
+            department: dept,
+          );
         });
       }
     } catch (_) {
@@ -161,8 +200,11 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
     // Hide keyboard
     FocusScope.of(context).unfocus();
     
-    if (_userRole == AudienceUserRole.classRep) return;
-    
+    if (_userRole == AudienceUserRole.classRep ||
+        _userRole == AudienceUserRole.deptStaff) {
+      return;
+    }
+
     final result = await AudienceBottomSheet.show(
       context, 
       initialSelection: _audienceSelection,

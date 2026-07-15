@@ -9,8 +9,10 @@ class UserProfile {
   final String email;
   final String? registrationNumber;
   final String? collegeId;
+  final String? departmentId;
   final String? programmeId;
   final String? collegeName;
+  final String? departmentName;
   final String? programmeName;
   final int? yearOfStudy;
   final String? roleName;
@@ -25,8 +27,10 @@ class UserProfile {
     required this.email,
     this.registrationNumber,
     this.collegeId,
+    this.departmentId,
     this.programmeId,
     this.collegeName,
+    this.departmentName,
     this.programmeName,
     this.yearOfStudy,
     this.roleName,
@@ -39,6 +43,7 @@ class UserProfile {
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     final yearRaw = json['yearOfStudy'];
     final college = json['college'] as Map<String, dynamic>?;
+    final department = json['department'] as Map<String, dynamic>?;
     final programme = json['programme'] as Map<String, dynamic>?;
     return UserProfile(
       id: json['id'] as String,
@@ -46,8 +51,10 @@ class UserProfile {
       email: json['email'] as String? ?? '',
       registrationNumber: json['registrationNumber'] as String?,
       collegeId: json['collegeId'] as String?,
+      departmentId: json['departmentId'] as String? ?? department?['id'] as String?,
       programmeId: json['programmeId'] as String?,
       collegeName: college?['name'] as String?,
+      departmentName: department?['name'] as String? ?? department?['shortName'] as String?,
       programmeName: programme?['name'] as String?,
       yearOfStudy: yearRaw is int ? yearRaw : int.tryParse('$yearRaw'),
       roleName: json['roleName'] as String?,

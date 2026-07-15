@@ -41,6 +41,7 @@ class UserData {
     'admin',
     'daruso leader',
     'staff',
+    'lecturer',
     'super admin',
     'class representative',
   };
@@ -60,23 +61,48 @@ class UserData {
   bool get isStaff =>
       roleNames.any((r) => r.toLowerCase().replaceAll('_', ' ') == 'staff');
 
+  bool get isLecturer =>
+      roleNames.any((r) => r.toLowerCase().replaceAll('_', ' ').contains('lecturer'));
+
+  /// Lecturer or general staff (not admin) — department-scoped in compose.
+  bool get isDepartmentStaff => isLecturer || isStaff;
+
   bool get isClassRepresentative =>
       roleNames.any((r) => r.toLowerCase().replaceAll('_', ' ') == 'class representative');
 
   bool get hasPrivilegedRole => !isStudent;
 
   bool get canPostNews {
-    final allowedRoles = {'admin', 'super admin', 'daruso leader', 'staff', 'college rep', 'college representative'};
+    final allowedRoles = {
+      'admin',
+      'super admin',
+      'daruso leader',
+      'staff',
+      'lecturer',
+      'college rep',
+      'college representative',
+      'class representative',
+    };
     final lower = roleNames.map((r) => r.toLowerCase().replaceAll('_', ' ')).toSet();
-    return lower.intersection(allowedRoles).isNotEmpty;
+    return lower.intersection(allowedRoles).isNotEmpty ||
+        lower.any((r) => r.contains('lecturer') || r.contains('class rep'));
   }
 
-  /// Only admins, staff, and DARUSO/college leaders can add Stories.
+  /// Only admins, staff/lecturers, and DARUSO/college leaders can add Stories.
   /// Class Representatives are explicitly excluded.
   bool get canAddStories {
-    final allowedRoles = {'admin', 'super admin', 'daruso leader', 'staff', 'college rep', 'college representative'};
+    final allowedRoles = {
+      'admin',
+      'super admin',
+      'daruso leader',
+      'staff',
+      'lecturer',
+      'college rep',
+      'college representative',
+    };
     final lower = roleNames.map((r) => r.toLowerCase().replaceAll('_', ' ')).toSet();
-    return lower.intersection(allowedRoles).isNotEmpty;
+    return lower.intersection(allowedRoles).isNotEmpty ||
+        lower.any((r) => r.contains('lecturer'));
   }
 
   // -----------------------------------------------
