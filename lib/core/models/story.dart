@@ -40,10 +40,12 @@ class StoryCollege {
   });
 
   factory StoryCollege.fromJson(Map<String, dynamic> json) {
+    final name = json['name'] as String? ?? 'College';
+    final short = json['shortName'] as String? ?? json['short_name'] as String?;
     return StoryCollege(
       id: json['id'] as String,
-      name: json['name'] as String,
-      shortName: json['shortName'] as String,
+      name: name,
+      shortName: (short != null && short.isNotEmpty) ? short : name,
     );
   }
 }
