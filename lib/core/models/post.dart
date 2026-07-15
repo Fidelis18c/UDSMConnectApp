@@ -38,25 +38,49 @@ class Post {
     this.isPinned = false,
   });
 
+  /// Lower rank = more prominent badge (student last / ignored).
+  static int _rolePriority(String name) {
+    final x = name.toLowerCase().replaceAll('_', ' ').trim();
+    if (x == 'admin' || x == 'super admin' || x.contains('super admin')) return 0;
+    if (x.contains('daruso') || x.contains('college rep') || x.contains('college leader')) {
+      return 1;
+    }
+    if (x.contains('class representative') || x.contains('class rep') || x == 'cr') {
+      return 2;
+    }
+    if (x.contains('lecturer')) return 3;
+    if (x == 'staff' || x.contains('department staff')) return 4;
+    if (x.contains('sports')) return 5;
+    if (x == 'student' || x.isEmpty) return 100;
+    return 50;
+  }
+
   /// Picks the most prominent non-student role from the author's roles array.
   static String? _extractAuthorRole(Map<String, dynamic>? author) {
     if (author == null) return null;
+    final names = <String>[];
     final roles = author['roles'] as List<dynamic>?;
     if (roles != null) {
       for (final r in roles) {
         if (r is Map<String, dynamic>) {
           final name = (r['name'] as String?)?.trim() ?? '';
-          if (name.isNotEmpty && name.toLowerCase() != 'student') return name;
+          if (name.isNotEmpty) names.add(name);
+        } else if (r is String && r.trim().isNotEmpty) {
+          names.add(r.trim());
         }
       }
     }
-    // Single-role fallback
     final single = author['roleName'] as String?
         ?? (author['role'] is Map
             ? (author['role'] as Map<String, dynamic>)['name'] as String?
             : author['role'] as String?);
-    if (single != null && single.toLowerCase() != 'student') return single;
-    return null;
+    if (single != null && single.trim().isNotEmpty) names.add(single.trim());
+
+    if (names.isEmpty) return null;
+    names.sort((a, b) => _rolePriority(a).compareTo(_rolePriority(b)));
+    final best = names.first;
+    if (_rolePriority(best) >= 100) return null;
+    return best;
   }
 
   String get subtitleHandle {

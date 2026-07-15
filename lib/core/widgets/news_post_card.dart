@@ -359,23 +359,35 @@ class _RoleChip extends StatelessWidget {
   const _RoleChip({required this.role});
   final String role;
 
-  static const _map = <String, (String, Color)>{
-    'class representative': ('CR', Color(0xFF1565C0)),
-    'daruso':               ('DARUSO', Color(0xFF1B5E20)),
-    'lecturer':             ('Lecturer', Color(0xFF4A148C)),
-    'staff':                ('Lecturer', Color(0xFF4A148C)),
-    'admin':                ('Admin', Color(0xFF37474F)),
-    'super admin':          ('Admin', Color(0xFF37474F)),
-  };
+  /// Ordered most-specific first so e.g. "class representative" wins over loose matches.
+  static const _rules = <(String match, String label, Color color)>[
+    ('super admin', 'Admin', Color(0xFF37474F)),
+    ('admin', 'Admin', Color(0xFF37474F)),
+    ('class representative', 'CR', Color(0xFF1565C0)),
+    ('class rep', 'CR', Color(0xFF1565C0)),
+    ('daruso', 'DARUSO', Color(0xFF1B5E20)),
+    ('college rep', 'College', Color(0xFF1B5E20)),
+    ('college leader', 'College', Color(0xFF1B5E20)),
+    ('lecturer', 'Lecturer', Color(0xFF4A148C)),
+    ('staff', 'Staff', Color(0xFF6A1B9A)),
+    ('sports', 'Sports', Color(0xFFE65100)),
+  ];
+
+  static (String, Color)? resolve(String role) {
+    final key = role.toLowerCase().replaceAll('_', ' ').trim();
+    if (key == 'cr') return ('CR', const Color(0xFF1565C0));
+    if (key == 'student' || key.isEmpty) return null;
+    for (final rule in _rules) {
+      if (key == rule.$1 || key.contains(rule.$1)) {
+        return (rule.$2, rule.$3);
+      }
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Normalize string by replacing underscores with spaces
-    final key = role.toLowerCase().replaceAll('_', ' ').trim();
-    final match = _map.entries
-        .where((e) => key.contains(e.key) || key == 'cr')
-        .map((e) => e.value)
-        .firstOrNull;
+    final match = resolve(role);
     if (match == null) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
