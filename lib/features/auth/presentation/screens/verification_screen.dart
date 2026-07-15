@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../navigation/route_names.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/otp_digit_box.dart';
 import '../providers/auth_provider.dart';
-
-const _studentMailUrl = 'https://studentmail.udsm.ac.tz/';
 
 class VerificationScreen extends ConsumerStatefulWidget {
   const VerificationScreen({Key? key}) : super(key: key);
@@ -80,7 +77,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
       SnackBar(
         content: Text(
           ok
-              ? 'A new code was sent if the email is registered.'
+              ? 'A new code was sent if the email is registered. Check inbox and spam.'
               : (ref.read(authProvider).error ?? 'Could not resend code'),
         ),
       ),
@@ -115,14 +112,14 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                     children: [
                       const SizedBox(height: 48),
                       Text(
-                        isEmailVerify ? 'Verify webmail' : 'Verification',
+                        isEmailVerify ? 'Verify email' : 'Verification',
                         style: Theme.of(context).textTheme.displayLarge,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         isEmailVerify
-                            ? 'Enter the 6-digit code sent to your UDSM student mail'
+                            ? 'Enter the 6-digit code sent to your email'
                             : 'Enter the 6-digit code sent to your email',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -143,28 +140,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                                   ),
                         ),
                       ],
-                      if (isEmailVerify) ...[
-                        const SizedBox(height: 12),
-                        TextButton.icon(
-                          onPressed: () async {
-                            final uri = Uri.parse(_studentMailUrl);
-                            await launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          },
-                          icon: const Icon(Icons.open_in_new, size: 18),
-                          label: const Text('Open student mail'),
-                        ),
-                        Text(
-                          _studentMailUrl,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                        ),
-                      ],
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 48),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: List.generate(6, (index) {
@@ -190,9 +166,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                         padding: const EdgeInsets.only(bottom: 24),
                         child: Center(
                           child: Text(
-                            isEmailVerify
-                                ? 'Log in at studentmail.udsm.ac.tz to read the code. Activate the mailbox first if this is your first login.'
-                                : 'Check spam if the code is missing.',
+                            'Check spam/junk if you do not see the email.',
                             textAlign: TextAlign.center,
                             style: Theme.of(context)
                                 .textTheme

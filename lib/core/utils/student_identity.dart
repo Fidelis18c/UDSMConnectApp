@@ -1,14 +1,10 @@
-/// Client-side mirror of backend UDSM student identity rules.
+/// Client-side registration validation.
 ///
-/// Email: name.surname_YY@student.udsm.ac.tz
-/// Portal: https://studentmail.udsm.ac.tz/
+/// Email: any valid address (campus student webmail SMTP is unreliable).
+/// Reg: YYYY-XX-NNNNN (e.g. 2022-04-13802).
 class StudentIdentity {
-  static const studentEmailDomain = 'student.udsm.ac.tz';
   static final regNumberPattern = RegExp(r'^(\d{4})-(\d{2})-(\d{5,})$');
-  static final studentEmailPattern = RegExp(
-    r'^[a-z0-9]+(?:[._][a-z0-9]+)*_(\d{2})@student\.udsm\.ac\.tz$',
-    caseSensitive: false,
-  );
+  static final emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
   static String normalizeEmail(String email) => email.trim().toLowerCase();
 
@@ -28,24 +24,8 @@ class StudentIdentity {
       return 'Registration number must look like 2022-04-13802 (YYYY-XX-NNNNN).';
     }
 
-    if (!mail.endsWith('@$studentEmailDomain')) {
-      return 'Use your official UDSM student mail ending with @student.udsm.ac.tz '
-          '(login at studentmail.udsm.ac.tz).';
-    }
-
-    final emailMatch = studentEmailPattern.firstMatch(mail);
-    if (emailMatch == null) {
-      return 'Student email must look like firstname.lastname_YY@student.udsm.ac.tz '
-          '(e.g. samuel.hebron_22@student.udsm.ac.tz).';
-    }
-
-    final admissionYear = regMatch.group(1)!;
-    final expectedYy = admissionYear.substring(admissionYear.length - 2);
-    final emailYy = emailMatch.group(1)!;
-
-    if (emailYy != expectedYy) {
-      return 'Your email year (_$emailYy) must match your registration year '
-          '($admissionYear → _$expectedYy). Use the address from studentmail.udsm.ac.tz.';
+    if (!emailPattern.hasMatch(mail)) {
+      return 'Enter a valid email address (e.g. you@gmail.com).';
     }
 
     return null;

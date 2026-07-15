@@ -88,7 +88,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           SnackBar(
             content: Text(
               warn ??
-                  'Account created. Enter the code sent to your UDSM webmail.',
+                  'Account created. Enter the code sent to your email.',
             ),
             duration: Duration(seconds: warn != null ? 8 : 4),
           ),
@@ -191,14 +191,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 16),
                   UdsmTextField(
                     controller: _emailController,
-                    hint: 'Student mail (name.surname_YY@student.udsm.ac.tz)',
+                    hint: 'Email (e.g. you@gmail.com)',
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.email_outlined,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Use @student.udsm.ac.tz (same login as studentmail.udsm.ac.tz). '
-                    'The _YY year must match your registration year (e.g. 2022 → _22).',
+                    'Use any working email (Gmail, Yahoo, Outlook, etc.). '
+                    'You will receive a 6-digit code there before you can log in.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
@@ -220,7 +220,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'After signup, open https://studentmail.udsm.ac.tz/ and enter the verification code before you can log in.',
+                    'After signup, check your email inbox for the verification code.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
