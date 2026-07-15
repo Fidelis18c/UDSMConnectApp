@@ -74,7 +74,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         SnackBar(
           content: Text(
             authState.error ??
-                'Verify your UDSM webmail to continue.',
+                'Verify your UDSM student mail (studentmail.udsm.ac.tz) to continue.',
           ),
         ),
       );

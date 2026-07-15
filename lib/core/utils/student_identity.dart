@@ -25,7 +25,8 @@ class StudentIdentity {
     }
 
     if (!mail.endsWith('@udsm.ac.tz')) {
-      return 'Use your official UDSM student webmail ending with @udsm.ac.tz.';
+      return 'Use your official UDSM student mail ending with @udsm.ac.tz '
+          '(login at studentmail.udsm.ac.tz).';
     }
 
     final emailMatch = studentEmailPattern.firstMatch(mail);
@@ -40,7 +41,7 @@ class StudentIdentity {
 
     if (emailYy != expectedYy) {
       return 'Your email year (_$emailYy) must match your registration year '
-          '($admissionYear → _$expectedYy). Use your official UDSM student webmail.';
+          '($admissionYear → _$expectedYy). Use the address from studentmail.udsm.ac.tz.';
     }
 
     return null;

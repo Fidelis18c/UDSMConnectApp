@@ -191,13 +191,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 16),
                   UdsmTextField(
                     controller: _emailController,
-                    hint: 'UDSM webmail (name.surname_YY@udsm.ac.tz)',
+                    hint: 'Student mail (name.surname_YY@udsm.ac.tz)',
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.email_outlined,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Must be your official student webmail. The _YY year must match your registration year (e.g. 2022 → _22).',
+                    'Use your official UDSM student address (same login as studentmail.udsm.ac.tz). '
+                    'The _YY year must match your registration year (e.g. 2022 → _22).',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
@@ -219,7 +220,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'After signup you must enter a code sent to your UDSM webmail before you can log in.',
+                    'After signup, open https://studentmail.udsm.ac.tz/ and enter the verification code before you can log in.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)

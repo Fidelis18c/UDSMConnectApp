@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../navigation/route_names.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/otp_digit_box.dart';
 import '../providers/auth_provider.dart';
+
+const _studentMailUrl = 'https://studentmail.udsm.ac.tz/';
 
 class VerificationScreen extends ConsumerStatefulWidget {
   const VerificationScreen({Key? key}) : super(key: key);
@@ -119,7 +122,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                       const SizedBox(height: 8),
                       Text(
                         isEmailVerify
-                            ? 'Enter the 6-digit code sent to your UDSM webmail'
+                            ? 'Enter the 6-digit code sent to your UDSM student mail'
                             : 'Enter the 6-digit code sent to your email',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -140,7 +143,28 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                                   ),
                         ),
                       ],
-                      const SizedBox(height: 48),
+                      if (isEmailVerify) ...[
+                        const SizedBox(height: 12),
+                        TextButton.icon(
+                          onPressed: () async {
+                            final uri = Uri.parse(_studentMailUrl);
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          icon: const Icon(Icons.open_in_new, size: 18),
+                          label: const Text('Open student mail'),
+                        ),
+                        Text(
+                          _studentMailUrl,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                      ],
+                      const SizedBox(height: 32),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: List.generate(6, (index) {
@@ -167,7 +191,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                         child: Center(
                           child: Text(
                             isEmailVerify
-                                ? 'Open studentmail.udsm.ac.tz if you do not see the email.'
+                                ? 'Log in at studentmail.udsm.ac.tz to read the code. Activate the mailbox first if this is your first login.'
                                 : 'Check spam if the code is missing.',
                             textAlign: TextAlign.center,
                             style: Theme.of(context)
