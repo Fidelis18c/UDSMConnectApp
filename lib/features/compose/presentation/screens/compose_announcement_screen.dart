@@ -221,20 +221,12 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
 
     try {
       final postsRepo = ref.read(postsRepositoryProvider);
-      final announcementsRepo = ref.read(announcementsRepositoryProvider);
-      final usersRepo = ref.read(usersRepositoryProvider);
 
-      UserProfile? profile;
-      try {
-        profile = await usersRepo.fetchUser(user.id);
-      } catch (_) {
-        profile = null;
-      }
-
+      // Audience was already resolved in _checkRoleRestriction — no extra /users/me call.
       String? coverImageId;
       final bytes = _imageBytes;
       if (bytes != null && bytes.isNotEmpty) {
-        coverImageId = await announcementsRepo.uploadMediaBytes(
+        coverImageId = await ref.read(announcementsRepositoryProvider).uploadMediaBytes(
           bytes,
           filename: _imageFilename ?? 'cover.jpg',
         );
@@ -296,7 +288,7 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
 
       final excerpt = finalBody.length > 500 ? finalBody.substring(0, 500) : finalBody;
 
-      await postsRepo.createPost(
+      final postId = await postsRepo.createPost(
         title: finalTitle,
         content: finalBody,
         excerpt: excerpt,
@@ -306,9 +298,23 @@ class _ComposeAnnouncementScreenState extends ConsumerState<ComposeAnnouncementS
         type: widget.postType ?? 'POST',
       );
 
-      await ref.read(announcementsProvider.notifier).refresh();
+      // Instant UI: show post + leave compose; full feed refresh is background-only.
+      ref.read(announcementsProvider.notifier).prependLocal(
+            Post(
+              id: postId,
+              title: finalTitle,
+              text: finalBody,
+              authorId: user.id,
+              authorName: user.fullName,
+              authorRole: user.roleNames.isNotEmpty ? user.roleNames.first : null,
+              timestamp: DateTime.now(),
+            ),
+          );
+
       if (!mounted) return;
       context.pop();
+      // ignore: unawaited_futures
+      ref.read(announcementsProvider.notifier).refresh();
     } on DioException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -47,21 +47,22 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
       final mediaRepo = MediaRepository();
       final media = await mediaRepo.uploadBytes(_selectedBytes!, _selectedFile!.name);
 
-      // 2. Create story
+      // 2. Create story (server returns immediately; FCM runs after response)
       final storyRepo = StoryRepository();
       await storyRepo.createStory(
         media.id,
         caption: _captionController.text.trim(),
       );
 
-      // 3. Refresh Provider and close
-      ref.read(storiesProvider.notifier).refresh();
+      // 3. Close immediately; refresh tray in the background
       if (mounted) {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Story published successfully!')),
         );
       }
+      // ignore: unawaited_futures
+      ref.read(storiesProvider.notifier).refresh();
     } catch (e) {
       if (mounted) {
         String errMsg = e.toString();
