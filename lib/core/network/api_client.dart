@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiClient {
   /// Base URL is injected at build/run time via --dart-define=API_BASE_URL=...
@@ -22,8 +23,10 @@ class ApiClient {
     dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        // Snappier failure on bad networks; avoid 30s stalls on every call.
+        connectTimeout: const Duration(seconds: 12),
+        receiveTimeout: const Duration(seconds: 20),
+        sendTimeout: const Duration(seconds: 20),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -31,14 +34,16 @@ class ApiClient {
       ),
     );
 
-    // Add interceptors for logging and token handling
-    dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        error: true,
-      ),
-    );
+    // Verbose body logging is expensive on device — debug only.
+    if (kDebugMode) {
+      dio.interceptors.add(
+        LogInterceptor(
+          requestBody: false,
+          responseBody: false,
+          error: true,
+        ),
+      );
+    }
   }
 
   void setToken(String token) {

@@ -22,7 +22,7 @@ class StoriesNotifier extends AsyncNotifier<List<Story>> {
   }
 
   Future<void> refresh() async {
-    state = const AsyncLoading();
+    // Keep tray visible during refresh for smoother pull-to-refresh.
     state = await AsyncValue.guard(() => StoryRepository().fetchStories());
   }
 }

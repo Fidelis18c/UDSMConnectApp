@@ -17,8 +17,9 @@ class AnnouncementsNotifier extends AsyncNotifier<List<Post>> {
   }
 
   Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _posts.fetchFeed(page: 1, pageSize: 20));
+    // Keep previous list visible while refreshing (no full-screen flicker).
+    final next = await AsyncValue.guard(() => _posts.fetchFeed(page: 1, pageSize: 20));
+    state = next;
   }
 
   void prependLocal(Post post) {
