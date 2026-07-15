@@ -246,26 +246,60 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                   Expanded(
                     child: Align(
                       alignment: Alignment.centerRight,
-                      child: IconButton(
-                        onPressed: () {
-                          final isDark =
-                              ref.read(themeProvider) == ThemeMode.dark;
-                          ref.read(themeProvider.notifier).toggleTheme();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(isDark
-                                  ? 'Switched to light mode'
-                                  : 'Switched to dark mode'),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        visualDensity: VisualDensity.compact,
+                      child: PopupMenuButton<String>(
                         icon: PhosphorIcon(
                           PhosphorIconsRegular.gearSix,
                           size: 24,
                           color: AppColors.textSecondary,
                         ),
+                        color: Theme.of(context).colorScheme.surface,
+                        onSelected: (value) async {
+                          if (value == 'theme') {
+                            ref.read(themeProvider.notifier).toggleTheme();
+                          } else if (value == 'logout') {
+                            await ref.read(authProvider.notifier).logout();
+                            if (context.mounted) {
+                              context.goNamed(RouteNames.login);
+                            }
+                          }
+                        },
+                        itemBuilder: (context) {
+                          final isDark = ref.read(themeProvider) == ThemeMode.dark;
+                          final itemColor = Theme.of(context).colorScheme.onSurface;
+                          return [
+                            PopupMenuItem(
+                              value: 'theme',
+                              child: Row(
+                                children: [
+                                  PhosphorIcon(
+                                    isDark ? PhosphorIconsRegular.sun : PhosphorIconsRegular.moon,
+                                    color: itemColor,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    isDark ? 'Light mode' : 'Dark mode',
+                                    style: TextStyle(color: itemColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'logout',
+                              child: Row(
+                                children: [
+                                  PhosphorIcon(
+                                    PhosphorIconsRegular.signOut,
+                                    color: itemColor,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text('Logout', style: TextStyle(color: itemColor)),
+                                ],
+                              ),
+                            ),
+                          ];
+                        },
                       ),
                     ),
                   ),

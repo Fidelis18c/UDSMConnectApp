@@ -121,6 +121,10 @@ class NotificationRepository {
     await _api.dio.put('/notifications/read-all');
   }
 
+  Future<void> deleteNotification(String id) async {
+    await _api.dio.delete('/notifications/$id');
+  }
+
   Future<NotificationPreferences> getPreferences() async {
     final response = await _api.dio.get('/notifications/preferences');
     final data = response.data['data'] as Map<String, dynamic>? ?? {};

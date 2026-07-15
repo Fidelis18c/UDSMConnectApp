@@ -35,6 +35,11 @@ class NotificationsNotifier extends AsyncNotifier<List<NotificationItem>> {
     await _repo.markAllRead();
     await refresh();
   }
+
+  Future<void> deleteNotification(String id) async {
+    await _repo.deleteNotification(id);
+    await refresh();
+  }
 }
 
 final notificationsProvider =

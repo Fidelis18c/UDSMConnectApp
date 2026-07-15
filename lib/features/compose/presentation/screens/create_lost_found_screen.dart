@@ -164,108 +164,7 @@ class _CreateLostFoundScreenState
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── Image Picker ─────────────────────────────────────────
-              if (_selectedImages.isEmpty)
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: Container(
-                    height: 180,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF161616),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.divider),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.camera_alt_outlined,
-                        size: 40,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      height: 120,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _selectedImages.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == _selectedImages.length) {
-                            if (_selectedImages.length >= 5) return const SizedBox();
-                            return GestureDetector(
-                              onTap: _pickImage,
-                              child: Container(
-                                width: 100,
-                                margin: const EdgeInsets.only(left: 12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF161616),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: AppColors.primary.withAlpha(50),
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: Icon(Icons.add,
-                                      color: AppColors.primary, size: 32),
-                                ),
-                              ),
-                            );
-                          }
-                          return FutureBuilder<Uint8List>(
-                            future: _selectedImages[index].readAsBytes(),
-                            builder: (context, snapshot) {
-                              return Container(
-                                width: 120,
-                                margin: EdgeInsets.only(left: index == 0 ? 0 : 12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1A1A1A),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                clipBehavior: Clip.antiAlias,
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    if (snapshot.hasData)
-                                      Image.memory(snapshot.data!,
-                                          fit: BoxFit.cover)
-                                    else
-                                      const Center(
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2),
-                                      ),
-                                    Positioned(
-                                      top: 4,
-                                      right: 4,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedImages.removeAt(index);
-                                          });
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.black54,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(Icons.close,
-                                              color: Colors.white, size: 16),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+              // Top image picker removed
               const SizedBox(height: 32),
 
               // ── Form Fields ──────────────────────────────────────────
@@ -319,6 +218,72 @@ class _CreateLostFoundScreenState
                 controller: _descController,
                 hint: 'Additional details (color, brand, distinguishing marks)...',
                 maxLines: 4,
+              ),
+              if (_selectedImages.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 120,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _selectedImages.length,
+                    itemBuilder: (context, index) {
+                      return FutureBuilder<Uint8List>(
+                        future: _selectedImages[index].readAsBytes(),
+                        builder: (context, snapshot) {
+                          return Container(
+                            width: 120,
+                            margin: EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1A1A1A),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (snapshot.hasData)
+                                  Image.memory(snapshot.data!, fit: BoxFit.cover)
+                                else
+                                  const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedImages.removeAt(index);
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.close, color: Colors.white, size: 16),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  onPressed: _pickImage,
+                  icon: Icon(
+                    Icons.image_outlined,
+                    size: 28,
+                    color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
 

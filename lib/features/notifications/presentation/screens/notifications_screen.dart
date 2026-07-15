@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:udsm_connect/core/navigation/notification_navigation.dart';
 import 'package:udsm_connect/core/theme/app_colors.dart';
@@ -132,12 +133,21 @@ class _NotificationCard extends ConsumerWidget {
     final typeIcon = notificationTypeIcon(item.type);
     final typeColor = notificationTypeColor(item.type);
     
-    return InkWell(
-      onTap: () => _handleTap(context, ref),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _handleTap(context, ref),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12.0, 12.0, 8.0, 12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Unread Dot Indicator
             SizedBox(
@@ -155,8 +165,8 @@ class _NotificationCard extends ConsumerWidget {
             // Avatar / Icon
             CircleAvatar(
               radius: 20,
-              backgroundColor: typeColor.withOpacity(0.1),
-              child: Icon(typeIcon, color: typeColor, size: 20),
+              backgroundColor: Colors.transparent,
+              child: Icon(typeIcon, color: isDark ? Colors.white : Colors.black, size: 20),
             ),
             
             const SizedBox(width: 12),
@@ -171,17 +181,24 @@ class _NotificationCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     text: TextSpan(
                       style: TextStyle(
-                        fontFamily: 'Roboto', // YouTube style
-                        color: AppColors.textPrimary,
+                        fontFamily: 'Roboto',
+                        color: isDark ? AppColors.textPrimary : Colors.black,
                         fontSize: 14,
                         fontWeight: item.isRead ? FontWeight.w400 : FontWeight.w600,
                       ),
                       children: [
-                        TextSpan(text: '${item.title}\n'),
+                        TextSpan(
+                          text: '${item.title}\n',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.textPrimary : Colors.black,
+                          ),
+                        ),
                         TextSpan(
                           text: item.body,
                           style: TextStyle(
-                            color: item.isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                            color: isDark ? (item.isRead ? AppColors.textSecondary : AppColors.textPrimary) : Colors.black,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
@@ -191,8 +208,8 @@ class _NotificationCard extends ConsumerWidget {
                   const SizedBox(height: 6),
                   Text(
                     timeago.format(item.sentAt),
-                    style: const TextStyle(
-                      color: AppColors.textHint,
+                    style: TextStyle(
+                      color: isDark ? AppColors.textHint : Colors.black,
                       fontSize: 12,
                     ),
                   ),
@@ -201,31 +218,35 @@ class _NotificationCard extends ConsumerWidget {
             ),
             
             const SizedBox(width: 8),
-            
-            // Right-side visual / Action (Like the video thumbnail, we use a tinted box)
-            Container(
-              width: 50,
-              height: 36,
-              decoration: BoxDecoration(
-                color: typeColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Center(
-                child: Icon(typeIcon, color: typeColor.withOpacity(0.8), size: 18),
-              ),
-            ),
-            
-            // 3-dot menu
-            IconButton(
-              icon: const Icon(Icons.more_vert, size: 18, color: AppColors.textSecondary),
+            PopupMenuButton<String>(
+              icon: PhosphorIcon(PhosphorIconsBold.dotsThreeVertical, size: 20, color: isDark ? AppColors.textSecondary : Colors.black),
+              color: Theme.of(context).colorScheme.surface,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              onPressed: () {
-                // Future: show menu (mark read, turn off, etc)
+              onSelected: (value) {
+                if (value == 'delete') {
+                  ref.read(notificationsProvider.notifier).deleteNotification(item.id);
+                }
+              },
+              itemBuilder: (context) {
+                final itemColor = Theme.of(context).colorScheme.onSurface;
+                return [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const PhosphorIcon(PhosphorIconsRegular.trash, color: Colors.red, size: 20),
+                        const SizedBox(width: 12),
+                        Text('Delete', style: TextStyle(color: itemColor)),
+                      ],
+                    ),
+                  ),
+                ];
               },
             ),
           ],
         ),
+      ),
       ),
     );
   }

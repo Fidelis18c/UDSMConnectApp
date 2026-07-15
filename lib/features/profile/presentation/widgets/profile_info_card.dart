@@ -23,7 +23,7 @@ class ProfilePersonalRow extends StatelessWidget {
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.textPrimary : Colors.black,
                   letterSpacing: 0.15,
                 ),
           ),
@@ -31,7 +31,7 @@ class ProfilePersonalRow extends StatelessWidget {
           Text(
             value.isEmpty ? '—' : value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondary : Colors.black87,
                   height: 1.3,
                 ),
           ),
@@ -51,28 +51,28 @@ class ProfileInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
+        color: isDark ? const Color(0xFF252525) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ProfilePersonalRow(label: 'Name', value: user.name),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
           ProfilePersonalRow(label: 'Id', value: user.registrationNumber),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
           ProfilePersonalRow(label: 'Programme', value: user.programme),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
           ProfilePersonalRow(label: 'College', value: user.college),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
           ProfilePersonalRow(label: 'E-mail', value: user.email),
-          const Divider(height: 1, color: AppColors.divider),
-          ProfilePersonalRow(label: 'Phone', value: user.phone),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: isDark ? AppColors.divider : Colors.black),
           ProfilePersonalRow(label: 'Year', value: user.year),
         ],
       ),

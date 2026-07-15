@@ -41,7 +41,9 @@ class UdsmButton extends StatelessWidget {
                 ],
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelLarge,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).brightness == Brightness.light ? Colors.white : null,
+                  ),
                 ),
               ],
             ),

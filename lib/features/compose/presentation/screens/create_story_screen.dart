@@ -122,25 +122,61 @@ class _CreateStoryScreenState extends ConsumerState<CreateStoryScreen> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      BannerPhotoPicker(
-                        imageBytes: _selectedBytes,
-                        onTap: _pickBanner,
-                        onClear: () => setState(() {
-                          _selectedFile = null;
-                          _selectedBytes = null;
-                        }),
-                      ),
-                      const SizedBox(height: 32),
                       UdsmTextField(
                         controller: _captionController,
                         hint: 'Caption (Optional)',
                         prefixIcon: Icons.description_outlined,
                       ),
                       const SizedBox(height: 16),
+                      if (_selectedBytes != null)
+                        Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.memory(
+                                _selectedBytes!,
+                                height: 200,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: () => setState(() {
+                                  _selectedFile = null;
+                                  _selectedBytes = null;
+                                }),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.close, size: 18, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          onPressed: _pickBanner,
+                          icon: Icon(
+                            Icons.image_outlined,
+                            size: 28,
+                            color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       Text(
                         'This story will appear under your college\'s bubble\nin the stories tray.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white38,
+                              color: Colors.grey,
                             ),
                         textAlign: TextAlign.center,
                       ),

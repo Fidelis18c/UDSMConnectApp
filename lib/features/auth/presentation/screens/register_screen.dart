@@ -156,7 +156,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             DropdownMenuItem(value: '2', child: Text('Year 2')),
                             DropdownMenuItem(value: '3', child: Text('Year 3')),
                             DropdownMenuItem(value: '4', child: Text('Year 4')),
-                            DropdownMenuItem(value: '5', child: Text('Year 5')),
                           ],
                           onChanged: (val) => setState(() => _selectedYear = val),
                         ),

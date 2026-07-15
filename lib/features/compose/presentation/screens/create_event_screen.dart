@@ -178,43 +178,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Banner image picker
-                    Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                    child: GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.divider),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: _imageBytes != null
-                            ? Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Image.memory(_imageBytes!, fit: BoxFit.cover),
-                                  Container(
-                                    color: Colors.black.withOpacity(0.3),
-                                    alignment: Alignment.center,
-                                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 40),
-                                  )
-                                ],
-                              )
-                            : const Center(
-                                child: Icon(
-                                  Icons.camera_alt_outlined,
-                                  size: 40,
-                                  color: Colors.white,
-                                ),
-                              ),
-                        ),
-                      ),
-                    ),
-                    ),
+                    // Top picker removed
 
                     Padding(
                       padding: const EdgeInsets.all(20.0),
@@ -246,6 +210,51 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             controller: _descController,
                             hint: 'What is this event about?',
                             maxLines: 4,
+                          ),
+                          const SizedBox(height: 16),
+                          if (_imageBytes != null)
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.memory(
+                                    _imageBytes!,
+                                    height: 150,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: GestureDetector(
+                                    onTap: () => setState(() {
+                                      _imageBytes = null;
+                                      _imageFilename = null;
+                                    }),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.close, size: 18, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              onPressed: _pickImage,
+                              icon: Icon(
+                                Icons.image_outlined,
+                                size: 28,
+                                color: Theme.of(context).brightness == Brightness.light ? Colors.black : Colors.white,
+                              ),
+                            ),
                           ),
 
                           const SizedBox(height: 32),

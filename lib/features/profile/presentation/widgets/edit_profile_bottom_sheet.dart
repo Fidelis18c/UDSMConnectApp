@@ -86,7 +86,6 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
   late TextEditingController _programme;
   late TextEditingController _college;
   late TextEditingController _email;
-  late TextEditingController _phone;
   late TextEditingController _year;
 
   @override
@@ -98,7 +97,6 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
     _programme = TextEditingController(text: u.programme);
     _college = TextEditingController(text: u.college);
     _email = TextEditingController(text: u.email);
-    _phone = TextEditingController(text: u.phone);
     _year = TextEditingController(text: u.year);
   }
 
@@ -109,7 +107,6 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
     _programme.dispose();
     _college.dispose();
     _email.dispose();
-    _phone.dispose();
     _year.dispose();
     super.dispose();
   }
@@ -125,7 +122,7 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
         programme: _programme.text.trim(),
         college: _college.text.trim(),
         email: _email.text.trim(),
-        phone: _phone.text.trim(),
+        phone: widget.user.phone,
         year: _year.text.trim(),
       );
     } catch (e) {
@@ -207,14 +204,6 @@ class _EditProfileBottomSheetBodyState extends State<_EditProfileBottomSheetBody
                 labelText: 'E-mail',
                 keyboardType: TextInputType.emailAddress,
                 prefixIcon: Icons.email_outlined,
-              ),
-              const SizedBox(height: 12),
-              UdsmTextField(
-                controller: _phone,
-                hint: 'Phone',
-                labelText: 'Phone',
-                keyboardType: TextInputType.phone,
-                prefixIcon: Icons.phone_outlined,
               ),
               const SizedBox(height: 12),
               UdsmTextField(

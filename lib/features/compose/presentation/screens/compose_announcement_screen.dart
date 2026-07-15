@@ -15,6 +15,7 @@ import 'package:udsm_connect/features/auth/data/users_repository.dart';
 import 'package:udsm_connect/features/auth/presentation/providers/auth_provider.dart';
 import 'package:udsm_connect/core/models/programme.dart';
 import 'package:udsm_connect/features/profile/presentation/providers/user_provider.dart';
+import 'package:udsm_connect/core/models/post.dart';
 
 import '../widgets/audience_bottom_sheet.dart';
 

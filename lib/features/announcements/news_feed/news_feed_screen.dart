@@ -198,39 +198,10 @@ class NewsFeedScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (err, _) => SliverFillRemaining(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      PhosphorIcon(
-                        PhosphorIconsRegular.warningCircle,
-                        size: 42,
-                        color: AppColors.textHint,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Could not load posts',
-                        style: Theme.of(context).textTheme.titleMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        err.toString(),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      FilledButton.icon(
-                        onPressed: () => ref.read(announcementsProvider.notifier).refresh(),
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Try again'),
-                      ),
-                    ],
-                  ),
+              error: (err, _) => const SliverFillRemaining(
+                child: EmptyStateWidget(
+                  icon: PhosphorIconsRegular.newspaper,
+                  message: 'No posts yet. Pull down to refresh.',
                 ),
               ),
               data: (allPosts) {
