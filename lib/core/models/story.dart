@@ -57,6 +57,9 @@ class Story {
   final String? linkUrl;
   final String? linkText;
   final int viewCount;
+  final int likeCount;
+  final int commentCount;
+  final bool isLiked;
   final DateTime expiresAt;
   final DateTime createdAt;
   final bool hasViewed;
@@ -71,6 +74,9 @@ class Story {
     this.linkUrl,
     this.linkText,
     required this.viewCount,
+    this.likeCount = 0,
+    this.commentCount = 0,
+    this.isLiked = false,
     required this.expiresAt,
     required this.createdAt,
     required this.hasViewed,
@@ -87,6 +93,9 @@ class Story {
       linkUrl: json['linkUrl'] as String?,
       linkText: json['linkText'] as String?,
       viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
+      likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
+      commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
+      isLiked: json['isLiked'] as bool? ?? false,
       expiresAt: DateTime.parse(json['expiresAt'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
       hasViewed: json['hasViewed'] as bool? ?? false,
@@ -103,6 +112,9 @@ class Story {
   Story copyWith({
     bool? hasViewed,
     int? viewCount,
+    int? likeCount,
+    int? commentCount,
+    bool? isLiked,
   }) {
     return Story(
       id: id,
@@ -111,6 +123,9 @@ class Story {
       linkUrl: linkUrl,
       linkText: linkText,
       viewCount: viewCount ?? this.viewCount,
+      likeCount: likeCount ?? this.likeCount,
+      commentCount: commentCount ?? this.commentCount,
+      isLiked: isLiked ?? this.isLiked,
       expiresAt: expiresAt,
       createdAt: createdAt,
       hasViewed: hasViewed ?? this.hasViewed,

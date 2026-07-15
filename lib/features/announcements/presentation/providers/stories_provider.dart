@@ -21,6 +21,57 @@ class StoriesNotifier extends AsyncNotifier<List<Story>> {
     }
   }
 
+  /// Optimistic like toggle; rolls back on failure.
+  Future<void> toggleLike(String storyId) async {
+    final current = state.value;
+    if (current == null) return;
+
+    Story? story;
+    for (final s in current) {
+      if (s.id == storyId) {
+        story = s;
+        break;
+      }
+    }
+    if (story == null) return;
+
+    final nextLiked = !story.isLiked;
+    final nextCount = (story.likeCount + (nextLiked ? 1 : -1)).clamp(0, 1 << 30);
+
+    state = AsyncData(current.map((s) {
+      if (s.id == storyId) {
+        return s.copyWith(isLiked: nextLiked, likeCount: nextCount);
+      }
+      return s;
+    }).toList());
+
+    try {
+      final isLiked = await StoryRepository().toggleLike(storyId);
+      final latest = state.value ?? current;
+      state = AsyncData(latest.map((s) {
+        if (s.id != storyId) return s;
+        if (s.isLiked == isLiked) return s;
+        final count = (s.likeCount + (isLiked ? 1 : -1)).clamp(0, 1 << 30);
+        return s.copyWith(isLiked: isLiked, likeCount: count);
+      }).toList());
+    } catch (_) {
+      state = AsyncData(current);
+    }
+  }
+
+  void updateCommentCount(String storyId, int delta) {
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncData(current.map((s) {
+      if (s.id == storyId) {
+        return s.copyWith(
+          commentCount: (s.commentCount + delta).clamp(0, 1 << 30),
+        );
+      }
+      return s;
+    }).toList());
+  }
+
   Future<void> refresh() async {
     // Keep tray visible during refresh for smoother pull-to-refresh.
     state = await AsyncValue.guard(() => StoryRepository().fetchStories());

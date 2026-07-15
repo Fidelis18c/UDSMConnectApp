@@ -30,9 +30,18 @@ class StoryRepository {
   Future<void> markViewed(String storyId) async {
     try {
       await _dio.post('/stories/$storyId/view');
-    } catch (e) {
-      // It's a fire-and-forget, but throw if you want to handle it
-      // throw Exception('Failed to mark story as viewed: $e');
+    } catch (_) {
+      // Fire-and-forget view tracking
     }
+  }
+
+  /// Toggle like on a story. Returns true if now liked, false if unliked.
+  Future<bool> toggleLike(String storyId) async {
+    final response = await _dio.post('/stories/$storyId/reactions');
+    final action = response.data['data']?['action'] as String?;
+    if (action == 'liked') return true;
+    if (action == 'unliked') return false;
+    final isLiked = response.data['data']?['isLiked'];
+    return isLiked == true;
   }
 }
