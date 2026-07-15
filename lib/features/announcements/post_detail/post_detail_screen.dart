@@ -47,6 +47,20 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   }
 
   Future<void> _loadDetail() async {
+    // Shared / App Link entry: ensure session is restored before API call.
+    final auth = ref.read(authProvider);
+    if (!auth.isInitialized) {
+      await ref.read(authProvider.notifier).restoreSession();
+    }
+    if (!mounted) return;
+
+    final after = ref.read(authProvider);
+    if (!after.isAuthenticated) {
+      // Send to login; after login user can open the shared link again.
+      context.goNamed(RouteNames.login);
+      return;
+    }
+
     try {
       final repo = ref.read(postsRepositoryProvider);
       final full = await repo.fetchDetail(widget.announcementId);

@@ -46,6 +46,8 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/',
+  // Deep links (https://www.udsminfo.com/posts/:id and udsmconnect://…)
+  // land on /posts/:id. Auth is enforced inside PostDetailScreen / API.
   routes: [
     // --- Splash & Auth ---
     GoRoute(
