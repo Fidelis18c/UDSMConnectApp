@@ -191,14 +191,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 16),
                   UdsmTextField(
                     controller: _emailController,
-                    hint: 'Email (e.g. you@gmail.com)',
+                    hint: 'Gmail or student@student.udsm.ac.tz',
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.email_outlined,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Use any working email (Gmail, Yahoo, Outlook, etc.). '
-                    'You will receive a 6-digit code there before you can log in.',
+                    'Gmail (or other personal mail) is recommended while campus webmail is slow. '
+                    'You can also use name_YY@student.udsm.ac.tz when student mail works. '
+                    'A 6-digit code is sent before you can log in.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
