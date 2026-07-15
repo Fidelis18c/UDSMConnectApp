@@ -83,11 +83,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (mounted) {
       if (success) {
+        final warn = ref.read(authProvider).error;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Account created. Enter the code sent to your UDSM webmail.',
+              warn ??
+                  'Account created. Enter the code sent to your UDSM webmail.',
             ),
+            duration: Duration(seconds: warn != null ? 8 : 4),
           ),
         );
         context.pushNamed(RouteNames.verifyOtp);

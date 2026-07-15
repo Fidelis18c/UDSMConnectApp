@@ -127,6 +127,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   /// Registers student and prepares email-verification OTP flow.
+  /// Returns true on account creation (even if OTP email bounced — check [AuthState.error] warning).
   Future<bool> register({
     required String fullName,
     required String registrationNumber,
@@ -138,7 +139,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _repository.register(
+      final result = await _repository.register(
         fullName: fullName,
         registrationNumber: registrationNumber,
         programmeId: programmeId,
@@ -152,6 +153,12 @@ class AuthNotifier extends Notifier<AuthState> {
         isLoading: false,
         resetEmail: email.trim().toLowerCase(),
         otpPurpose: OtpPurpose.emailVerification,
+        // Surface delivery problems without failing registration.
+        error: result.otpSent
+            ? null
+            : (result.message.isNotEmpty
+                ? result.message
+                : 'Account created but verification email failed to deliver.'),
       );
       return true;
     } catch (e) {

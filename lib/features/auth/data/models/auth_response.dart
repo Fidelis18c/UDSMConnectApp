@@ -168,16 +168,24 @@ class UserData {
 class RegisterResponse {
   final bool success;
   final String message;
+  final bool otpSent;
+  final String? otpDeliveryError;
 
   RegisterResponse({
     required this.success,
     required this.message,
+    this.otpSent = true,
+    this.otpDeliveryError,
   });
 
   factory RegisterResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
+    final map = data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
     return RegisterResponse(
       success: json['success'] ?? true,
       message: json['message'] ?? 'Registration successful',
+      otpSent: map['otpSent'] as bool? ?? true,
+      otpDeliveryError: map['otpDeliveryError'] as String?,
     );
   }
 }
