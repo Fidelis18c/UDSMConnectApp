@@ -43,31 +43,54 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _onLogin() async {
-    final email = _emailController.text.trim();
+    final identifier = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (identifier.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
       return;
     }
 
-    await ref.read(authProvider.notifier).login(email, password);
-    
-    if (mounted) {
-      final authState = ref.read(authProvider);
-      if (authState.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authState.error!)),
-        );
-      } else if (authState.isAuthenticated) {
-        final u = authState.user;
-        if (u != null) {
-          ref.read(userProvider.notifier).syncFromAuth(u);
-        }
-        context.goNamed(RouteNames.announcements);
+    final ok = await ref.read(authProvider.notifier).login(identifier, password);
+
+    if (!mounted) return;
+    final authState = ref.read(authProvider);
+
+    if (ok && authState.isAuthenticated) {
+      final u = authState.user;
+      if (u != null) {
+        ref.read(userProvider.notifier).syncFromAuth(u);
       }
+      context.goNamed(RouteNames.announcements);
+      return;
+    }
+
+    // Unverified new accounts → webmail OTP screen
+    if (authState.otpPurpose == OtpPurpose.emailVerification &&
+        authState.resetEmail != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            authState.error ??
+                'Verify your UDSM webmail to continue.',
+          ),
+        ),
+      );
+      // Ensure an OTP is sent (registration already may have sent one)
+      await ref.read(authProvider.notifier).requestOtp(
+            authState.resetEmail!,
+            purpose: OtpPurpose.emailVerification,
+          );
+      if (mounted) context.pushNamed(RouteNames.verifyOtp);
+      return;
+    }
+
+    if (authState.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(authState.error!)),
+      );
     }
   }
 
@@ -121,8 +144,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           children: [
                             UdsmTextField(
                               controller: _emailController,
-                              hint: 'Email Address',
-                              prefixIcon: Icons.email_outlined,
+                              hint: 'Email or registration number',
+                              prefixIcon: Icons.person_outline,
                               keyboardType: TextInputType.emailAddress,
                             ),
                             const SizedBox(height: 16),

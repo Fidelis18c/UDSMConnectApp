@@ -5,18 +5,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/auth_response.dart';
 
+class EmailNotVerifiedException implements Exception {
+  final String email;
+  final String message;
+  EmailNotVerifiedException(this.email, this.message);
+
+  @override
+  String toString() => message;
+}
+
 class AuthRepository {
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
 
   final ApiClient _apiClient = ApiClient();
 
-  Future<AuthResponse> login(String email, String password) async {
+  /// [identifier] may be email or registration number.
+  Future<AuthResponse> login(String identifier, String password) async {
     try {
       final response = await _apiClient.dio.post(
         '/auth/login',
         data: {
-          'email': email,
+          'identifier': identifier.trim(),
+          // legacy field for older backends
+          'email': identifier.trim(),
           'password': password,
         },
       );
@@ -27,6 +39,18 @@ class AuthRepository {
 
       return authResponse;
     } on DioException catch (e) {
+      final data = e.response?.data;
+      if (e.response?.statusCode == 403 &&
+          data is Map &&
+          data['errors'] is Map &&
+          data['errors']['code'] == 'EMAIL_NOT_VERIFIED') {
+        final email = data['errors']['email']?.toString() ?? identifier;
+        throw EmailNotVerifiedException(
+          email,
+          data['message']?.toString() ??
+              'Verify your UDSM webmail before logging in.',
+        );
+      }
       throw _handleError(e);
     }
   }
@@ -60,27 +84,51 @@ class AuthRepository {
     }
   }
 
-  Future<void> requestPasswordReset(String email) async {
+  Future<void> requestOtp(
+    String email, {
+    String purpose = 'password_reset',
+  }) async {
     try {
       await _apiClient.dio.post(
         '/auth/generate-otp',
-        data: {'email': email},
+        data: {
+          'email': email.trim().toLowerCase(),
+          'purpose': purpose,
+        },
       );
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
-  Future<String> verifyOtp(String email, String otpCode) async {
+  /// Password-reset OTP → returns resetToken.
+  Future<String> verifyPasswordResetOtp(String email, String otpCode) async {
     try {
       final response = await _apiClient.dio.post(
         '/auth/verify-otp',
         data: {
-          'email': email,
+          'email': email.trim().toLowerCase(),
           'otpCode': otpCode,
+          'purpose': 'password_reset',
         },
       );
-      return response.data['data']['resetToken'];
+      return response.data['data']['resetToken'] as String;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Registration email verification (no reset token).
+  Future<void> verifyEmailOtp(String email, String otpCode) async {
+    try {
+      await _apiClient.dio.post(
+        '/auth/verify-otp',
+        data: {
+          'email': email.trim().toLowerCase(),
+          'otpCode': otpCode,
+          'purpose': 'email_verification',
+        },
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -131,12 +179,6 @@ class AuthRepository {
     }
   }
 
-  /// Restore a previous login from local storage.
-  ///
-  /// - No token → not logged in
-  /// - Token + cache → logged in immediately (Instagram-style)
-  /// - Token without cache → fetch `/users/me`
-  /// - 401 from server → clear session
   Future<UserData?> restoreSession() async {
     final token = await getToken();
     if (token == null || token.isEmpty) {
@@ -148,7 +190,8 @@ class AuthRepository {
     final cached = await getCachedUser();
 
     try {
-      final response = await _apiClient.dio.get<Map<String, dynamic>>('/users/me');
+      final response =
+          await _apiClient.dio.get<Map<String, dynamic>>('/users/me');
       final data = response.data?['data'] as Map<String, dynamic>?;
       if (data == null) {
         if (cached != null) return cached;
@@ -164,7 +207,6 @@ class AuthRepository {
         await logout();
         return null;
       }
-      // Offline / server blip: keep session if we still have a cached profile.
       if (cached != null) return cached;
       return null;
     } catch (_) {
@@ -181,17 +223,15 @@ class AuthRepository {
   }
 
   String _handleError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout || 
+    if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.connectionError) {
       return 'Connection failed. Please check if the backend is running and reachable.';
     }
-    
+
     if (e.response != null && e.response?.data != null) {
       final message = e.response?.data['message'];
-      if (message != null) return message;
-      
-      // If it's a 401/403/404/500 etc without a message
+      if (message != null) return message.toString();
       return 'Server error: ${e.response?.statusCode}';
     }
     return 'Something went wrong. Please try again.';

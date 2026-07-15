@@ -31,7 +31,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       return;
     }
 
-    final success = await ref.read(authProvider.notifier).requestOtp(email);
+    final success = await ref.read(authProvider.notifier).requestOtp(
+          email,
+          purpose: OtpPurpose.passwordReset,
+        );
     
     if (mounted) {
       if (success) {

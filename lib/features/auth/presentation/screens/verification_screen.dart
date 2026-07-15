@@ -14,7 +14,8 @@ class VerificationScreen extends ConsumerStatefulWidget {
 }
 
 class _VerificationScreenState extends ConsumerState<VerificationScreen> {
-  final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
+  final List<TextEditingController> _controllers =
+      List.generate(6, (index) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
   @override
@@ -34,7 +35,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
     } else if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
     }
-    setState(() {}); // Rebuild to update border colors
+    setState(() {});
   }
 
   void _onVerify() async {
@@ -46,23 +47,48 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
       return;
     }
 
+    final purpose = ref.read(authProvider).otpPurpose;
     final success = await ref.read(authProvider.notifier).verifyOtp(otpCode);
-    
-    if (mounted) {
-      if (success) {
-        context.goNamed(RouteNames.newPassword);
-      } else {
-        final error = ref.read(authProvider).error;
+
+    if (!mounted) return;
+    if (success) {
+      if (purpose == OtpPurpose.emailVerification) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error ?? 'Invalid code')),
+          const SnackBar(
+            content: Text('Email verified. You can log in now.'),
+          ),
         );
+        context.goNamed(RouteNames.login);
+      } else {
+        context.goNamed(RouteNames.newPassword);
       }
+    } else {
+      final error = ref.read(authProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error ?? 'Invalid code')),
+      );
     }
+  }
+
+  void _onResend() async {
+    final ok = await ref.read(authProvider.notifier).resendCurrentOtp();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? 'A new code was sent if the email is registered.'
+              : (ref.read(authProvider).error ?? 'Could not resend code'),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final isEmailVerify = authState.otpPurpose == OtpPurpose.emailVerification;
+    final emailHint = authState.resetEmail;
 
     return Scaffold(
       appBar: AppBar(
@@ -86,18 +112,34 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                     children: [
                       const SizedBox(height: 48),
                       Text(
-                        'Verification',
+                        isEmailVerify ? 'Verify webmail' : 'Verification',
                         style: Theme.of(context).textTheme.displayLarge,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Enter the 6-digit code sent to your email',
+                        isEmailVerify
+                            ? 'Enter the 6-digit code sent to your UDSM webmail'
+                            : 'Enter the 6-digit code sent to your email',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.7),
                             ),
                       ),
+                      if (emailHint != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          emailHint,
+                          textAlign: TextAlign.center,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ],
                       const SizedBox(height: 48),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -114,27 +156,29 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen> {
                         onPressed: authState.isLoading ? null : _onVerify,
                         label: authState.isLoading ? 'Verifying...' : 'Verify',
                       ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: authState.isLoading ? null : _onResend,
+                        child: const Text('Resend code'),
+                      ),
                       const Spacer(),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 24),
                         child: Center(
-                          child: TextButton(
-                            onPressed: () {
-                              if (authState.resetEmail != null) {
-                                ref.read(authProvider.notifier).requestOtp(authState.resetEmail!);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('OTP Resent!')),
-                                );
-                              }
-                            },
-                            child: Text(
-                              'Resend it',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
+                          child: Text(
+                            isEmailVerify
+                                ? 'Open studentmail.udsm.ac.tz if you do not see the email.'
+                                : 'Check spam if the code is missing.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.6),
+                                ),
                           ),
                         ),
                       ),

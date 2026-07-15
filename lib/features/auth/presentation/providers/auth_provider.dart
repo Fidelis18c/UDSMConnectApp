@@ -6,15 +6,18 @@ import '../../data/models/auth_response.dart';
 
 final authRepositoryProvider = Provider((ref) => AuthRepository());
 
+/// OTP screen purpose: password reset vs post-registration email verification.
+enum OtpPurpose { passwordReset, emailVerification }
+
 class AuthState {
   final bool isLoading;
   final String? error;
   final UserData? user;
   final bool isAuthenticated;
-  /// True after [AuthNotifier.restoreSession] has finished once.
   final bool isInitialized;
   final String? resetEmail;
   final String? resetToken;
+  final OtpPurpose otpPurpose;
 
   AuthState({
     this.isLoading = false,
@@ -24,6 +27,7 @@ class AuthState {
     this.isInitialized = false,
     this.resetEmail,
     this.resetToken,
+    this.otpPurpose = OtpPurpose.passwordReset,
   });
 
   AuthState copyWith({
@@ -34,6 +38,7 @@ class AuthState {
     bool? isInitialized,
     String? resetEmail,
     String? resetToken,
+    OtpPurpose? otpPurpose,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -43,6 +48,7 @@ class AuthState {
       isInitialized: isInitialized ?? this.isInitialized,
       resetEmail: resetEmail ?? this.resetEmail,
       resetToken: resetToken ?? this.resetToken,
+      otpPurpose: otpPurpose ?? this.otpPurpose,
     );
   }
 }
@@ -56,7 +62,6 @@ class AuthNotifier extends Notifier<AuthState> {
     return AuthState();
   }
 
-  /// Rehydrate session from disk (and validate with `/users/me` when online).
   Future<void> restoreSession() async {
     if (state.isInitialized || _restoreInFlight) return;
     _restoreInFlight = true;
@@ -84,10 +89,12 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> login(String email, String password) async {
+  /// Returns true if authenticated; false on error.
+  /// Throws [EmailNotVerifiedException] when account needs webmail OTP.
+  Future<bool> login(String identifier, String password) async {
     state = state.copyWith(isLoading: true, error: null, isInitialized: true);
     try {
-      final response = await _repository.login(email, password);
+      final response = await _repository.login(identifier, password);
       state = state.copyWith(
         isLoading: false,
         user: response.user,
@@ -97,6 +104,17 @@ class AuthNotifier extends Notifier<AuthState> {
       ref.invalidate(notificationsProvider);
       ref.invalidate(unreadCountProvider);
       await registerFcmTokenIfPossible();
+      return true;
+    } on EmailNotVerifiedException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+        isAuthenticated: false,
+        isInitialized: true,
+        resetEmail: e.email,
+        otpPurpose: OtpPurpose.emailVerification,
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -104,9 +122,11 @@ class AuthNotifier extends Notifier<AuthState> {
         isAuthenticated: false,
         isInitialized: true,
       );
+      return false;
     }
   }
 
+  /// Registers student and prepares email-verification OTP flow.
   Future<bool> register({
     required String fullName,
     required String registrationNumber,
@@ -127,6 +147,36 @@ class AuthNotifier extends Notifier<AuthState> {
         email: email,
         password: password,
       );
+      // Even if auto-send failed, user can resend from verification screen.
+      state = state.copyWith(
+        isLoading: false,
+        resetEmail: email.trim().toLowerCase(),
+        otpPurpose: OtpPurpose.emailVerification,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> requestOtp(
+    String email, {
+    OtpPurpose purpose = OtpPurpose.passwordReset,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      resetEmail: email.trim().toLowerCase(),
+      otpPurpose: purpose,
+    );
+    try {
+      await _repository.requestOtp(
+        email,
+        purpose: purpose == OtpPurpose.emailVerification
+            ? 'email_verification'
+            : 'password_reset',
+      );
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
@@ -135,16 +185,13 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<bool> requestOtp(String email) async {
-    state = state.copyWith(isLoading: true, error: null, resetEmail: email);
-    try {
-      await _repository.requestPasswordReset(email);
-      state = state.copyWith(isLoading: false);
-      return true;
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+  Future<bool> resendCurrentOtp() async {
+    final email = state.resetEmail;
+    if (email == null) {
+      state = state.copyWith(error: 'Session expired. Please try again.');
       return false;
     }
+    return requestOtp(email, purpose: state.otpPurpose);
   }
 
   Future<bool> verifyOtp(String otpCode) async {
@@ -154,7 +201,13 @@ class AuthNotifier extends Notifier<AuthState> {
     }
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final token = await _repository.verifyOtp(state.resetEmail!, otpCode);
+      if (state.otpPurpose == OtpPurpose.emailVerification) {
+        await _repository.verifyEmailOtp(state.resetEmail!, otpCode);
+        state = state.copyWith(isLoading: false);
+        return true;
+      }
+      final token =
+          await _repository.verifyPasswordResetOtp(state.resetEmail!, otpCode);
       state = state.copyWith(isLoading: false, resetToken: token);
       return true;
     } catch (e) {
@@ -180,7 +233,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
-    // Unregister FCM while JWT is still valid, then clear session.
     await unregisterFcmTokenIfPossible();
     await _repository.logout();
     ref.invalidate(notificationsProvider);

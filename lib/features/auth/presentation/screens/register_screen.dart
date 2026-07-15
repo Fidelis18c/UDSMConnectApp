@@ -5,8 +5,8 @@ import '../../../../navigation/route_names.dart';
 import '../../../../core/widgets/udsm_button.dart';
 import '../../../../core/widgets/udsm_text_field.dart';
 import '../../../../core/widgets/udsm_dropdown.dart';
+import '../../../../core/utils/student_identity.dart';
 import '../providers/auth_provider.dart';
-import '../providers/programme_provider.dart';
 import '../../../../core/models/programme.dart';
 import '../widgets/searchable_programme_dropdown.dart';
 
@@ -50,24 +50,47 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
+    final identityError = StudentIdentity.validateRegistration(
+      email: _emailController.text,
+      registrationNumber: _regNumberController.text,
+    );
+    if (identityError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(identityError)),
+      );
+      return;
+    }
+
+    if (_passwordController.text.trim().length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters')),
+      );
+      return;
+    }
+
     final yearOfStudy = int.tryParse(_selectedYear ?? '1') ?? 1;
 
     final success = await ref.read(authProvider.notifier).register(
           fullName: _nameController.text.trim(),
-          registrationNumber: _regNumberController.text.trim(),
+          registrationNumber:
+              StudentIdentity.normalizeRegNumber(_regNumberController.text),
           programmeId: _selectedProgramme!.id,
           yearOfStudy: yearOfStudy,
           sex: _selectedSex!.toUpperCase(),
-          email: _emailController.text.trim(),
+          email: StudentIdentity.normalizeEmail(_emailController.text),
           password: _passwordController.text.trim(),
         );
 
     if (mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration successful! Please login.')),
+          const SnackBar(
+            content: Text(
+              'Account created. Enter the code sent to your UDSM webmail.',
+            ),
+          ),
         );
-        context.goNamed(RouteNames.login);
+        context.pushNamed(RouteNames.verifyOtp);
       } else {
         final error = ref.read(authProvider).error;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -124,7 +147,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 16),
                   UdsmTextField(
                     controller: _regNumberController,
-                    hint: 'Registration Number',
+                    hint: 'Registration Number (e.g. 2022-04-13802)',
                     prefixIcon: Icons.badge_outlined,
                   ),
                   const SizedBox(height: 16),
@@ -150,7 +173,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       Expanded(
                         child: UdsmDropdown<String>(
                           value: _selectedYear,
-                          hint: 'Year',
+                          hint: 'Year of study',
                           items: const [
                             DropdownMenuItem(value: '1', child: Text('Year 1')),
                             DropdownMenuItem(value: '2', child: Text('Year 2')),
@@ -165,9 +188,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 16),
                   UdsmTextField(
                     controller: _emailController,
-                    hint: 'Email Address',
+                    hint: 'UDSM webmail (name.surname_YY@udsm.ac.tz)',
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.email_outlined,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Must be your official student webmail. The _YY year must match your registration year (e.g. 2022 → _22).',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.65),
+                        ),
                   ),
                   const SizedBox(height: 16),
                   UdsmTextField(
@@ -180,6 +213,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   UdsmButton(
                     onPressed: authState.isLoading ? null : _onRegister,
                     label: authState.isLoading ? 'Creating account...' : 'Create an Account',
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'After signup you must enter a code sent to your UDSM webmail before you can log in.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.65),
+                        ),
                   ),
                 ],
               ),
