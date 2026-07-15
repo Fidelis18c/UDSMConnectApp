@@ -191,13 +191,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 16),
                   UdsmTextField(
                     controller: _emailController,
-                    hint: 'Student mail (name.surname_YY@udsm.ac.tz)',
+                    hint: 'Student mail (name.surname_YY@student.udsm.ac.tz)',
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.email_outlined,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Use your official UDSM student address (same login as studentmail.udsm.ac.tz). '
+                    'Use @student.udsm.ac.tz (same login as studentmail.udsm.ac.tz). '
                     'The _YY year must match your registration year (e.g. 2022 → _22).',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
