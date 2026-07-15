@@ -67,12 +67,28 @@ class UserData {
   /// Lecturer or general staff (not admin) — department-scoped in compose.
   bool get isDepartmentStaff => isLecturer || isStaff;
 
-  bool get isClassRepresentative =>
-      roleNames.any((r) => r.toLowerCase().replaceAll('_', ' ') == 'class representative');
+  bool get isClassRepresentative {
+    return roleNames.any((r) {
+      final x = r.toLowerCase().replaceAll('_', ' ').trim();
+      // Avoid matching "college representative"
+      if (x.contains('college')) return false;
+      return x == 'class representative' ||
+          x.contains('class rep') ||
+          x == 'cr';
+    });
+  }
 
   bool get hasPrivilegedRole => !isStudent;
 
+  /// Main campus feed (News) compose FAB.
+  /// Class representatives are excluded — they only post class notices from For you.
   bool get canPostNews {
+    if (isClassRepresentative &&
+        !isAdmin &&
+        !isDarusoLeader &&
+        !isDepartmentStaff) {
+      return false;
+    }
     final allowedRoles = {
       'admin',
       'super admin',
@@ -81,12 +97,15 @@ class UserData {
       'lecturer',
       'college rep',
       'college representative',
-      'class representative',
     };
     final lower = roleNames.map((r) => r.toLowerCase().replaceAll('_', ' ')).toSet();
     return lower.intersection(allowedRoles).isNotEmpty ||
-        lower.any((r) => r.contains('lecturer') || r.contains('class rep'));
+        lower.any((r) => r.contains('lecturer'));
   }
+
+  /// For you page compose — class announcements (NOTICE), primarily CRs.
+  bool get canPostClassNotice =>
+      isClassRepresentative || canPostNews;
 
   /// Only admins, staff/lecturers, and DARUSO/college leaders can add Stories.
   /// Class Representatives are explicitly excluded.

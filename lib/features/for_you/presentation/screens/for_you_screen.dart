@@ -19,25 +19,28 @@ class ForYouScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPosts = ref.watch(announcementsProvider);
     final user = ref.watch(authProvider).user;
-    final isStudent = user?.isStudent ?? false;
+    // CRs post only from here (class NOTICE); other leaders may also use it.
+    final canComposeClass = user?.canPostClassNotice ?? false;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('For you'),
       ),
-      floatingActionButton: isStudent ? null : FloatingActionButton(
-        elevation: 2,
-        onPressed: () => context.pushNamed(
-          RouteNames.composeAnnouncement,
-          extra: {
-            'title': 'Class Announcement',
-            'bodyHint': 'Write your class announcement here...',
-            'postType': 'NOTICE',
-          },
-        ),
-        child: const PhosphorIcon(PhosphorIconsBold.plus, size: 26),
-      ),
+      floatingActionButton: !canComposeClass
+          ? null
+          : FloatingActionButton(
+              elevation: 2,
+              onPressed: () => context.pushNamed(
+                RouteNames.composeAnnouncement,
+                extra: {
+                  'title': 'Class Announcement',
+                  'bodyHint': 'Write your class announcement here...',
+                  'postType': 'NOTICE',
+                },
+              ),
+              child: const PhosphorIcon(PhosphorIconsBold.plus, size: 26),
+            ),
       body: RefreshIndicator.adaptive(
         color: AppColors.primary,
         onRefresh: () => ref.read(announcementsProvider.notifier).refresh(),
