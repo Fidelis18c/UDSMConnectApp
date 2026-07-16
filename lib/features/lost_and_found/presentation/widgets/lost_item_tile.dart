@@ -93,7 +93,7 @@ class LostItemTile extends StatelessWidget {
                     ),
                     child: Text(
                       !isLost ? 'FOUND' : 'LOST',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
@@ -138,11 +138,11 @@ class LostItemTile extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 14, color: AppColors.primary),
-                    const SizedBox(width: 4),
+                    Icon(Icons.location_on_outlined, size: 14, color: AppColors.primary),
+                    SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         item.location ?? 'Unknown location',

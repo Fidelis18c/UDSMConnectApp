@@ -193,7 +193,7 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                                       .resolveItem(widget.item.id);
                                   if (success && mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Item marked as resolved')),
+                                      SnackBar(content: Text('Item marked as resolved')),
                                     );
                                     Navigator.pop(context);
                                   }
@@ -385,7 +385,7 @@ class _LostFoundDetailScreenState extends ConsumerState<LostFoundDetailScreen> {
                             multiline: true,
                           ),
                         ],
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                       ],
                     ),
                   ),
@@ -437,7 +437,7 @@ class _InfoRow extends StatelessWidget {
   final String value;
   final bool multiline;
 
-  const _InfoRow({
+  _InfoRow({
     required this.icon,
     required this.label,
     required this.value,
@@ -457,7 +457,7 @@ class _InfoRow extends StatelessWidget {
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.textHint
                   : Colors.black54),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

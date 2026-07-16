@@ -309,7 +309,7 @@ class NewsPostCard extends StatelessWidget {
 }
 
 class _IconCountTap extends StatelessWidget {
-  const _IconCountTap({
+  _IconCountTap({
     required this.icon,
     required this.count,
     required this.onTap,

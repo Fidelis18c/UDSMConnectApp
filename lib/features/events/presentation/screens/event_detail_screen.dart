@@ -289,7 +289,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.people,
+                            Icon(Icons.people,
                                 size: 14, color: Color(0xFF4CAF50)),
                             const SizedBox(width: 6),
                             Text(
@@ -306,12 +306,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: 28),
+                  SizedBox(height: 28),
                   Divider(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? const Color(0xFF222222)
                           : Colors.black12),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   // Organizer
                   Row(
@@ -322,7 +322,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             : 'U',
                         radius: 22,
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,12 +352,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Divider(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? const Color(0xFF222222)
                           : Colors.black12),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
 
                   // About
                   Text(
@@ -368,7 +368,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Text(
                     widget.event.description,
                     style: GoogleFonts.inter(

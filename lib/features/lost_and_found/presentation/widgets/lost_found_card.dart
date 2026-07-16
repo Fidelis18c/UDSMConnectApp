@@ -106,7 +106,7 @@ class LostFoundCard extends StatelessWidget {
                   ),
 
                   if (item.location != null && item.location!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       item.location!,
                       style: GoogleFonts.inter(
@@ -120,7 +120,7 @@ class LostFoundCard extends StatelessWidget {
                     ),
                   ],
 
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   RichText(
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

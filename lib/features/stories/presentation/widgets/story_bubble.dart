@@ -9,7 +9,7 @@ class StoryBubble extends StatelessWidget {
   final bool isAddStory;
   final VoidCallback onTap;
 
-  const StoryBubble({
+  StoryBubble({
     Key? key,
     required this.label,
     this.imageUrl,

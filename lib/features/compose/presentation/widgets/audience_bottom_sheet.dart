@@ -220,17 +220,17 @@ class _AudienceBottomSheetState extends State<AudienceBottomSheet> {
                     onPressed: _onDone,
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
-                      textStyle: const TextStyle(
+                      textStyle: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                       ),
                     ),
-                    child: const Text('Save'),
+                    child: Text('Save'),
                   )
                 ],
               ),
             ),
-            const Divider(height: 1, thickness: 0.5, color: AppColors.divider),
+            Divider(height: 1, thickness: 0.5, color: AppColors.divider),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(

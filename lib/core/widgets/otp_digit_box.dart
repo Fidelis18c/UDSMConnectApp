@@ -8,7 +8,7 @@ class OtpDigitBox extends StatelessWidget {
   final FocusNode focusNode;
   final Function(String) onChanged;
 
-  const OtpDigitBox({
+  OtpDigitBox({
     Key? key,
     required this.controller,
     required this.focusNode,

@@ -27,7 +27,7 @@ class CommentSection extends ConsumerWidget {
   /// an inline reply box below the comment.
   final void Function(Comment comment)? onReplyTap;
 
-  const CommentSection({
+  CommentSection({
     super.key,
     required this.targetId,
     required this.targetType,
@@ -48,8 +48,8 @@ class CommentSection extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
           child: Row(
             children: [
-              const Icon(Icons.comment_outlined, color: AppColors.textSecondary, size: 16),
-              const SizedBox(width: 8),
+              Icon(Icons.comment_outlined, color: AppColors.textSecondary, size: 16),
+              SizedBox(width: 8),
               Text(
                 'Comments',
                 style: GoogleFonts.inter(
@@ -76,7 +76,7 @@ class CommentSection extends ConsumerWidget {
         // New top-level comment box
         if (showInput) ...[
           NewCommentBox(params: params),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
         ],
 
         // Thread
@@ -228,7 +228,7 @@ class _NewCommentBoxState extends ConsumerState<NewCommentBox> {
                         shape: BoxShape.circle,
                       ),
                       padding: const EdgeInsets.all(4),
-                      child: const Icon(Icons.close, color: Colors.white, size: 16),
+                      child: Icon(Icons.close, color: Colors.white, size: 16),
                     ),
                   ),
                 ),
@@ -255,13 +255,13 @@ class _NewCommentBoxState extends ConsumerState<NewCommentBox> {
                     hintStyle: GoogleFonts.inter(
                         color: AppColors.textHint, fontSize: 13),
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     border: InputBorder.none,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             // Image picker button
             GestureDetector(
               onTap: _posting ? null : _pickImage,
@@ -373,7 +373,7 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                 imageUrl: widget.comment.authorProfilePic,
                 radius: 14,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,7 +408,7 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                     
                     // Replying to logic...
                     if (widget.depth > 0 && cleanParentAuthorName != null) ...[
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Row(
                          children: [
                             Text(
@@ -512,7 +512,7 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                       ),
                     ],
 
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
 
                     // Twitter Action bar for Comments
                     Row(
@@ -528,7 +528,7 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                             }
                           },
                         ),
-                        const SizedBox(width: 24),
+                        SizedBox(width: 24),
                         _ActionIcon(
                           icon: widget.comment.isLiked
                               ? Icons.favorite_rounded
@@ -544,12 +544,12 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                               .toggleLike(params: widget.params, id: widget.comment.id),
                         ),
                         if (isOwner) ...[
-                          const SizedBox(width: 24),
+                          SizedBox(width: 24),
                           _ActionIcon(
                             icon: Icons.edit_outlined,
                             onTap: () => setState(() => _editing = true),
                           ),
-                          const SizedBox(width: 24),
+                          SizedBox(width: 24),
                           _ActionIcon(
                             icon: Icons.delete_outline_rounded,
                             color: Colors.red.shade400,
@@ -557,13 +557,13 @@ class _CommentItemState extends ConsumerState<_CommentItem> {
                               final confirmed = await showDialog<bool>(
                                 context: context,
                                 builder: (c) => AlertDialog(
-                                  title: const Text('Delete comment?'),
+                                  title: Text('Delete comment?'),
                                   content: const Text(
                                       'This will also delete all replies.'),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.pop(c, false),
-                                      child: const Text('CANCEL',
+                                      child: Text('CANCEL',
                                           style: TextStyle(color: AppColors.textHint)),
                                     ),
                                     TextButton(
@@ -664,7 +664,7 @@ class _ActionIcon extends StatelessWidget {
   final Color? color;
   final VoidCallback onTap;
 
-  const _ActionIcon({
+  _ActionIcon({
     required this.icon,
     required this.onTap,
     this.label,
@@ -703,7 +703,7 @@ class _ActionChip extends StatelessWidget {
   final Color? color;
   final VoidCallback onTap;
 
-  const _ActionChip({
+  _ActionChip({
     required this.label,
     required this.onTap,
     this.icon,

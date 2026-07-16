@@ -22,7 +22,7 @@ class EmptyStateWidget extends StatelessWidget {
             size: 80,
             color: AppColors.textSecondary.withOpacity(0.3),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             message,
             textAlign: TextAlign.center,

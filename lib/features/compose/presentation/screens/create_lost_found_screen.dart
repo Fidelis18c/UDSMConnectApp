@@ -273,7 +273,7 @@ class _CreateLostFoundScreenState
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
@@ -285,7 +285,7 @@ class _CreateLostFoundScreenState
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // ── Anonymous Checkbox ───────────────────────────────────
               Row(
@@ -297,7 +297,7 @@ class _CreateLostFoundScreenState
                       value: _isAnonymous,
                       onChanged: (v) => setState(() => _isAnonymous = v!),
                       activeColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.textHint),
+                      side: BorderSide(color: AppColors.textHint),
                     ),
                   ),
                   const SizedBox(width: 12),

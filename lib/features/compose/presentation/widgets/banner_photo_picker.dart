@@ -10,7 +10,7 @@ class BannerPhotoPicker extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onClear;
 
-  const BannerPhotoPicker({
+  BannerPhotoPicker({
     Key? key,
     this.imageUrl,
     this.imageBytes,

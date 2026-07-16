@@ -77,7 +77,7 @@ class EventCard extends StatelessWidget {
                     ),
                     child: Text(
                       statusText.toUpperCase(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -102,11 +102,11 @@ class EventCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
-                      const SizedBox(width: 8),
+                      Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
+                      SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _formatTimestamp(event.startDateTime),
@@ -120,7 +120,7 @@ class EventCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Row(
                     children: [
                       Icon(Icons.location_on,
@@ -128,7 +128,7 @@ class EventCard extends StatelessWidget {
                           color: Theme.of(context).brightness == Brightness.dark
                               ? AppColors.textSecondary
                               : Colors.black54),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           event.location,

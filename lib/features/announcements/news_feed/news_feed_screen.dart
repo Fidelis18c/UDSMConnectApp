@@ -198,7 +198,7 @@ class NewsFeedScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (err, _) => const SliverFillRemaining(
+              error: (err, _) => SliverFillRemaining(
                 child: EmptyStateWidget(
                   icon: PhosphorIconsRegular.newspaper,
                   message: 'No posts yet. Pull down to refresh.',
@@ -207,7 +207,7 @@ class NewsFeedScreen extends ConsumerWidget {
               data: (allPosts) {
                 final posts = allPosts.where((p) => p.category != 'NOTICE' && p.category != 'ALERT').toList();
                 if (posts.isEmpty) {
-                  return const SliverFillRemaining(
+                  return SliverFillRemaining(
                     child: EmptyStateWidget(
                       icon: PhosphorIconsRegular.newspaper,
                       message: 'No posts yet. Pull down to refresh.',

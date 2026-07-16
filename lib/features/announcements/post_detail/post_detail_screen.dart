@@ -192,7 +192,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             icon: const PhosphorIcon(PhosphorIconsRegular.arrowLeft, size: 24),
             onPressed: () => context.pop(),
           ),
-          title: const Text('NEWS'),
+          title: Text('NEWS'),
         ),
         body: Center(
           child: _loadFinished && _loadFailed && widget.prefetchPost == null
@@ -472,8 +472,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                   ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          const Divider(height: 1, color: AppColors.divider),
+                          SizedBox(height: 16),
+                          Divider(height: 1, color: AppColors.divider),
                           // Twitter-like Stats line
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -500,7 +500,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                                 color: Theme.of(context).colorScheme.onSurface,
                                               ),
                                         ),
-                                        const SizedBox(width: 4),
+                                        SizedBox(width: 4),
                                         Text(
                                           'Comments',
                                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -511,7 +511,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                     );
                                   },
                                 ),
-                                const SizedBox(width: 16),
+                                SizedBox(width: 16),
                                 Row(
                                   children: [
                                     Text(
@@ -521,7 +521,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                             color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                     ),
-                                    const SizedBox(width: 4),
+                                    SizedBox(width: 4),
                                     Text(
                                       'Likes',
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -533,7 +533,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               ],
                             ),
                           ),
-                          const Divider(height: 1, color: AppColors.divider),
+                          Divider(height: 1, color: AppColors.divider),
                           // X-style Action Bar
                           Builder(builder: (context) {
                             final actionColor =
@@ -570,7 +570,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               ),
                             );
                           }),
-                          const Divider(height: 1, color: AppColors.divider),
+                          Divider(height: 1, color: AppColors.divider),
                           const SizedBox(height: 24),
                           CommentSection(
                             targetId: display.id,

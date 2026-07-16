@@ -117,7 +117,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen>
                   }
                 },
               ),
-              title: const Text('Feedback'),
+              title: Text('Feedback'),
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(56),
                 child: Padding(
@@ -165,7 +165,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen>
           controller: _tabController,
           children: [
             _SendTab(submitting: _submitting, onSubmit: _handleSubmit),
-            const _HistoryTab(),
+            _HistoryTab(),
           ],
         ),
       ),
@@ -222,13 +222,13 @@ class _SendTab extends ConsumerWidget {
                     color: AppColors.primary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     PhosphorIconsRegular.chatsTeardrop,
                     color: AppColors.primary,
                     size: 26,
                   ),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,7 +239,7 @@ class _SendTab extends ConsumerWidget {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         'Report issues or share ideas with DARUSO and university admins. Track replies in History.',
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -254,7 +254,7 @@ class _SendTab extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           // Form card
           Container(
@@ -289,7 +289,7 @@ class _SendTab extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Row(
             children: [
               Icon(
@@ -297,7 +297,7 @@ class _SendTab extends ConsumerWidget {
                 size: 14,
                 color: AppColors.textHint,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               Expanded(
                 child: Text(
                   'Your feedback is linked to your account so admins can reply.',
@@ -318,7 +318,7 @@ class _SendTab extends ConsumerWidget {
 // ── My History tab ───────────────────────────────────────────────────────────
 
 class _HistoryTab extends ConsumerWidget {
-  const _HistoryTab();
+  _HistoryTab();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -338,7 +338,7 @@ class _HistoryTab extends ConsumerWidget {
         error: (err, _) => ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            const SizedBox(height: 80),
+            SizedBox(height: 80),
             Center(
               child: Text(
                 'Could not load history',
@@ -394,7 +394,7 @@ class _HistoryTab extends ConsumerWidget {
 class _FeedbackHistoryTile extends StatelessWidget {
   final FeedbackItem item;
 
-  const _FeedbackHistoryTile({required this.item});
+  _FeedbackHistoryTile({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -436,7 +436,7 @@ class _FeedbackHistoryTile extends StatelessWidget {
                         size: 20,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,7 +449,7 @@ class _FeedbackHistoryTile extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
                             _formatTimestamp(item.createdAt),
                             style: theme.textTheme.labelSmall?.copyWith(
@@ -459,18 +459,18 @@ class _FeedbackHistoryTile extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     _StatusPill(
                       label: feedbackStatusLabel(item.status),
                       color: statusColor,
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 if (item.category != null)
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: AppColors.chipUnselected,
                       borderRadius: BorderRadius.circular(20),
@@ -483,7 +483,7 @@ class _FeedbackHistoryTile extends StatelessWidget {
                           size: 13,
                           color: AppColors.textSecondary,
                         ),
-                        const SizedBox(width: 5),
+                        SizedBox(width: 5),
                         Text(
                           item.category!.name,
                           style: theme.textTheme.labelSmall?.copyWith(
@@ -516,7 +516,7 @@ class _FeedbackHistoryTile extends StatelessWidget {
                               size: 14,
                               color: AppColors.primary,
                             ),
-                            const SizedBox(width: 6),
+                            SizedBox(width: 6),
                             Text(
                               'Admin replied',
                               style: theme.textTheme.labelSmall?.copyWith(
@@ -524,7 +524,7 @@ class _FeedbackHistoryTile extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const Spacer(),
+                            Spacer(),
                             Icon(
                               PhosphorIconsRegular.caretRight,
                               size: 14,
@@ -532,7 +532,7 @@ class _FeedbackHistoryTile extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6),
                         Text(
                           item.adminNote!,
                           maxLines: 2,
@@ -608,7 +608,7 @@ class _StatusPill extends StatelessWidget {
 class _FeedbackDetailSheet extends StatelessWidget {
   final FeedbackItem item;
 
-  const _FeedbackDetailSheet({required this.item});
+  _FeedbackDetailSheet({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -661,7 +661,7 @@ class _FeedbackDetailSheet extends StatelessWidget {
                             size: 24,
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -672,7 +672,7 @@ class _FeedbackDetailSheet extends StatelessWidget {
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              const SizedBox(height: 6),
+                              SizedBox(height: 6),
                               Text(
                                 'Submitted ${_formatTimestamp(item.createdAt)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
@@ -690,7 +690,7 @@ class _FeedbackDetailSheet extends StatelessWidget {
                     ),
 
                     if (item.category != null) ...[
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Container(
@@ -710,7 +710,7 @@ class _FeedbackDetailSheet extends StatelessWidget {
                                 size: 15,
                                 color: AppColors.textSecondary,
                               ),
-                              const SizedBox(width: 6),
+                              SizedBox(width: 6),
                               Text(
                                 item.category!.name,
                                 style: theme.textTheme.labelMedium?.copyWith(
@@ -724,9 +724,9 @@ class _FeedbackDetailSheet extends StatelessWidget {
                       ),
                     ],
 
-                    const SizedBox(height: 22),
+                    SizedBox(height: 22),
                     _SectionLabel(label: 'Your message'),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -786,7 +786,7 @@ class _FeedbackDetailSheet extends StatelessWidget {
                         ),
                       ),
                     ] else ...[
-                      const SizedBox(height: 22),
+                      SizedBox(height: 22),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
@@ -801,7 +801,7 @@ class _FeedbackDetailSheet extends StatelessWidget {
                               size: 18,
                               color: AppColors.statusPending,
                             ),
-                            const SizedBox(width: 10),
+                            SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 'No admin reply yet. We’ll update status when it’s reviewed.',
@@ -828,7 +828,7 @@ class _FeedbackDetailSheet extends StatelessWidget {
 
 class _SectionLabel extends StatelessWidget {
   final String label;
-  const _SectionLabel({required this.label});
+  _SectionLabel({required this.label});
 
   @override
   Widget build(BuildContext context) {

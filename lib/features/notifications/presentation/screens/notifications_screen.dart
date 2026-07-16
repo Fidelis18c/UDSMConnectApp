@@ -68,16 +68,16 @@ class NotificationsScreen extends ConsumerWidget {
                       // _NotificationBanner(),
 
                       if (unread.isNotEmpty) ...[
-                        const _SectionHeader(title: 'Important'),
+                        _SectionHeader(title: 'Important'),
                         ...unread.map((item) => _NotificationCard(item: item)),
                       ],
                       
                       if (read.isNotEmpty) ...[
-                        if (unread.isNotEmpty) const Divider(height: 1, color: AppColors.divider),
-                        const _SectionHeader(title: 'Earlier'),
+                        if (unread.isNotEmpty) Divider(height: 1, color: AppColors.divider),
+                        _SectionHeader(title: 'Earlier'),
                         ...read.map((item) => _NotificationCard(item: item)),
                       ],
-                      const SizedBox(height: 80),
+                      SizedBox(height: 80),
                     ],
                   );
                 },
@@ -93,7 +93,7 @@ class NotificationsScreen extends ConsumerWidget {
 class _SectionHeader extends StatelessWidget {
   final String title;
   
-  const _SectionHeader({required this.title});
+  _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +101,7 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.textSecondary,
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -169,7 +169,7 @@ class _NotificationCard extends ConsumerWidget {
               child: Icon(typeIcon, color: isDark ? Colors.white : Colors.black, size: 20),
             ),
             
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             
             // Text Content
             Expanded(
@@ -205,7 +205,7 @@ class _NotificationCard extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Text(
                     timeago.format(item.sentAt),
                     style: TextStyle(
@@ -217,7 +217,7 @@ class _NotificationCard extends ConsumerWidget {
               ),
             ),
             
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             PopupMenuButton<String>(
               icon: PhosphorIcon(PhosphorIconsBold.dotsThreeVertical, size: 20, color: isDark ? AppColors.textSecondary : Colors.black),
               color: Theme.of(context).colorScheme.surface,

@@ -167,7 +167,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Event'),
+        title: Text('Create Event'),
       ),
       body: SafeArea(
         child: Column(
@@ -185,7 +185,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text('Overview', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          Text('Overview', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(height: 16),
                           UdsmTextField(
                             controller: _titleController,
@@ -238,13 +238,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                         color: Colors.black54,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(Icons.close, size: 18, color: Colors.white),
+                                      child: Icon(Icons.close, size: 18, color: Colors.white),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Align(
                             alignment: Alignment.centerLeft,
                             child: IconButton(
@@ -257,9 +257,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 32),
-                          const Text('Timing', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 32),
+                          Text('Timing', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          SizedBox(height: 16),
                           _buildDateTimeTile(
                             label: 'Starts',
                             value: _startDateTime != null ? _formatDateTime(_startDateTime!) : 'Set start date & time',
@@ -267,7 +267,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             onTap: () => _pickDateTime(true),
                             isActive: _startDateTime != null,
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           _buildDateTimeTile(
                             label: 'Ends',
                             value: _endDateTime != null ? _formatDateTime(_endDateTime!) : 'Set end date & time',
@@ -276,28 +276,28 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                             isActive: _endDateTime != null,
                           ),
 
-                          const SizedBox(height: 32),
-                          const Text('Location & Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          SizedBox(height: 32),
+                          Text('Location & Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                           const SizedBox(height: 16),
                           UdsmTextField(
                             controller: _locationController,
                             hint: 'Physical Location',
                             prefixIcon: Icons.location_on_outlined,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           UdsmTextField(
                             controller: _locationUrlController,
                             hint: 'Google Maps Link (Optional)',
                             prefixIcon: Icons.map_outlined,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           UdsmTextField(
                             controller: _maxAttendeesController,
                             hint: 'Capacity (Optional)',
                             prefixIcon: Icons.groups_outlined,
                             keyboardType: TextInputType.number,
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
                         ],
                       ),
                     ),
@@ -309,7 +309,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                border: const Border(top: BorderSide(color: AppColors.divider)),
+                border: Border(top: BorderSide(color: AppColors.divider)),
               ),
               child: UdsmButton(
                 onPressed: _submitting ? null : _onCreate,
@@ -346,13 +346,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(8)),
               child: Icon(icon, color: isActive ? AppColors.primary : AppColors.textSecondary, size: 20),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                  const SizedBox(height: 2),
+                  Text(label, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  SizedBox(height: 2),
                   Text(
                     value,
                     style: TextStyle(
@@ -363,7 +363,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+            Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
           ],
         ),
       ),

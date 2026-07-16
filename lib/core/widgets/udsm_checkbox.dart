@@ -7,7 +7,7 @@ class UdsmCheckbox extends StatelessWidget {
   final ValueChanged<bool?> onChanged;
   final String label;
 
-  const UdsmCheckbox({
+  UdsmCheckbox({
     Key? key,
     required this.value,
     required this.onChanged,
@@ -34,7 +34,7 @@ class UdsmCheckbox extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: AppShapes.checkboxBorderRadius,
                 ),
-                side: const BorderSide(
+                side: BorderSide(
                   color: AppColors.textSecondary,
                   width: 1.5,
                 ),

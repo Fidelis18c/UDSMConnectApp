@@ -135,9 +135,9 @@ class _FeedbackFormState extends State<FeedbackForm> {
             color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         if (widget.categoriesLoading)
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Center(
               child: SizedBox(
@@ -190,7 +190,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
                               ? AppColors.primary
                               : AppColors.textSecondary,
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Text(
                           c.name,
                           style: theme.textTheme.labelMedium?.copyWith(
@@ -209,7 +209,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
             }).toList(),
           ),
 
-        const SizedBox(height: 22),
+        SizedBox(height: 22),
 
         // Subject
         Text(
@@ -219,7 +219,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
             color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         TextField(
           controller: _subjectController,
           enabled: !widget.submitting,
@@ -233,7 +233,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
           ),
         ),
 
-        const SizedBox(height: 18),
+        SizedBox(height: 18),
 
         // Message
         Text(
@@ -243,7 +243,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
             color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         TextField(
           controller: _messageController,
           enabled: !widget.submitting,
@@ -260,7 +260,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
             contentPadding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Align(
           alignment: Alignment.centerRight,
           child: Text(

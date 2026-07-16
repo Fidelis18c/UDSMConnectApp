@@ -126,7 +126,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   clipBehavior: Clip.none,
                   alignment: Alignment.topLeft,
                   children: [
-                    const Positioned.fill(
+                    Positioned.fill(
                       child: ColoredBox(color: AppColors.primary),
                     ),
                     Positioned(
@@ -208,7 +208,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Icon(
+                                      : Icon(
                                           Icons.camera_alt,
                                           size: 14,
                                           color: Colors.white,
@@ -223,7 +223,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 52),
+              SizedBox(height: 52),
               Text(
                 user.name.isEmpty ? 'Your profile' : user.name,
                 textAlign: TextAlign.center,
@@ -233,7 +233,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       letterSpacing: 0.15,
                     ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Row(
@@ -251,7 +251,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         onPressed: () => _openEditSheet(context),
-                        child: const Text('Edit Profile'),
+                        child: Text('Edit Profile'),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -261,7 +261,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: InkWell(
                         customBorder: const CircleBorder(),
                         onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             behavior: SnackBarBehavior.floating,
                             content: Text('Messages will be available soon.'),
                           ),
@@ -279,7 +279,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ],
                 ),
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(20, 32, 20, 0),
                 child: Text(
                   'Personal Information',
@@ -294,7 +294,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: ProfileInfoCard(user: user),
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(20, 28, 20, 0),
                 child: Text(
                   'Posts',

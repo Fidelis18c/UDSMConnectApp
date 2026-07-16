@@ -36,7 +36,7 @@ class ReplyScreen extends ConsumerWidget {
           icon: const PhosphorIcon(PhosphorIconsRegular.arrowLeft, size: 24),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Reply'),
+        title: Text('Reply'),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -85,7 +85,7 @@ class ReplyScreen extends ConsumerWidget {
                                 ),
                               ),
                               if (comment.imageUrl != null) ...[
-                                const SizedBox(height: 10),
+                                SizedBox(height: 10),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(14),
                                   child: CachedNetworkImage(
@@ -96,7 +96,7 @@ class ReplyScreen extends ConsumerWidget {
                                     fadeOutDuration: Duration.zero,
                                     placeholderFadeInDuration: Duration.zero,
                                     errorWidget: (_, __, ___) =>
-                                        const SizedBox.shrink(),
+                                        SizedBox.shrink(),
                                   ),
                                 ),
                               ],
@@ -105,7 +105,7 @@ class ReplyScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     Row(
                       children: [
                         Text(

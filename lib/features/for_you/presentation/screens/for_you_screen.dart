@@ -25,7 +25,7 @@ class ForYouScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('For you'),
+        title: Text('For you'),
       ),
       floatingActionButton: !canComposeClass
           ? null
@@ -47,10 +47,10 @@ class ForYouScreen extends ConsumerWidget {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: StoriesTray(),
             ),
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Divider(height: 1, thickness: 0.5, color: AppColors.divider),
             ),
             asyncPosts.when(
@@ -72,7 +72,7 @@ class ForYouScreen extends ConsumerWidget {
                     .toList();
 
                 if (posts.isEmpty) {
-                  return const SliverFillRemaining(
+                  return SliverFillRemaining(
                     child: EmptyStateWidget(
                       icon: PhosphorIconsRegular.sparkle,
                       message: 'No class announcements yet.',

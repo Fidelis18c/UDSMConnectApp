@@ -6,7 +6,7 @@ class ProfilePersonalRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const ProfilePersonalRow({
+  ProfilePersonalRow({
     super.key,
     required this.label,
     required this.value,
@@ -27,7 +27,7 @@ class ProfilePersonalRow extends StatelessWidget {
                   letterSpacing: 0.15,
                 ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(
             value.isEmpty ? '—' : value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -44,7 +44,7 @@ class ProfilePersonalRow extends StatelessWidget {
 class ProfileInfoCard extends StatelessWidget {
   final UserModel user;
 
-  const ProfileInfoCard({
+  ProfileInfoCard({
     super.key,
     required this.user,
   });
