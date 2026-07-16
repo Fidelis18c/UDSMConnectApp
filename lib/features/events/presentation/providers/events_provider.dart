@@ -53,19 +53,15 @@ class EventsNotifier extends AsyncNotifier<List<Event>> {
     state = await AsyncValue.guard(() => _fetch(categoryId: categoryId));
   }
 
-  Future<bool> createEvent(Map<String, dynamic> data) async {
+  /// Creates an event. Throws with a readable message on failure.
+  Future<Event> createEvent(Map<String, dynamic> data) async {
+    final repo = ref.read(eventRepositoryProvider);
+    final created = await repo.createEvent(data);
+    // Refresh list in background; don't fail create if refresh fails
     try {
-      print('DEBUG: Creating event with data: $data');
-      final repo = ref.read(eventRepositoryProvider);
-      await repo.createEvent(data);
-      print('DEBUG: Event created successfully in repo');
-      refresh();
-      return true;
-    } catch (e, stack) {
-      print('DEBUG: Failed to create event: $e');
-      print(stack);
-      return false;
-    }
+      await refresh();
+    } catch (_) {}
+    return created;
   }
 }
 

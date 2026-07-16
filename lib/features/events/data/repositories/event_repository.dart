@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/models/event.dart';
 import '../../../../core/models/attendee.dart';
@@ -85,20 +86,43 @@ class EventRepository {
     try {
       final Map<String, dynamic> requestData = {
         'title': data['title'],
-        'description': data['description'],
+        'description': (data['description'] as String?)?.trim().isNotEmpty == true
+            ? data['description']
+            : 'No description provided.',
         'categoryId': data['categoryId'],
         'startDateTime': data['startDateTime'],
         'endDateTime': data['endDateTime'],
       };
       if (data['status'] != null) requestData['status'] = data['status'];
-      if (data['coverImageId'] != null) requestData['coverImageId'] = data['coverImageId'];
-      if (data['location'] != null) requestData['location'] = data['location'];
-      if (data['locationUrl'] != null) requestData['locationUrl'] = data['locationUrl'];
-      if (data['maxAttendees'] != null) requestData['maxAttendees'] = data['maxAttendees'];
-      if (data['academicYearId'] != null) requestData['academicYearId'] = data['academicYearId'];
+      if (data['coverImageId'] != null &&
+          data['coverImageId'].toString().isNotEmpty) {
+        requestData['coverImageId'] = data['coverImageId'];
+      }
+      final loc = (data['location'] as String?)?.trim();
+      if (loc != null && loc.isNotEmpty) requestData['location'] = loc;
+      final locUrl = (data['locationUrl'] as String?)?.trim();
+      if (locUrl != null && locUrl.isNotEmpty) {
+        requestData['locationUrl'] = locUrl;
+      }
+      if (data['maxAttendees'] != null) {
+        requestData['maxAttendees'] = data['maxAttendees'];
+      }
+      if (data['academicYearId'] != null &&
+          data['academicYearId'].toString().isNotEmpty) {
+        requestData['academicYearId'] = data['academicYearId'];
+      }
 
       final response = await _apiClient.dio.post('/events', data: requestData);
-      return Event.fromJson(response.data['data']);
+      final payload = response.data['data'];
+      if (payload is Map<String, dynamic>) {
+        return Event.fromJson(payload);
+      }
+      return Event.fromJson(Map<String, dynamic>.from(payload as Map));
+    } on DioException catch (e) {
+      final msg = e.response?.data is Map
+          ? (e.response?.data['message']?.toString())
+          : null;
+      throw Exception(msg ?? 'Failed to create event (${e.response?.statusCode ?? 'network'})');
     } catch (e) {
       rethrow;
     }

@@ -119,35 +119,44 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
       final Map<String, dynamic> eventData = {
         'title': _titleController.text.trim(),
-        'description': _descController.text.trim(),
+        'description': _descController.text.trim().isEmpty
+            ? 'No description provided.'
+            : _descController.text.trim(),
         'categoryId': _selectedCategoryId,
+        // Always send UTC ISO with Z for backend validation
         'startDateTime': _startDateTime!.toUtc().toIso8601String(),
         'endDateTime': _endDateTime!.toUtc().toIso8601String(),
-        'location': _locationController.text.trim(),
-        'maxAttendees': int.tryParse(_maxAttendeesController.text.trim()),
-        'coverImageId': coverImageId,
         'status': 'PUBLISHED',
       };
+
+      final location = _locationController.text.trim();
+      if (location.isNotEmpty) eventData['location'] = location;
+
+      final maxAttendees = int.tryParse(_maxAttendeesController.text.trim());
+      if (maxAttendees != null && maxAttendees > 0) {
+        eventData['maxAttendees'] = maxAttendees;
+      }
+
+      if (coverImageId != null && coverImageId.isNotEmpty) {
+        eventData['coverImageId'] = coverImageId;
+      }
 
       if (_locationUrlController.text.trim().isNotEmpty) {
         eventData['locationUrl'] = _locationUrlController.text.trim();
       }
 
-      final success = await eventsNotifier.createEvent(eventData);
+      await eventsNotifier.createEvent(eventData);
 
-      if (success) {
-        if (!mounted) return;
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Event created successfully!')),
-        );
-      } else {
-        throw Exception('Failed to create event');
-      }
+      if (!mounted) return;
+      context.pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event created successfully!')),
+      );
     } catch (e) {
       if (!mounted) return;
+      final msg = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(content: Text(msg.isEmpty ? 'Failed to create event' : msg)),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
