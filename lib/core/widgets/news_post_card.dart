@@ -314,17 +314,18 @@ class _IconCountTap extends StatelessWidget {
     required this.count,
     required this.onTap,
     this.iconFill,
-    this.color = AppColors.textSecondary,
+    this.color,
   });
 
   final IconData icon;
   final double? iconFill;
   final int count;
   final VoidCallback onTap;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final resolvedColor = color ?? AppColors.textSecondary;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -336,14 +337,14 @@ class _IconCountTap extends StatelessWidget {
             PhosphorIcon(
               icon,
               size: 18,
-              color: color,
+              color: resolvedColor,
               fill: iconFill ?? 0.0,
             ),
             const SizedBox(width: 4),
             Text(
               '$count',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: color,
+                    color: resolvedColor,
                     fontWeight: FontWeight.w700,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),

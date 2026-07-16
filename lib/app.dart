@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/firebase/firebase_bootstrap.dart';
 import 'core/notifications/notification_events.dart';
+import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/notifications/presentation/providers/notifications_provider.dart';
@@ -41,6 +42,12 @@ class _UdsmConnectAppState extends ConsumerState<UdsmConnectApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       routerConfig: appRouter,
+      builder: (context, child) {
+        // Keep adaptive AppColors in sync with the active brightness so light
+        // mode text/surfaces stay readable without rewriting every widget.
+        AppColors.updateBrightness(Theme.of(context).brightness);
+        return child ?? const SizedBox.shrink();
+      },
     );
   }
 }

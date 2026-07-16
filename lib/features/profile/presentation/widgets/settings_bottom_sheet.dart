@@ -127,7 +127,10 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet> {
             ),
             value: isDarkMode,
             onChanged: (value) {
-              ref.read(themeProvider.notifier).toggleTheme();
+              // value true → dark, false → light
+              ref.read(themeProvider.notifier).setTheme(
+                    value ? ThemeMode.dark : ThemeMode.light,
+                  );
             },
             activeColor: Theme.of(context).primaryColor,
           ),
