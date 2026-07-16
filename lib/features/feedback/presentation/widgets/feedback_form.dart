@@ -304,11 +304,10 @@ class _FeedbackFormState extends State<FeedbackForm> {
                       Icon(Icons.send_rounded, size: 18),
                       SizedBox(width: 8),
                       Text(
-                        'Send feedback',
+                        'Submit',
                         style: TextStyle(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 15,
-                          letterSpacing: 0.2,
                         ),
                       ),
                     ],
